@@ -601,9 +601,16 @@ export default function EditPagePage({
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.frontendUrl || "";
   const pagePath = slugToPath(page.slug);
+  // Preview priority:
+  // 1. Frontend URL configured → load page on client site (with draft hint)
+  // 2. No frontend URL but has content → internal preview API
+  // 3. No frontend URL and no content → empty state
+  const hasContent = !!(page.content || page.draft);
   const previewUrl = frontendBase
-    ? `${frontendBase}${pagePath}${pagePath.includes("?") ? "&" : "?"}preview=draft&pageId=${id}`
-    : "";
+    ? `${frontendBase}${pagePath}`
+    : hasContent || hasSections
+      ? `/api/admin/pages/${id}/preview${hasSections ? "?sections=draft" : ""}`
+      : "";
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
