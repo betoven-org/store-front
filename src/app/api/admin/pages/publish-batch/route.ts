@@ -7,6 +7,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { parseBody } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 const schema = z.object({
   ids: z.array(z.number().int()).min(1, "Selecione ao menos uma pagina"),
@@ -55,6 +56,14 @@ export async function POST(request: NextRequest) {
   }
 
   revalidateTag("pages");
+
+  const publishedSlugs = pending
+    .filter((p) => p.draft)
+    .map((p) => `/${p.slug === "home" ? "" : p.slug}`);
+  notifyFrontend(tenantId, {
+    paths: publishedSlugs.length > 0 ? publishedSlugs : ["/"],
+    tags: ["pages"],
+  });
 
   return NextResponse.json({ success: true, published });
 }

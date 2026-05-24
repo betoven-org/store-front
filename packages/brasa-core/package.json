@@ -11,7 +11,8 @@
     "./search": "./src/search.ts",
     "./validations": "./src/validations.ts",
     "./slug": "./src/slug.ts",
-    "./db": "./src/db.ts"
+    "./db": "./src/db.ts",
+    "./revalidate": "./src/revalidate.ts"
   },
   "dependencies": {},
   "peerDependencies": {

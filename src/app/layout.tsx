@@ -1,39 +1,15 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-  ),
   title: {
-    default: "Medicinal na Web | Portal de Saúde e Bem-estar",
-    template: "%s | Medicinal na Web",
+    default: "Brasa CMS",
+    template: "%s | Brasa CMS",
   },
-  description:
-    "Portal de saúde, suplementos naturais, fitoterapia e bem-estar. Conteúdo educativo sobre nutrição, vitaminas e vida saudável.",
-  keywords: [
-    "saúde",
-    "suplementos",
-    "fitoterapia",
-    "bem-estar",
-    "nutrição",
-    "vitaminas",
-    "medicinal",
-  ],
-  openGraph: {
-    type: "website",
-    locale: "pt_BR",
-    siteName: "Medicinal na Web",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  description: "Content Management System",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

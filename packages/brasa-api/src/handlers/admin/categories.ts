@@ -6,6 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { generateSlug } from "@brasa/core/slug";
 import { parseBody, createCategorySchema } from "@brasa/core/validations";
+import { notifyFrontend } from "@brasa/core/revalidate";
+import { headers } from "next/headers";
 
 export async function GET() {
   try {
@@ -67,6 +69,13 @@ export async function POST(req: NextRequest) {
       .returning();
 
     revalidateTag("categories");
+
+    const h = await headers();
+    const tenantId = parseInt(h.get("x-tenant-id") || "1", 10);
+    notifyFrontend(tenantId, {
+      paths: ["/"],
+      tags: ["categories"],
+    });
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {

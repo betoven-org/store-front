@@ -5,6 +5,8 @@ import { siteSettings, media } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { parseBody, updateSettingsSchema } from "@brasa/core/validations";
+import { notifyFrontend } from "@brasa/core/revalidate";
+import { headers } from "next/headers";
 
 export async function GET() {
   const session = await auth();
@@ -67,6 +69,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     revalidateTag("settings");
+
+    const h = await headers();
+    const tenantId = parseInt(h.get("x-tenant-id") || "1", 10);
+    notifyFrontend(tenantId, {
+      paths: ["/"],
+      tags: ["settings"],
+    });
 
     // Re-fetch with relations for the response
     const updated = await db.query.siteSettings.findFirst({

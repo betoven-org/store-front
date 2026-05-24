@@ -12,17 +12,13 @@
     }
   },
   "scripts": {
-    "dev": "tsx scripts/watch-sections.ts & next dev",
-    "dev:next": "next dev",
-    "dev:watch": "tsx scripts/watch-sections.ts",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "manifest": "tsx scripts/extract-sections.ts",
     "tenant:create": "tsx scripts/create-tenant.ts",
     "init:env": "tsx scripts/init-env.ts",
     "init:project": "tsx scripts/init-project.ts",
-    "prebuild": "tsx scripts/extract-sections.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -85,7 +81,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.4",
     "tailwindcss": "^4",
-    "ts-morph": "^28.0.0",
     "tsx": "^4.22.3",
     "typescript": "^5"
   },
