@@ -1,6 +1,7 @@
 "use client";
 
-import { AdminShell, SettingsContent } from "@brasa/admin";
+import { useState } from "react";
+import { AdminShell, SettingsContent, FormField, useTenant } from "@brasa/admin";
 import { useSettings } from "@/hooks/useSettings";
 
 export default function IdentidadePage() {
@@ -17,6 +18,41 @@ export default function IdentidadePage() {
     onLogoChange,
     onFaviconChange,
   } = useSettings();
+
+  const tenant = useTenant();
+  const [frontendUrl, setFrontendUrl] = useState("");
+  const [tenantSaving, setTenantSaving] = useState(false);
+  const [tenantSuccess, setTenantSuccess] = useState(false);
+  const [tenantError, setTenantError] = useState<string | null>(null);
+  const [tenantLoaded, setTenantLoaded] = useState(false);
+
+  if (tenant && !tenantLoaded) {
+    setFrontendUrl(tenant.frontendUrl || "");
+    setTenantLoaded(true);
+  }
+
+  async function handleSaveTenant() {
+    setTenantSaving(true);
+    setTenantError(null);
+    setTenantSuccess(false);
+    try {
+      const res = await fetch("/api/admin/tenant-info", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frontendUrl }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? "Erro ao salvar");
+      }
+      setTenantSuccess(true);
+      setTimeout(() => setTenantSuccess(false), 3000);
+    } catch (err) {
+      setTenantError(err instanceof Error ? err.message : "Erro desconhecido");
+    } finally {
+      setTenantSaving(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -147,6 +183,43 @@ export default function IdentidadePage() {
               </svg>
               {error}
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Frontend URL — salva no tenant */}
+      <div className="mt-6 rounded-lg border border-border bg-card p-6">
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-foreground">URL do Frontend</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            URL do projeto cliente onde o conteudo e renderizado. Usada no preview e nos webhooks de revalidacao.
+          </p>
+        </div>
+
+        <FormField
+          label="Frontend URL"
+          name="frontendUrl"
+          value={frontendUrl}
+          onChange={(e) => setFrontendUrl(e.target.value)}
+          placeholder="https://meusite.vercel.app"
+          description="Ex: https://blog-medicinal.vercel.app (sem barra final)"
+        />
+
+        <div className="mt-6 flex items-center gap-4 border-t border-border pt-6">
+          <button
+            type="button"
+            onClick={handleSaveTenant}
+            disabled={tenantSaving}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {tenantSaving ? "Salvando..." : "Salvar URL"}
+          </button>
+
+          {tenantSuccess && (
+            <span className="text-sm font-medium text-success">Salvo!</span>
+          )}
+          {tenantError && (
+            <span className="text-sm font-medium text-destructive">{tenantError}</span>
           )}
         </div>
       </div>
