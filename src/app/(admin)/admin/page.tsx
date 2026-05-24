@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { AdminShell } from "@brasa/admin";
 
-/* ── Types ────────────────────────────────────────────────────────────────────── */
+/* ── Types ──────────────────────────────────────────────────────────────────── */
 
 type Performance = {
   current: {
@@ -19,12 +19,6 @@ type Performance = {
     avgLatency: number;
     errorRate: number;
   };
-  slowestPages: {
-    path: string;
-    avgLatency: number;
-    p95Latency: number;
-    count: number;
-  }[];
 };
 
 type RecentChange = {
@@ -33,7 +27,6 @@ type RecentChange = {
   slug: string;
   status: string;
   updated_at: string;
-  created_at: string;
 };
 
 type Release = {
@@ -44,74 +37,236 @@ type Release = {
 };
 
 type DashboardData = {
-  performance: Performance;
+  performance: Performance & { slowestPages: unknown[] };
   recentChanges: RecentChange[];
   releases: Release[];
 };
 
-/* ── Helpers ──────────────────────────────────────────────────────────────────── */
+type AnalyticsOverview = {
+  totalViews: number;
+  uniqueVisitors: number;
+  bounceRate: number;
+};
+
+type TimeseriesPoint = { date: string; views: number };
+
+/* ── Helpers ────────────────────────────────────────────────────────────────── */
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString("pt-BR");
+  if (n >= 1_000) return new Intl.NumberFormat("pt-BR").format(n);
+  return n.toString();
 }
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "agora";
-  if (mins < 60) return `${mins}min`;
+  if (mins < 60) return `ha ${mins} min`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return `ha ${hours}h`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d`;
-  return `${Math.floor(days / 30)}m`;
+  if (days === 1) return "ontem";
+  if (days < 30) return `ha ${days}d`;
+  return `ha ${Math.floor(days / 30)}m`;
 }
 
-function delta(current: number, previous: number): { label: string; positive: boolean } | null {
-  if (!previous || !current || !isFinite(current) || !isFinite(previous)) return null;
+function pctChange(current: number, previous: number): { label: string; positive: boolean } | null {
+  if (!previous || !current) return null;
   const pct = ((current - previous) / previous) * 100;
   if (!isFinite(pct) || Math.abs(pct) < 0.5) return null;
-  // Cap at +/- 999% to avoid alarming numbers from near-zero baselines
   const capped = Math.max(-999, Math.min(999, pct));
-  return { label: `${capped > 0 ? "+" : ""}${capped.toFixed(0)}%`, positive: capped < 0 };
+  return { label: `${capped > 0 ? "+" : ""}${capped.toFixed(1)}%`, positive: capped > 0 };
 }
 
-function latencyColor(ms: number): string {
-  if (ms <= 200) return "text-success";
-  if (ms <= 500) return "text-warning";
-  return "text-destructive";
+const WEEKDAY_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+
+function dayLabel(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  return WEEKDAY_SHORT[d.getDay()];
 }
 
-function latencyBar(ms: number): string {
-  if (ms <= 200) return "bg-success-bg0/20";
-  if (ms <= 500) return "bg-warning-bg0/20";
-  return "bg-danger-bg0/20";
+/* ── Activity icons by type ─────────────────────────────────────────────────── */
+
+function ActivityIcon({ type, status }: { type: string; status: string }) {
+  if (status === "published") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="4" y="2" width="16" height="20" rx="2" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    );
+  }
+  if (type === "product") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  );
 }
 
-function healthLabel(avgMs: number, errorRate: number): { text: string; color: string } {
-  if (errorRate > 5) return { text: "Atencao necessaria", color: "text-destructive" };
-  if (avgMs > 500) return { text: "Pode melhorar", color: "text-warning" };
-  if (avgMs > 200) return { text: "Bom", color: "text-success" };
-  return { text: "Excelente", color: "text-success" };
+/* ── SVG Chart (pure, no libs) ──────────────────────────────────────────────── */
+
+function TrafficChart({ data }: { data: TimeseriesPoint[] }) {
+  if (data.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        Sem dados de trafego no periodo
+      </div>
+    );
+  }
+
+  const maxViews = Math.max(...data.map((d) => d.views), 1);
+  const W = 700;
+  const H = 260;
+  const PX = 40;
+  const PY = 20;
+
+  const chartW = W - PX - 10;
+  const chartH = H - PY * 2;
+
+  const points = data.map((d, i) => ({
+    x: PX + (i / (data.length - 1 || 1)) * chartW,
+    y: PY + chartH - (d.views / maxViews) * chartH,
+    ...d,
+  }));
+
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const areaPath = `${linePath} L${points[points.length - 1].x},${PY + chartH} L${points[0].x},${PY + chartH} Z`;
+
+  const ticks = 5;
+  const yLabels = Array.from({ length: ticks + 1 }, (_, i) => {
+    const val = (maxViews / ticks) * (ticks - i);
+    return {
+      y: PY + (i / ticks) * chartH,
+      label: val >= 1000 ? `${(val / 1000).toFixed(0)}k` : `${val.toFixed(0)}`,
+    };
+  });
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H + 30}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+      {yLabels.map((t, i) => (
+        <g key={i}>
+          <line x1={PX} y1={t.y} x2={W - 10} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
+          <text x={PX - 6} y={t.y + 4} textAnchor="end" className="fill-muted-foreground" style={{ fontSize: 10 }}>
+            {t.label}
+          </text>
+        </g>
+      ))}
+      <path d={areaPath} fill="url(#areaGrad)" />
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#18181b" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#18181b" stopOpacity="0.01" />
+        </linearGradient>
+      </defs>
+      <path d={linePath} fill="none" stroke="#18181b" strokeWidth="2" strokeLinejoin="round" />
+      {points.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="4" fill="white" stroke="#18181b" strokeWidth="2" />
+          <text x={p.x} y={H + 10} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 10 }}>
+            {dayLabel(p.date)}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
 }
 
-/* ── Component ────────────────────────────────────────────────────────────────── */
+/* ── Stat Card ──────────────────────────────────────────────────────────────── */
+
+function StatCard({
+  label,
+  value,
+  subtitle,
+  change,
+  icon,
+}: {
+  label: string;
+  value: string;
+  subtitle?: string;
+  change?: { label: string; positive: boolean } | null;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-5 py-4">
+      <div className="flex items-start justify-between">
+        <p className="text-[13px] text-muted-foreground">{label}</p>
+        <span className="text-muted-foreground/60">{icon}</span>
+      </div>
+      <p className="mt-2 text-[28px] font-bold leading-none tracking-tight text-foreground" style={{ fontVariantNumeric: "tabular-nums" }}>
+        {value}
+      </p>
+      {(change || subtitle) && (
+        <div className="mt-1.5 flex items-baseline gap-1.5">
+          {change && (
+            <span className={`text-xs font-semibold ${change.positive ? "text-emerald-600" : "text-red-500"}`}>
+              {change.label}
+            </span>
+          )}
+          {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Latency Bar ────────────────────────────────────────────────────────────── */
+
+function LatencyBar({ value, max }: { value: number; max: number }) {
+  const pct = Math.min((value / max) * 100, 100);
+  return (
+    <div className="mt-1 h-1.5 w-full rounded-full bg-muted">
+      <div
+        className={`h-full rounded-full transition-all ${value <= 200 ? "bg-foreground" : value <= 500 ? "bg-amber-500" : "bg-red-500"}`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+/* ── Main Component ─────────────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState(7);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(null);
+  const [timeseries, setTimeseries] = useState<TimeseriesPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const fetchData = useCallback(async (days: number) => {
     setLoading(true);
     setError(false);
+
+    const from = new Date(Date.now() - days * 86400000).toISOString();
+    const to = new Date().toISOString();
+
     try {
-      const res = await fetch(`/api/admin/dashboard?days=${days}`);
-      if (!res.ok) throw new Error();
-      setData(await res.json());
+      const [dashRes, overviewRes, tsRes] = await Promise.all([
+        fetch(`/api/admin/dashboard?days=${days}`),
+        fetch(`/api/admin/analytics?type=overview&from=${from}&to=${to}`).catch(() => null),
+        fetch(`/api/admin/analytics?type=timeseries&from=${from}&to=${to}`).catch(() => null),
+      ]);
+
+      if (!dashRes.ok) throw new Error();
+      setData(await dashRes.json());
+
+      if (overviewRes?.ok) {
+        setAnalytics(await overviewRes.json());
+      }
+      if (tsRes?.ok) {
+        setTimeseries(await tsRes.json());
+      }
     } catch {
       setError(true);
     } finally {
@@ -122,6 +277,9 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchData(period);
   }, [period, fetchData]);
+
+  const postCount = data?.releases?.length ?? 0;
+  const productCount = data?.recentChanges?.filter((c) => c.type === "product").length ?? 0;
 
   return (
     <AdminShell title="Dashboard">
@@ -137,9 +295,9 @@ export default function DashboardPage() {
               key={opt.days}
               type="button"
               onClick={() => setPeriod(opt.days)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 period === opt.days
-                  ? "bg-card text-primary shadow"
+                  ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -155,174 +313,250 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => fetchData(period)}
-            className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
+            className="mt-3 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90"
           >
             Tentar novamente
           </button>
         </div>
       ) : loading ? (
         <div className="space-y-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-64 animate-pulse rounded-xl border border-border bg-card" />
-          ))}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-[100px] animate-pulse rounded-xl border border-border bg-card" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <div className="h-[380px] animate-pulse rounded-xl border border-border bg-card lg:col-span-3" />
+            <div className="h-[380px] animate-pulse rounded-xl border border-border bg-card lg:col-span-2" />
+          </div>
         </div>
       ) : data ? (
         <div className="space-y-6">
-          {/* ── Performance Benchmark ─────────────────────────────────────── */}
-          <section className="rounded-xl border border-border bg-card">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <h2 className="text-sm font-semibold text-foreground">Desempenho do Site</h2>
-              {data.performance.current.totalRequests > 0 && (() => {
-                const h = healthLabel(data.performance.current.avgLatency, data.performance.current.errorRate);
-                return (
-                  <span className={`rounded-full bg-background px-2.5 py-1 text-xs font-semibold ${h.color}`}>
-                    {h.text}
-                  </span>
-                );
+          {/* Row 1: Stat Cards */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard
+              label="Posts publicados"
+              value={String(postCount)}
+              subtitle={postCount > 0 ? "no periodo" : undefined}
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Produtos"
+              value={String(productCount)}
+              subtitle={productCount > 0 ? "alterados" : undefined}
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+              }
+            />
+            <StatCard
+              label={`Pageviews (${period}d)`}
+              value={formatNumber(analytics?.totalViews ?? data.performance.current.totalRequests)}
+              change={pctChange(
+                analytics?.totalViews ?? data.performance.current.totalRequests,
+                data.performance.previous.totalRequests,
+              )}
+              subtitle="vs. periodo anterior"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Latencia p50"
+              value={`${data.performance.current.p50Latency}ms`}
+              change={(() => {
+                const diff = data.performance.current.avgLatency - data.performance.previous.avgLatency;
+                if (!data.performance.previous.avgLatency || Math.abs(diff) < 1) return null;
+                return { label: `${diff > 0 ? "+" : ""}${diff}ms`, positive: diff < 0 };
               })()}
-            </div>
-            <div className="p-5">
-              {/* Metricas resumo */}
-              <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {[
-                  { label: "Visualizacoes", value: formatNumber(data.performance.current.totalRequests), diff: delta(data.performance.current.totalRequests, data.performance.previous.totalRequests), invertColor: false },
-                  { label: "Tempo de Resposta", value: `${data.performance.current.avgLatency}ms`, diff: delta(data.performance.current.avgLatency, data.performance.previous.avgLatency), invertColor: true },
-                  { label: "P95", value: `${data.performance.current.p95Latency}ms`, diff: null, invertColor: true },
-                  { label: "Taxa de Erro", value: `${data.performance.current.errorRate}%`, diff: delta(data.performance.current.errorRate, data.performance.previous.errorRate), invertColor: true },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-lg bg-background px-3 py-2.5">
-                    <p className="text-[11px] font-medium text-muted-foreground">{item.label}</p>
-                    <div className="mt-0.5 flex items-baseline gap-1.5">
-                      <span className="text-lg font-bold text-foreground">{item.value}</span>
-                      {item.diff && (
-                        <span className={`text-[11px] font-medium ${
-                          item.invertColor
-                            ? item.diff.positive ? "text-success" : "text-destructive"
-                            : item.diff.positive ? "text-destructive" : "text-success"
-                        }`}>
-                          {item.diff.label}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              subtitle="API media"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+              }
+            />
+          </div>
 
-              {/* Pages by response time — only show if any page is above 300ms */}
-              {data.performance.slowestPages.some((p) => p.avgLatency > 300) && (
+          {/* Row 2: Traffic Chart + Activity Feed */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <div className="rounded-xl border border-border bg-card lg:col-span-3">
+              <div className="flex items-center justify-between border-b border-border px-5 py-4">
                 <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">Tempo de Resposta por Pagina</p>
-                  <div className="space-y-1">
-                    {data.performance.slowestPages.filter((p) => p.avgLatency > 200).map((page, i) => {
-                      const maxLatency = data.performance.slowestPages[0]?.avgLatency || 1;
-                      const pct = (page.avgLatency / maxLatency) * 100;
-                      return (
-                        <div key={i} className="relative rounded-md py-1.5">
-                          <div
-                            className={`absolute inset-y-0 left-0 rounded-md ${latencyBar(page.avgLatency)}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                          <div className="relative flex items-center justify-between px-3 text-sm">
-                            <span className="truncate text-foreground" title={page.path}>
-                              {page.path.length > 50 ? page.path.slice(0, 50) + "..." : page.path}
-                            </span>
-                            <div className="ml-3 flex items-center gap-3 text-xs">
-                              <span className="text-muted-foreground">{page.count} req</span>
-                              <span className="text-muted-foreground">p95: {page.p95Latency}ms</span>
-                              <span className={`font-semibold ${latencyColor(page.avgLatency)}`}>
-                                {page.avgLatency}ms
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <h2 className="text-sm font-semibold text-foreground">Trafego do site</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Pageviews · {period === 1 ? "24 horas" : `${period} dias`}
+                  </p>
                 </div>
-              )}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-foreground" />
+                    Pageviews
+                  </span>
+                </div>
+              </div>
+              <div className="p-5">
+                <TrafficChart data={timeseries} />
+              </div>
+            </div>
 
-              {data.performance.current.totalRequests === 0 && (
-                <p className="py-6 text-center text-sm text-muted-foreground">Sem dados de performance no periodo</p>
-              )}
-            </div>
-          </section>
-
-          {/* ── Recent Changes ────────────────────────────────────────────── */}
-          <section className="rounded-xl border border-border bg-card">
-            <div className="border-b border-border px-5 py-4">
-              <h2 className="text-sm font-semibold text-foreground">Recent Changes</h2>
-            </div>
-            <div className="divide-y divide-border">
-              {data.recentChanges.length > 0 ? (
-                data.recentChanges.map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-3">
-                    <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
-                      item.type === "post"
-                        ? "bg-primary/5 text-primary"
-                        : "bg-purple-50 text-purple-600"
-                    }`}>
-                      {item.type === "post" ? "Post" : "Produto"}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">/{item.slug}</p>
-                    </div>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                      item.status === "published"
-                        ? "bg-success-bg text-success"
-                        : "bg-accent text-muted-foreground"
-                    }`}>
-                      {item.status === "published" ? "publicado" : "rascunho"}
-                    </span>
-                    <span className="flex-shrink-0 text-xs text-muted-foreground" title={item.updated_at}>
-                      {timeAgo(item.updated_at)}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="px-5 py-6 text-center text-sm text-muted-foreground">Nenhuma alteracao recente</p>
-              )}
-            </div>
-          </section>
-
-          {/* ── Releases & Impact ─────────────────────────────────────────── */}
-          <section className="rounded-xl border border-border bg-card">
-            <div className="border-b border-border px-5 py-4">
-              <h2 className="text-sm font-semibold text-foreground">Releases & Impact</h2>
-            </div>
-            <div className="divide-y divide-border">
-              {data.releases.length > 0 ? (
-                data.releases.map((item, i) => {
-                  const maxViews = Math.max(...data.releases.map((r) => r.views), 1);
-                  const pct = (item.views / maxViews) * 100;
-                  return (
-                    <div key={i} className="relative px-5 py-3">
-                      <div
-                        className="absolute inset-y-0 right-0 rounded-r-xl bg-primary/[0.03]"
-                        style={{ width: `${pct}%` }}
-                      />
-                      <div className="relative flex items-center justify-between">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Publicado {timeAgo(item.published_at)}
-                          </p>
-                        </div>
-                        <div className="ml-3 flex items-center gap-2">
-                          <span className="text-sm font-semibold text-foreground">
-                            {formatNumber(item.views)}
-                          </span>
-                          <span className="text-xs text-muted-foreground">views</span>
-                        </div>
+            <div className="rounded-xl border border-border bg-card lg:col-span-2">
+              <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                  <h2 className="text-sm font-semibold text-foreground">Atividade recente</h2>
+                  <p className="text-xs text-muted-foreground">Ultimas alteracoes</p>
+                </div>
+                {data.recentChanges.length > 0 && (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-xs font-semibold text-foreground">
+                    {data.recentChanges.length}
+                  </span>
+                )}
+              </div>
+              <div className="divide-y divide-border">
+                {data.recentChanges.length > 0 ? (
+                  data.recentChanges.slice(0, 6).map((item, i) => (
+                    <div key={i} className="flex items-start gap-3 px-5 py-3.5">
+                      <span className="mt-0.5 flex-shrink-0 text-muted-foreground/60">
+                        <ActivityIcon type={item.type} status={item.status} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-foreground">
+                          <span className="font-medium">{item.name}</span>
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{timeAgo(item.updated_at)}</p>
                       </div>
                     </div>
-                  );
-                })
-              ) : (
-                <p className="px-5 py-6 text-center text-sm text-muted-foreground">Nenhum post publicado ainda</p>
-              )}
+                  ))
+                ) : (
+                  <p className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma atividade recente</p>
+                )}
+              </div>
             </div>
-          </section>
+          </div>
+
+          {/* Row 3: Recent Posts + Performance */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <div className="rounded-xl border border-border bg-card lg:col-span-3">
+              <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                <h2 className="text-sm font-semibold text-foreground">Posts recentes</h2>
+                <a
+                  href="/admin/posts"
+                  className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Ver todos
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+              <div className="divide-y divide-border">
+                {data.releases.length > 0 ? (
+                  data.releases.slice(0, 5).map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 px-5 py-3">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] font-medium text-muted-foreground">
+                        img
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Publicado {timeAgo(item.published_at)}
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Publicado
+                      </span>
+                      <span className="min-w-[50px] text-right text-sm font-semibold text-muted-foreground tabular-nums">
+                        {formatNumber(item.views)}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhum post publicado</p>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card lg:col-span-2">
+              <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                <h2 className="text-sm font-semibold text-foreground">Performance</h2>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  data.performance.current.errorRate > 5
+                    ? "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400"
+                    : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    data.performance.current.errorRate > 5 ? "bg-red-500" : "bg-emerald-500"
+                  }`} />
+                  {data.performance.current.errorRate > 5 ? "atencao" : "operacional"}
+                </span>
+              </div>
+              <div className="px-5 py-4">
+                <p className="mb-4 text-xs text-muted-foreground">
+                  API · ultimos {period === 1 ? "24h" : `${period} dias`}
+                </p>
+                <div className="space-y-5">
+                  <div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-sm text-foreground">Latencia p50</span>
+                      <span className="text-sm font-bold text-foreground tabular-nums">
+                        {data.performance.current.p50Latency}<span className="text-xs font-normal text-muted-foreground">ms</span>
+                      </span>
+                    </div>
+                    <LatencyBar value={data.performance.current.p50Latency} max={1000} />
+                  </div>
+                  <div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-sm text-foreground">Latencia p95</span>
+                      <span className="text-sm font-bold text-foreground tabular-nums">
+                        {data.performance.current.p95Latency}<span className="text-xs font-normal text-muted-foreground">ms</span>
+                      </span>
+                    </div>
+                    <LatencyBar value={data.performance.current.p95Latency} max={1000} />
+                  </div>
+                  <div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-sm text-foreground">Latencia p99</span>
+                      <span className="text-sm font-bold text-foreground tabular-nums">
+                        {data.performance.current.p99Latency}<span className="text-xs font-normal text-muted-foreground">ms</span>
+                      </span>
+                    </div>
+                    <LatencyBar value={data.performance.current.p99Latency} max={1000} />
+                  </div>
+                  <div className="rounded-lg border border-border bg-background px-4 py-3">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-xs text-muted-foreground">Taxa de erro</span>
+                      <span className={`text-sm font-bold tabular-nums ${
+                        data.performance.current.errorRate > 5 ? "text-red-500" : "text-foreground"
+                      }`}>
+                        {data.performance.current.errorRate}%
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-baseline justify-between">
+                      <span className="text-xs text-muted-foreground">Total requests</span>
+                      <span className="text-sm font-bold text-foreground tabular-nums">
+                        {formatNumber(data.performance.current.totalRequests)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       ) : null}
     </AdminShell>
