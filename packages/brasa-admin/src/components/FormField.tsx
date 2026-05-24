@@ -58,7 +58,7 @@ export default function FormField({
           placeholder={placeholder}
           required={required}
           rows={4}
-          className={`${baseInputClasses} ${borderClass} resize-y`}
+          className={`${baseInputClasses} ${borderClass} h-auto min-h-[120px] py-2.5 resize-y`}
           {...ariaProps}
         />
       );
