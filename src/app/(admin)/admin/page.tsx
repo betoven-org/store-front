@@ -79,22 +79,22 @@ function delta(current: number, previous: number): { label: string; positive: bo
 }
 
 function latencyColor(ms: number): string {
-  if (ms <= 200) return "text-green-600";
-  if (ms <= 500) return "text-yellow-600";
-  return "text-red-600";
+  if (ms <= 200) return "text-success";
+  if (ms <= 500) return "text-warning";
+  return "text-destructive";
 }
 
 function latencyBar(ms: number): string {
-  if (ms <= 200) return "bg-green-500/20";
-  if (ms <= 500) return "bg-yellow-500/20";
-  return "bg-red-500/20";
+  if (ms <= 200) return "bg-success-bg0/20";
+  if (ms <= 500) return "bg-warning-bg0/20";
+  return "bg-danger-bg0/20";
 }
 
 function healthLabel(avgMs: number, errorRate: number): { text: string; color: string } {
-  if (errorRate > 5) return { text: "Atencao necessaria", color: "text-red-600" };
-  if (avgMs > 500) return { text: "Pode melhorar", color: "text-yellow-600" };
-  if (avgMs > 200) return { text: "Bom", color: "text-green-600" };
-  return { text: "Excelente", color: "text-green-600" };
+  if (errorRate > 5) return { text: "Atencao necessaria", color: "text-destructive" };
+  if (avgMs > 500) return { text: "Pode melhorar", color: "text-warning" };
+  if (avgMs > 200) return { text: "Bom", color: "text-success" };
+  return { text: "Excelente", color: "text-success" };
 }
 
 /* ── Component ────────────────────────────────────────────────────────────────── */
@@ -197,8 +197,8 @@ export default function DashboardPage() {
                       {item.diff && (
                         <span className={`text-[11px] font-medium ${
                           item.invertColor
-                            ? item.diff.positive ? "text-green-600" : "text-red-500"
-                            : item.diff.positive ? "text-red-500" : "text-green-600"
+                            ? item.diff.positive ? "text-success" : "text-destructive"
+                            : item.diff.positive ? "text-destructive" : "text-success"
                         }`}>
                           {item.diff.label}
                         </span>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                   <div key={i} className="flex items-center gap-3 px-5 py-3">
                     <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
                       item.type === "post"
-                        ? "bg-blue-50 text-blue-600"
+                        ? "bg-primary/5 text-primary"
                         : "bg-purple-50 text-purple-600"
                     }`}>
                       {item.type === "post" ? "Post" : "Produto"}
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                     </div>
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
                       item.status === "published"
-                        ? "bg-green-50 text-green-700"
+                        ? "bg-success-bg text-success"
                         : "bg-accent text-muted-foreground"
                     }`}>
                       {item.status === "published" ? "publicado" : "rascunho"}

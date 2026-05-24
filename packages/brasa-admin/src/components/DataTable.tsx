@@ -113,7 +113,7 @@ export default function DataTable<T extends { id: number; status?: string }>({
                         {editUrl && (
                           <Link
                             href={editUrl(item)}
-                            className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-blue-50"
+                            className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -132,7 +132,7 @@ export default function DataTable<T extends { id: number; status?: string }>({
                           <button
                             type="button"
                             onClick={() => setDeleteId(item.id)}
-                            className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                            className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-danger-bg"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

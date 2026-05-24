@@ -150,7 +150,7 @@ export default function NewPostPage() {
       </div>
 
       {errors.form && (
-        <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-6 rounded-md border border-destructive/20 bg-danger-bg px-4 py-3 text-sm text-destructive">
           {errors.form}
         </div>
       )}
@@ -285,7 +285,7 @@ export default function NewPostPage() {
             Conteudo
           </h2>
           {errors.content && (
-            <p className="mb-2 text-xs text-red-600">{errors.content}</p>
+            <p className="mb-2 text-xs text-destructive">{errors.content}</p>
           )}
           <RichTextEditor content={content} onChange={setContent} />
         </div>

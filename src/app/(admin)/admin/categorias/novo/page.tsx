@@ -63,7 +63,7 @@ export default function NovaCategoriaPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-danger-bg p-4 text-sm text-destructive">
           {error}
         </div>
       )}

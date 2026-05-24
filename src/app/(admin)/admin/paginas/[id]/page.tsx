@@ -585,7 +585,7 @@ export default function EditPagePage({
   if (fetchError || !page || !editState) {
     return (
       <AdminShell title="Editar pagina" headerExtra={null}>
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-danger-bg p-6 text-sm text-destructive">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z" />
           </svg>
@@ -770,7 +770,7 @@ export default function EditPagePage({
                   <p className="text-sm font-medium text-[#1a0dab] leading-tight truncate">
                     {editState.metaTitle || editState.title || "Titulo"}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-green-700 font-mono truncate">
+                  <p className="mt-0.5 text-[11px] text-success font-mono truncate">
                     {typeof window !== "undefined" ? window.location.origin : ""}{slugToPath(page.slug)}
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
@@ -843,25 +843,25 @@ export default function EditPagePage({
                       <div className="divide-y divide-border">
                         {/* Published (old) */}
                         <div className="px-3 py-2">
-                          <span className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-red-500">
+                          <span className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-destructive">
                             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
                               <line x1="5" y1="12" x2="19" y2="12" />
                             </svg>
                             Publicado
                           </span>
                           {change.field === "content" ? (
-                            <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-red-50 p-2 font-mono text-[11px] leading-relaxed text-red-800 max-h-40 overflow-y-auto">
+                            <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-danger-bg p-2 font-mono text-[11px] leading-relaxed text-destructive max-h-40 overflow-y-auto">
                               {change.published ? truncate(change.published, 500) : <span className="italic text-muted-foreground">(vazio)</span>}
                             </pre>
                           ) : (
-                            <p className="mt-1 rounded bg-red-50 px-2 py-1.5 text-xs text-red-800 break-words">
+                            <p className="mt-1 rounded bg-danger-bg px-2 py-1.5 text-xs text-destructive break-words">
                               {change.published || <span className="italic text-muted-foreground">(vazio)</span>}
                             </p>
                           )}
                         </div>
                         {/* Draft (new) */}
                         <div className="px-3 py-2">
-                          <span className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-green-600">
+                          <span className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-success">
                             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
                               <line x1="12" y1="5" x2="12" y2="19" />
                               <line x1="5" y1="12" x2="19" y2="12" />
@@ -869,11 +869,11 @@ export default function EditPagePage({
                             Rascunho
                           </span>
                           {change.field === "content" ? (
-                            <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-green-50 p-2 font-mono text-[11px] leading-relaxed text-green-800 max-h-40 overflow-y-auto">
+                            <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-success-bg p-2 font-mono text-[11px] leading-relaxed text-success max-h-40 overflow-y-auto">
                               {change.draft ? truncate(change.draft, 500) : <span className="italic text-muted-foreground">(vazio)</span>}
                             </pre>
                           ) : (
-                            <p className="mt-1 rounded bg-green-50 px-2 py-1.5 text-xs text-green-800 break-words">
+                            <p className="mt-1 rounded bg-success-bg px-2 py-1.5 text-xs text-success break-words">
                               {change.draft || <span className="italic text-muted-foreground">(vazio)</span>}
                             </p>
                           )}
@@ -891,10 +891,10 @@ export default function EditPagePage({
                           <div key={i} className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
                             <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
                               sc.type === "added"
-                                ? "bg-green-50 text-green-600"
+                                ? "bg-success-bg text-success"
                                 : sc.type === "removed"
-                                  ? "bg-red-50 text-red-600"
-                                  : "bg-yellow-50 text-yellow-600"
+                                  ? "bg-danger-bg text-destructive"
+                                  : "bg-warning-bg text-warning"
                             }`}>
                               {sc.type === "added" ? "nova" : sc.type === "removed" ? "removida" : "editada"}
                             </span>

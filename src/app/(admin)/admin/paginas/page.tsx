@@ -219,7 +219,7 @@ export default function PaginasPage() {
                   autoFocus
                 />
                 {form.formState.errors.title && (
-                  <p className="mt-1 text-xs text-red-500">{form.formState.errors.title.message}</p>
+                  <p className="mt-1 text-xs text-destructive">{form.formState.errors.title.message}</p>
                 )}
               </div>
               <div>
@@ -232,7 +232,7 @@ export default function PaginasPage() {
                 />
                 <p className="mt-1 text-xs text-muted-foreground">URL: /{form.watch("slug") || "..."}</p>
                 {form.formState.errors.slug && (
-                  <p className="mt-1 text-xs text-red-500">{form.formState.errors.slug.message}</p>
+                  <p className="mt-1 text-xs text-destructive">{form.formState.errors.slug.message}</p>
                 )}
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function PaginasPage() {
 
       <div className="overflow-visible rounded-lg border border-border bg-card">
         {error ? (
-          <div className="flex items-center gap-2 p-6 text-sm text-red-600">
+          <div className="flex items-center gap-2 p-6 text-sm text-destructive">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
               <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z" />
             </svg>
@@ -291,13 +291,13 @@ export default function PaginasPage() {
                   </td>
                   <td className="px-4 py-3">
                     {page.draft ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-warning/20">
+                        <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                         Rascunho
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 ring-1 ring-green-200">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success ring-1 ring-success/20">
+                        <span className="h-1.5 w-1.5 rounded-full bg-success" />
                         Publicado
                       </span>
                     )}

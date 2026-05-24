@@ -82,10 +82,10 @@ function InlineDiff({ oldStr, newStr, isContent }: { oldStr: string; newStr: str
     <Tag className={`mt-1 rounded border border-border bg-background px-3 py-2 text-xs leading-relaxed break-words ${isContent ? "max-h-48 overflow-y-auto whitespace-pre-wrap font-mono text-[10px]" : ""}`}>
       {parts.map((part, i) => {
         if (part.added) {
-          return <span key={i} className="bg-green-200 text-green-900">{part.value}</span>;
+          return <span key={i} className="bg-success-bg text-success">{part.value}</span>;
         }
         if (part.removed) {
-          return <span key={i} className="bg-red-200 text-red-900 line-through">{part.value}</span>;
+          return <span key={i} className="bg-destructive/20 text-destructive line-through">{part.value}</span>;
         }
         return <span key={i} className="text-foreground">{part.value}</span>;
       })}
@@ -244,7 +244,7 @@ export default function PublicarPage() {
   if (error) {
     return (
       <AdminShell title="Publicar">
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-danger-bg p-6 text-sm text-destructive">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z" />
           </svg>
@@ -285,8 +285,8 @@ export default function PublicarPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600" aria-hidden="true">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger-bg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-destructive" aria-hidden="true">
                   <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -310,7 +310,7 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={handleDiscardAll}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-red-700"
+                className="rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-destructive/90"
               >
                 Descartar
               </button>
@@ -355,7 +355,7 @@ export default function PublicarPage() {
                   type="button"
                   onClick={() => setShowDiscardConfirm(true)}
                   disabled={publishing || discarding || selected.size === 0}
-                  className="w-full rounded-md border border-red-200 bg-card px-4 py-2.5 text-sm font-medium text-red-600 shadow transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full rounded-md border border-destructive/20 bg-card px-4 py-2.5 text-sm font-medium text-destructive shadow transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {discarding ? "Descartando..." : "Descartar selecionados"}
                 </button>
@@ -447,7 +447,7 @@ export default function PublicarPage() {
                           type="button"
                           onClick={(e) => { e.stopPropagation(); handleDiscardOne(page.id); }}
                           disabled={discardingOne === page.id}
-                          className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                          className="rounded p-1 text-muted-foreground transition-colors hover:bg-danger-bg hover:text-destructive disabled:opacity-50"
                           title="Descartar alteracoes"
                         >
                           {discardingOne === page.id ? (
@@ -495,12 +495,12 @@ export default function PublicarPage() {
 
                               <div className="px-3 py-2">
                                 <div className="mb-1.5 flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider">
-                                  <span className="flex items-center gap-1 text-red-500">
-                                    <span className="inline-block h-2 w-2 rounded-sm bg-red-200 ring-1 ring-red-300" />
+                                  <span className="flex items-center gap-1 text-destructive">
+                                    <span className="inline-block h-2 w-2 rounded-sm bg-destructive/20 ring-1 ring-destructive/30" />
                                     Removido
                                   </span>
-                                  <span className="flex items-center gap-1 text-green-600">
-                                    <span className="inline-block h-2 w-2 rounded-sm bg-green-200 ring-1 ring-green-300" />
+                                  <span className="flex items-center gap-1 text-success">
+                                    <span className="inline-block h-2 w-2 rounded-sm bg-success-bg ring-1 ring-success/30" />
                                     Adicionado
                                   </span>
                                 </div>

@@ -136,7 +136,7 @@ function FieldLabel({
       <label htmlFor={htmlFor} className={labelCls}>
         {title}
         {required && (
-          <span className="ml-0.5 text-red-500" aria-hidden="true">
+          <span className="ml-0.5 text-destructive" aria-hidden="true">
             *
           </span>
         )}
@@ -399,7 +399,7 @@ function BooleanField({ fieldKey, schema, value, onChange }: FieldRendererProps)
           <label htmlFor={id} className={`${labelCls} cursor-pointer`}>
             {schema.title ?? fieldKey}
             {schema.required && (
-              <span className="ml-0.5 text-red-500" aria-hidden="true">
+              <span className="ml-0.5 text-destructive" aria-hidden="true">
                 *
               </span>
             )}
@@ -485,7 +485,7 @@ function ArrayField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRende
               type="button"
               onClick={() => handleRemove(index)}
               aria-label={`Remover item ${index + 1}`}
-              className="absolute right-0 top-0 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500"
+              className="absolute right-0 top-0 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-danger-bg hover:text-destructive"
             >
               <SvgX />
             </button>

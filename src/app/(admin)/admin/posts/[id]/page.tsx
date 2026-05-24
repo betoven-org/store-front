@@ -238,7 +238,7 @@ export default function EditPostPage({
       </div>
 
       {errors.form && (
-        <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-6 rounded-md border border-destructive/20 bg-danger-bg px-4 py-3 text-sm text-destructive">
           {errors.form}
         </div>
       )}
@@ -373,7 +373,7 @@ export default function EditPostPage({
             Conteudo
           </h2>
           {errors.content && (
-            <p className="mb-2 text-xs text-red-600">{errors.content}</p>
+            <p className="mb-2 text-xs text-destructive">{errors.content}</p>
           )}
           <RichTextEditor content={content} onChange={setContent} />
         </div>
@@ -383,7 +383,7 @@ export default function EditPostPage({
             type="button"
             onClick={() => setShowDelete(true)}
             disabled={deleting}
-            className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-card px-4 py-2 text-sm font-medium text-red-600 shadow transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md border border-destructive/30 bg-card px-4 py-2 text-sm font-medium text-destructive shadow transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

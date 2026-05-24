@@ -196,7 +196,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto px-6 py-5">
             {errors.form && (
-              <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-5 rounded-md border border-destructive/20 bg-danger-bg px-4 py-3 text-sm text-destructive">
                 {errors.form}
               </div>
             )}
@@ -226,7 +226,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
 
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">Conteudo<span className="ml-0.5 text-red-500">*</span></label>
+                  <label className="text-sm font-medium text-foreground">Conteudo<span className="ml-0.5 text-destructive">*</span></label>
                   {contentHtml && (
                     <button
                       type="button"
@@ -237,7 +237,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
                     </button>
                   )}
                 </div>
-                {errors.content && <p className="mb-2 text-xs text-red-600">{errors.content}</p>}
+                {errors.content && <p className="mb-2 text-xs text-destructive">{errors.content}</p>}
                 {useHtmlEditor ? (
                   <textarea
                     value={contentHtml}

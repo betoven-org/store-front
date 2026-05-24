@@ -486,7 +486,7 @@ export function SettingsContent({
                 type="button"
                 onClick={() => onShowClearConfirm(true)}
                 disabled={clearing}
-                className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-card px-4 py-2 text-sm font-medium text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md border border-destructive/30 bg-card px-4 py-2 text-sm font-medium text-destructive shadow-sm transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {clearing ? <SvgSpinner /> : <SvgTrash />}
                 {clearing ? "Limpando..." : "Limpar dados de conteudo"}
@@ -511,15 +511,15 @@ export function SettingsContent({
             )}
 
             {syncResult && !syncing && (
-              <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-green-800">
+              <div className="mt-4 rounded-md border border-success/20 bg-success-bg p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-success">
                   <SvgCheck />
                   Sincronizacao concluida
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-green-700 sm:grid-cols-4">
+                <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-success sm:grid-cols-4">
                   {Object.entries(syncResult).map(([key, val]) => (
                     <div key={key} className="rounded-md bg-card/60 px-3 py-2">
-                      <p className="text-xs text-green-600 capitalize">{key}</p>
+                      <p className="text-xs text-success capitalize">{key}</p>
                       <p className="font-semibold">
                         {typeof val === "object" && val !== null
                           ? `${(val as Record<string, number>).created || 0} novos, ${(val as Record<string, number>).updated || 0} atualizados`
@@ -532,8 +532,8 @@ export function SettingsContent({
             )}
 
             {syncError && (
-              <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-red-800">
+              <div className="mt-4 rounded-md border border-destructive/20 bg-danger-bg p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-destructive">
                   <SvgError />
                   {syncError}
                 </div>
@@ -541,8 +541,8 @@ export function SettingsContent({
             )}
 
             {clearSuccess && (
-              <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-green-800">
+              <div className="mt-4 rounded-md border border-success/20 bg-success-bg p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-success">
                   <SvgCheck />
                   Todos os dados de conteudo foram limpos com sucesso.
                 </div>

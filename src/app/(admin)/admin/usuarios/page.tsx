@@ -39,8 +39,8 @@ const ROLE_LABELS: Record<Role, string> = {
 
 const ROLE_CLASSES: Record<Role, string> = {
   admin: "bg-primary/10 text-primary",
-  editor: "bg-blue-100 text-blue-700",
-  author: "bg-amber-100 text-amber-700",
+  editor: "bg-primary/10 text-primary",
+  author: "bg-warning-bg text-warning",
   viewer: "bg-accent text-muted-foreground",
 };
 

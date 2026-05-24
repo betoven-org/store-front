@@ -136,7 +136,7 @@ export default function EditarAutorPage() {
         <button
           type="button"
           onClick={() => setShowDelete(true)}
-          className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-card px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+          className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-card px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-danger-bg"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +153,7 @@ export default function EditarAutorPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-danger-bg p-4 text-sm text-destructive">
           {error}
         </div>
       )}

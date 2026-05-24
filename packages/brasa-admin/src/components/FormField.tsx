@@ -34,7 +34,7 @@ export default function FormField({
 }: Props) {
   const baseInputClasses =
     "w-full rounded-md border bg-card px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary";
-  const borderClass = error ? "border-red-300" : "border-border";
+  const borderClass = error ? "border-destructive/30" : "border-border";
 
   const inputId = `field-${name}`;
   const errorId = `error-${name}`;
@@ -99,7 +99,7 @@ export default function FormField({
           />
           <label htmlFor={inputId} className="text-sm text-foreground">
             {label}
-            {required && <span className="ml-0.5 text-red-500">*</span>}
+            {required && <span className="ml-0.5 text-destructive">*</span>}
           </label>
         </div>
       );
@@ -145,7 +145,7 @@ export default function FormField({
           </p>
         )}
         {error && (
-          <p id={errorId} className="text-xs text-red-600">
+          <p id={errorId} className="text-xs text-destructive">
             {error}
           </p>
         )}
@@ -157,7 +157,7 @@ export default function FormField({
     <div className="space-y-1.5">
       <label htmlFor={inputId} className="block text-sm font-medium text-foreground">
         {label}
-        {required && <span className="ml-0.5 text-red-500">*</span>}
+        {required && <span className="ml-0.5 text-destructive">*</span>}
       </label>
       {renderInput()}
       {description && (
@@ -166,7 +166,7 @@ export default function FormField({
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-xs text-red-600">
+        <p id={errorId} className="text-xs text-destructive">
           {error}
         </p>
       )}

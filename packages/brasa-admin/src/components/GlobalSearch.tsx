@@ -209,7 +209,7 @@ export default function GlobalSearch() {
                             {item.meta && (
                               <span className={`rounded-full px-2 py-0.5 text-xs ${
                                 item.meta === "published"
-                                  ? "bg-green-50 text-green-700"
+                                  ? "bg-success-bg text-success"
                                   : "bg-accent text-muted-foreground"
                               }`}>
                                 {item.meta === "published" ? "Publicado" : "Rascunho"}

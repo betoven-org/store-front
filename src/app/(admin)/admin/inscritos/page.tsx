@@ -108,7 +108,7 @@ export default function InscritosPage() {
           disabled={togglingId === item.id}
           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             item.active
-              ? "bg-green-100 text-green-700 hover:bg-green-200"
+              ? "bg-success-bg text-success hover:bg-success-bg"
               : "bg-accent text-muted-foreground hover:bg-accent"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
@@ -136,7 +136,7 @@ export default function InscritosPage() {
           ) : (
             <span
               className={`inline-block h-2 w-2 rounded-full ${
-                item.active ? "bg-green-500" : "bg-muted-foreground"
+                item.active ? "bg-success-bg0" : "bg-muted-foreground"
               }`}
               aria-hidden="true"
             />
@@ -213,7 +213,7 @@ export default function InscritosPage() {
           <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-lg border border-destructive/20 bg-danger-bg p-4 text-sm text-destructive">
           {error}
         </div>
       ) : (

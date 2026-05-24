@@ -261,7 +261,7 @@ function BlockItem({
           type="button"
           onClick={onDelete}
           aria-label={`Remover ${title}`}
-          className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-500"
+          className="rounded p-1 text-muted-foreground hover:bg-danger-bg hover:text-destructive"
         >
           <IconTrash />
         </button>

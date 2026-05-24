@@ -19,15 +19,15 @@ const STATUS_MAP: Record<
 > = {
   active: {
     label: "Ativa",
-    className: "bg-green-100 text-green-800",
+    className: "bg-success-bg text-success",
   },
   overdue: {
     label: "Inadimplente",
-    className: "bg-yellow-100 text-yellow-800",
+    className: "bg-warning-bg text-warning",
   },
   suspended: {
     label: "Suspensa",
-    className: "bg-red-100 text-red-800",
+    className: "bg-danger-bg text-destructive",
   },
 };
 
@@ -235,7 +235,7 @@ export default function AssinaturaSection() {
       )}
 
       {error && (
-        <div className="flex items-center gap-1.5 text-sm font-medium text-red-600">
+        <div className="flex items-center gap-1.5 text-sm font-medium text-destructive">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"

@@ -471,7 +471,7 @@ function UploadTab({
           onChange={handleFileInput}
           className="hidden"
         />
-        {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
       </div>
     );
   }
@@ -530,7 +530,7 @@ function UploadTab({
           {" · "}{formatBytes(file.size)}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {error && <span className="text-xs text-red-600">{error}</span>}
+          {error && <span className="text-xs text-destructive">{error}</span>}
           <button
             type="button"
             onClick={handleUpload}

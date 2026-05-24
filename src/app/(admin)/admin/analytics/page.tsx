@@ -286,7 +286,7 @@ export default function AnalyticsPage() {
                         {point.errors > 0 && (
                           <>
                             <br />
-                            <span className="text-red-300">
+                            <span className="text-destructive/50">
                               {point.errors} erros
                             </span>
                           </>
@@ -407,12 +407,12 @@ export default function AnalyticsPage() {
                     const pct = (item.count / maxCount) * 100;
                     const color =
                       item.statusGroup.startsWith("2")
-                        ? "bg-green-500/10"
+                        ? "bg-success-bg0/10"
                         : item.statusGroup.startsWith("3")
-                          ? "bg-blue-500/10"
+                          ? "bg-primary/50/10"
                           : item.statusGroup.startsWith("4")
-                            ? "bg-yellow-500/10"
-                            : "bg-red-500/10";
+                            ? "bg-warning-bg0/10"
+                            : "bg-danger-bg0/10";
                     return (
                       <li key={i} className="relative">
                         <div

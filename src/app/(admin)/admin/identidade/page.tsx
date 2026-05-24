@@ -118,7 +118,7 @@ export default function IdentidadePage() {
           </button>
 
           {success && (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+            <div className="flex items-center gap-1.5 text-sm font-medium text-success">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -134,7 +134,7 @@ export default function IdentidadePage() {
           )}
 
           {error && (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-red-600">
+            <div className="flex items-center gap-1.5 text-sm font-medium text-destructive">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"

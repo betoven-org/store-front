@@ -218,8 +218,8 @@ export default function MidiasPage() {
         onDragLeave={handleDragLeave}
         className={`mb-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-colors ${
           dragging
-            ? "border-primary bg-blue-50/50"
-            : "border-border bg-background hover:border-primary hover:bg-blue-50/20"
+            ? "border-primary bg-primary/5/50"
+            : "border-border bg-background hover:border-primary hover:bg-primary/5/20"
         }`}
       >
         {uploading ? (
@@ -249,7 +249,7 @@ export default function MidiasPage() {
       />
 
       {error && (
-        <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-destructive/20 bg-danger-bg p-3 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -475,7 +475,7 @@ export default function MidiasPage() {
                     aria-label="Copiar URL"
                   >
                     {copied ? (
-                      <Check className="size-4 text-green-600" aria-hidden="true" />
+                      <Check className="size-4 text-success" aria-hidden="true" />
                     ) : (
                       <Copy className="size-4" aria-hidden="true" />
                     )}
