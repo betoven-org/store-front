@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, PageBuilder, useTenant } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, PageBuilder } from "@brasa/admin";
 import manifest from "@/manifest.json";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 
@@ -317,7 +317,15 @@ export default function EditPagePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = React.use(params);
-  const tenant = useTenant();
+
+  // Fetch tenant directly — context may not propagate due to bundle duplication in monorepo
+  const [tenant, setTenantLocal] = useState<{ frontendUrl: string | null } | null>(null);
+  useEffect(() => {
+    fetch("/api/admin/tenant-info")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setTenantLocal)
+      .catch(() => {});
+  }, []);
 
   const [page, setPage] = useState<Page | null>(null);
   const [editState, setEditState] = useState<EditState | null>(null);
