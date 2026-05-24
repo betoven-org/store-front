@@ -33,7 +33,7 @@ export default function FormField({
   description,
 }: Props) {
   const baseInputClasses =
-    "w-full rounded-md border bg-card px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary";
+    "w-full h-[34px] rounded-md border bg-card px-2.5 text-[13px] text-foreground transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-muted-foreground";
   const borderClass = error ? "border-destructive/30" : "border-border";
 
   const inputId = `field-${name}`;
