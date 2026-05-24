@@ -114,21 +114,21 @@ export default function AuthorDrawer({ authorId, onClose, onSaved }: Props) {
               <FormField label="Nome" name="name" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} required placeholder="Nome do autor" />
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700">Slug</label>
-                <p className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">{slug}</p>
-                <p className="text-xs text-gray-400">O slug e gerado automaticamente.</p>
+                <label className="block text-sm font-medium text-foreground">Slug</label>
+                <p className="rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">{slug}</p>
+                <p className="text-xs text-muted-foreground">O slug e gerado automaticamente.</p>
               </div>
 
               <FormField label="Biografia" name="bio" type="textarea" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Breve biografia do autor..." />
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700">Avatar</label>
+                <label className="block text-sm font-medium text-foreground">Avatar</label>
                 <ImageUpload value={avatarId} onChange={(id, url) => { setAvatarId(id); setAvatarUrl(url); }} previewUrl={avatarUrl} />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

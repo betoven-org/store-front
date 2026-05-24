@@ -63,7 +63,7 @@ function RowMenu({ pageId, slug }: { pageId: number; slug: string }) {
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen((p) => !p); }}
-        className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-muted-foreground"
         aria-label="Acoes"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -74,11 +74,11 @@ function RowMenu({ pageId, slug }: { pageId: number; slug: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-md border border-border bg-card py-1 shadow-lg">
           <button
             type="button"
             onClick={() => { setOpen(false); router.push(`/admin/paginas/${pageId}`); }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-background"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -91,7 +91,7 @@ function RowMenu({ pageId, slug }: { pageId: number; slug: string }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setOpen(false)}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-background"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -160,7 +160,7 @@ export default function PaginasPage() {
       <AdminShell title="Paginas">
         <div className="flex items-center justify-center py-12">
           <Spinner />
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       </AdminShell>
     );
@@ -170,14 +170,14 @@ export default function PaginasPage() {
     <AdminShell title="Paginas">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">Paginas</h1>
-          <p className="mt-1 text-sm text-gray-500">Gerencie as paginas estaticas do site.</p>
+          <h1 className="text-lg font-semibold text-foreground">Paginas</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Gerencie as paginas estaticas do site.</p>
         </div>
         <div className="flex items-center gap-2">
           {pendingCount > 0 && (
             <a
               href="/admin/publicar"
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground shadow transition-colors hover:bg-background"
             >
               staging
               <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#0d61ac] px-1 text-[10px] font-bold text-white leading-none">
@@ -188,7 +188,7 @@ export default function PaginasPage() {
           <button
             type="button"
             onClick={() => { setShowCreate(true); form.reset(); }}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c]"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c]"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 5v14" />
@@ -202,20 +202,20 @@ export default function PaginasPage() {
       {/* Modal criar pagina */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <form onSubmit={form.handleSubmit(handleCreate)} className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-xl">
-            <h2 className="text-base font-semibold text-gray-900">Nova pagina</h2>
-            <p className="mt-1 text-sm text-gray-500">Defina o titulo e o slug da pagina.</p>
+          <form onSubmit={form.handleSubmit(handleCreate)} className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl">
+            <h2 className="text-base font-semibold text-foreground">Nova pagina</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Defina o titulo e o slug da pagina.</p>
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Titulo</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Titulo</label>
                 <input
                   type="text"
                   {...form.register("title", {
                     onChange: (e) => handleTitleChange(e.target.value),
                   })}
                   placeholder="Ex: Sobre nos"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
                   autoFocus
                 />
                 {form.formState.errors.title && (
@@ -223,14 +223,14 @@ export default function PaginasPage() {
                 )}
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Slug</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Slug</label>
                 <input
                   type="text"
                   {...form.register("slug")}
                   placeholder="sobre-nos"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
                 />
-                <p className="mt-1 text-xs text-gray-400">URL: /{form.watch("slug") || "..."}</p>
+                <p className="mt-1 text-xs text-muted-foreground">URL: /{form.watch("slug") || "..."}</p>
                 {form.formState.errors.slug && (
                   <p className="mt-1 text-xs text-red-500">{form.formState.errors.slug.message}</p>
                 )}
@@ -241,14 +241,14 @@ export default function PaginasPage() {
               <button
                 type="button"
                 onClick={() => setShowCreate(false)}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={form.formState.isSubmitting}
-                className="rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {form.formState.isSubmitting ? "Criando..." : "Criar pagina"}
               </button>
@@ -257,7 +257,7 @@ export default function PaginasPage() {
         </div>
       )}
 
-      <div className="overflow-visible rounded-lg border border-gray-200 bg-white">
+      <div className="overflow-visible rounded-lg border border-border bg-card">
         {error ? (
           <div className="flex items-center gap-2 p-6 text-sm text-red-600">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
@@ -266,28 +266,28 @@ export default function PaginasPage() {
             {error}
           </div>
         ) : pages.length === 0 ? (
-          <p className="p-6 text-sm text-gray-500">Nenhuma pagina encontrada.</p>
+          <p className="p-6 text-sm text-muted-foreground">Nenhuma pagina encontrada.</p>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-border bg-background">
               <tr>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Titulo</th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Slug</th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Atualizado</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Titulo</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Slug</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Atualizado</th>
                 <th className="w-10 px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {pages.map((page) => (
                 <tr
                   key={page.id}
                   onClick={() => router.push(`/admin/paginas/${page.id}`)}
-                  className="cursor-pointer transition-colors hover:bg-gray-50"
+                  className="cursor-pointer transition-colors hover:bg-background"
                 >
-                  <td className="px-4 py-3 font-medium text-gray-900">{page.title}</td>
-                  <td className="px-4 py-3 text-gray-500">
-                    <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs">{page.slug}</code>
+                  <td className="px-4 py-3 font-medium text-foreground">{page.title}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    <code className="rounded bg-accent px-1.5 py-0.5 text-xs">{page.slug}</code>
                   </td>
                   <td className="px-4 py-3">
                     {page.draft ? (
@@ -302,7 +302,7 @@ export default function PaginasPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-muted-foreground">
                     {new Date(page.updatedAt).toLocaleDateString("pt-BR", {
                       day: "2-digit",
                       month: "2-digit",

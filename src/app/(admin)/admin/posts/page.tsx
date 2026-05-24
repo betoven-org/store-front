@@ -195,7 +195,7 @@ export default function PostsListPage() {
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") clearSearch(); }}
               placeholder="Buscar posts..."
-              className="w-full rounded-md border bg-card py-2 pl-10 pr-9 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full rounded-md border bg-card py-2 pl-10 pr-9 text-sm shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             {search && (
               <button
@@ -212,7 +212,7 @@ export default function PostsListPage() {
           <select
             value={currentStatus}
             onChange={(e) => updateParams({ status: e.target.value })}
-            className="rounded-md border bg-card px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="rounded-md border bg-card px-3 py-2 text-sm shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
             <option value="">Todos</option>
             <option value="draft">Rascunho</option>

@@ -218,7 +218,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
               <FormField label="Tags" name="tags" value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="saude, nutricao, bem-estar" description="Separadas por virgula" />
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Imagem de capa</label>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Imagem de capa</label>
                 <ImageUpload value={heroImageId} onChange={(mediaId, mediaUrl) => { setHeroImageId(mediaId); setHeroImageUrl(mediaUrl); }} previewUrl={heroImageUrl} />
               </div>
 
@@ -226,7 +226,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
 
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Conteudo<span className="ml-0.5 text-red-500">*</span></label>
+                  <label className="text-sm font-medium text-foreground">Conteudo<span className="ml-0.5 text-red-500">*</span></label>
                   {contentHtml && (
                     <button
                       type="button"
@@ -253,7 +253,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

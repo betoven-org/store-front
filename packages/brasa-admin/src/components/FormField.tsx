@@ -33,8 +33,8 @@ export default function FormField({
   description,
 }: Props) {
   const baseInputClasses =
-    "w-full rounded-md border bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary";
-  const borderClass = error ? "border-red-300" : "border-gray-300";
+    "w-full rounded-md border bg-card px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary";
+  const borderClass = error ? "border-red-300" : "border-border";
 
   const inputId = `field-${name}`;
   const errorId = `error-${name}`;
@@ -94,10 +94,10 @@ export default function FormField({
             type="checkbox"
             checked={value as boolean}
             onChange={onChange}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-ring"
+            className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
             {...ariaProps}
           />
-          <label htmlFor={inputId} className="text-sm text-gray-700">
+          <label htmlFor={inputId} className="text-sm text-foreground">
             {label}
             {required && <span className="ml-0.5 text-red-500">*</span>}
           </label>
@@ -140,7 +140,7 @@ export default function FormField({
       <div className="space-y-1">
         {renderInput()}
         {description && (
-          <p id={descId} className="text-xs text-gray-500">
+          <p id={descId} className="text-xs text-muted-foreground">
             {description}
           </p>
         )}
@@ -155,13 +155,13 @@ export default function FormField({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={inputId} className="block text-sm font-medium text-foreground">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
       {renderInput()}
       {description && (
-        <p id={descId} className="text-xs text-gray-500">
+        <p id={descId} className="text-xs text-muted-foreground">
           {description}
         </p>
       )}

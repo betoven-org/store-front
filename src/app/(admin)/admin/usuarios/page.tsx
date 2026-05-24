@@ -41,7 +41,7 @@ const ROLE_CLASSES: Record<Role, string> = {
   admin: "bg-primary/10 text-primary",
   editor: "bg-blue-100 text-blue-700",
   author: "bg-amber-100 text-amber-700",
-  viewer: "bg-gray-100 text-gray-600",
+  viewer: "bg-accent text-muted-foreground",
 };
 
 function RoleBadge({ role }: { role: Role }) {

@@ -49,7 +49,7 @@ export default function DeleteConfirm({
       aria-labelledby="delete-confirm-title"
     >
       <div
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-lg bg-card p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Warning icon */}
@@ -69,11 +69,11 @@ export default function DeleteConfirm({
 
         <h2
           id="delete-confirm-title"
-          className="mb-2 text-center text-lg font-semibold text-gray-900"
+          className="mb-2 text-center text-lg font-semibold text-foreground"
         >
           {title}
         </h2>
-        <p className="mb-6 text-center text-sm text-gray-500">{description}</p>
+        <p className="mb-6 text-center text-sm text-muted-foreground">{description}</p>
 
         <div className="flex gap-3">
           <Button

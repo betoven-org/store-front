@@ -79,7 +79,7 @@ function InlineDiff({ oldStr, newStr, isContent }: { oldStr: string; newStr: str
   const parts = diffWords(oldStr, newStr);
   const Tag = isContent ? "pre" : "p";
   return (
-    <Tag className={`mt-1 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-xs leading-relaxed break-words ${isContent ? "max-h-48 overflow-y-auto whitespace-pre-wrap font-mono text-[10px]" : ""}`}>
+    <Tag className={`mt-1 rounded border border-border bg-background px-3 py-2 text-xs leading-relaxed break-words ${isContent ? "max-h-48 overflow-y-auto whitespace-pre-wrap font-mono text-[10px]" : ""}`}>
       {parts.map((part, i) => {
         if (part.added) {
           return <span key={i} className="bg-green-200 text-green-900">{part.value}</span>;
@@ -87,7 +87,7 @@ function InlineDiff({ oldStr, newStr, isContent }: { oldStr: string; newStr: str
         if (part.removed) {
           return <span key={i} className="bg-red-200 text-red-900 line-through">{part.value}</span>;
         }
-        return <span key={i} className="text-gray-700">{part.value}</span>;
+        return <span key={i} className="text-foreground">{part.value}</span>;
       })}
     </Tag>
   );
@@ -235,7 +235,7 @@ export default function PublicarPage() {
       <AdminShell title="Publicar">
         <div className="flex items-center justify-center py-12">
           <Spinner />
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       </AdminShell>
     );
@@ -258,16 +258,16 @@ export default function PublicarPage() {
     return (
       <AdminShell title="Publicar">
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground" aria-hidden="true">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
-          <h2 className="mt-4 text-lg font-semibold text-gray-700">Nada para publicar</h2>
-          <p className="mt-1 text-sm text-gray-500">Todas as alteracoes ja foram publicadas.</p>
+          <h2 className="mt-4 text-lg font-semibold text-foreground">Nada para publicar</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Todas as alteracoes ja foram publicadas.</p>
           <button
             type="button"
             onClick={() => router.push("/admin/paginas")}
-            className="mt-6 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            className="mt-6 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow transition-colors hover:bg-background"
           >
             Voltar para Paginas
           </button>
@@ -283,7 +283,7 @@ export default function PublicarPage() {
       {/* Discard confirmation modal */}
       {showDiscardConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600" aria-hidden="true">
@@ -293,8 +293,8 @@ export default function PublicarPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Descartar alteracoes</h3>
-                <p className="mt-2 text-sm text-gray-500">
+                <h3 className="text-base font-semibold text-foreground">Descartar alteracoes</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
                   Tem certeza que deseja descartar as alteracoes de {selected.size} pagina{selected.size !== 1 ? "s" : ""}? Os rascunhos serao apagados e as paginas voltarao ao estado publicado. Esta acao nao pode ser desfeita.
                 </p>
               </div>
@@ -303,14 +303,14 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={() => setShowDiscardConfirm(false)}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleDiscardAll}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700"
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-red-700"
               >
                 Descartar
               </button>
@@ -324,21 +324,21 @@ export default function PublicarPage() {
         <div className="flex gap-6">
           {/* Description */}
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900">Resumo</h2>
-            <p className="mt-1 text-xs text-gray-500">Descricao (opcional)</p>
+            <h2 className="text-lg font-semibold text-foreground">Resumo</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Descricao (opcional)</p>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={`Publicar ${selected.size} alterac${selected.size !== 1 ? "oes" : "ao"} em producao`}
               rows={4}
-              className="mt-3 w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+              className="mt-3 w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
             />
           </div>
 
           {/* Stats card */}
           <div className="w-72 shrink-0">
-            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-              <p className="text-center text-sm font-medium text-gray-700">
+            <div className="rounded-lg border border-border bg-card p-5 shadow">
+              <p className="text-center text-sm font-medium text-foreground">
                 {selectedChanges} alterac{selectedChanges !== 1 ? "oes" : "ao"} em {selected.size} pagina{selected.size !== 1 ? "s" : ""}
               </p>
 
@@ -347,7 +347,7 @@ export default function PublicarPage() {
                   type="button"
                   onClick={handlePublish}
                   disabled={publishing || discarding || selected.size === 0}
-                  className="w-full rounded-md bg-[#0d61ac] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full rounded-md bg-[#0d61ac] px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {publishing ? "Publicando..." : "Publicar agora"}
                 </button>
@@ -355,7 +355,7 @@ export default function PublicarPage() {
                   type="button"
                   onClick={() => setShowDiscardConfirm(true)}
                   disabled={publishing || discarding || selected.size === 0}
-                  className="w-full rounded-md border border-red-200 bg-white px-4 py-2.5 text-sm font-medium text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full rounded-md border border-red-200 bg-card px-4 py-2.5 text-sm font-medium text-red-600 shadow transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {discarding ? "Descartando..." : "Descartar selecionados"}
                 </button>
@@ -367,22 +367,22 @@ export default function PublicarPage() {
 
         {/* ── Details ─────────────────────────────────────────────── */}
         <div className="mt-8">
-          <h2 className="text-lg font-semibold text-gray-900">Detalhes</h2>
-          <div className="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <h2 className="text-lg font-semibold text-foreground">Detalhes</h2>
+          <div className="mt-3 overflow-hidden rounded-lg border border-border bg-card">
             {/* Header */}
-            <div className="flex items-center gap-3 border-b border-gray-200 bg-gray-50 px-4 py-2.5">
+            <div className="flex items-center gap-3 border-b border-border bg-background px-4 py-2.5">
               <input
                 type="checkbox"
                 checked={selected.size === pages.length}
                 onChange={toggleAll}
-                className="h-4 w-4 rounded border-gray-300 text-[#0d61ac] focus:ring-[#0d61ac]/30"
+                className="h-4 w-4 rounded border-border text-[#0d61ac] focus:ring-[#0d61ac]/30"
                 aria-label="Selecionar todos"
               />
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Alteracao</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Alteracao</span>
             </div>
 
             {/* Rows */}
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-border">
               {pages.map((page) => {
                 const changes = getChanges(page);
                 const isExpanded = expanded.has(page.id);
@@ -392,7 +392,7 @@ export default function PublicarPage() {
                   <div key={page.id}>
                     {/* Row header */}
                     <div
-                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer"
+                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-background cursor-pointer"
                       onClick={() => toggleExpand(page.id)}
                     >
                       {/* Checkbox */}
@@ -401,7 +401,7 @@ export default function PublicarPage() {
                         checked={isSelected}
                         onChange={(e) => { e.stopPropagation(); toggleSelect(page.id); }}
                         onClick={(e) => e.stopPropagation()}
-                        className="h-4 w-4 rounded border-gray-300 text-[#0d61ac] focus:ring-[#0d61ac]/30"
+                        className="h-4 w-4 rounded border-border text-[#0d61ac] focus:ring-[#0d61ac]/30"
                         aria-label={`Selecionar ${page.title}`}
                       />
 
@@ -409,7 +409,7 @@ export default function PublicarPage() {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); toggleExpand(page.id); }}
-                        className="rounded p-0.5 text-gray-400 transition-transform hover:text-gray-600"
+                        className="rounded p-0.5 text-muted-foreground transition-transform hover:text-muted-foreground"
                         aria-label={isExpanded ? "Recolher" : "Expandir"}
                       >
                         <svg
@@ -427,16 +427,16 @@ export default function PublicarPage() {
 
                       {/* Page info */}
                       <div className="flex flex-1 items-center gap-2 min-w-0">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted-foreground" aria-hidden="true">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
                         </svg>
-                        <span className="truncate text-sm font-medium text-gray-900">{page.title}</span>
-                        <code className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500">/{page.slug}</code>
+                        <span className="truncate text-sm font-medium text-foreground">{page.title}</span>
+                        <code className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[11px] text-muted-foreground">/{page.slug}</code>
                       </div>
 
                       {/* Change count */}
-                      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                      <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                         {changes.length} campo{changes.length !== 1 ? "s" : ""}
                       </span>
 
@@ -447,7 +447,7 @@ export default function PublicarPage() {
                           type="button"
                           onClick={(e) => { e.stopPropagation(); handleDiscardOne(page.id); }}
                           disabled={discardingOne === page.id}
-                          className="rounded p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                          className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
                           title="Descartar alteracoes"
                         >
                           {discardingOne === page.id ? (
@@ -467,7 +467,7 @@ export default function PublicarPage() {
                         <a
                           href={`/admin/paginas/${page.id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                          className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-muted-foreground"
                           title="Abrir no editor"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -481,16 +481,16 @@ export default function PublicarPage() {
 
                     {/* Expanded diff */}
                     {isExpanded && (
-                      <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-4 pl-16">
+                      <div className="border-t border-border bg-background/50 px-4 py-4 pl-16">
                         <div className="space-y-3">
                           {changes.map((change) => (
-                            <div key={change.field} className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-                              <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-3 py-1.5">
+                            <div key={change.field} className="rounded-lg border border-border bg-card overflow-hidden">
+                              <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-1.5">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#0d61ac]" aria-hidden="true">
                                   <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                   <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84.84-2.872a2 2 0 0 1 .506-.854z" />
                                 </svg>
-                                <span className="text-[11px] font-semibold text-gray-600">{change.label}</span>
+                                <span className="text-[11px] font-semibold text-muted-foreground">{change.label}</span>
                               </div>
 
                               <div className="px-3 py-2">

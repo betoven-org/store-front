@@ -33,11 +33,11 @@ export default function AjudaPage() {
     <AdminShell title="Ajuda">
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-[#0d61ac]" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-[#0d61ac]" />
         </div>
       ) : guides.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <p className="text-sm text-gray-500">Nenhum guia disponivel</p>
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-sm text-muted-foreground">Nenhum guia disponivel</p>
         </div>
       ) : (
         <div className="flex gap-6">
@@ -53,7 +53,7 @@ export default function AjudaPage() {
                       className={`w-full rounded-md px-3 py-2 text-left text-sm font-medium transition-colors ${
                         activeSlug === guide.slug
                           ? "bg-[#0d61ac]/5 text-[#0d61ac]"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          : "text-muted-foreground hover:bg-background hover:text-foreground"
                       }`}
                     >
                       {guide.title}
@@ -66,19 +66,19 @@ export default function AjudaPage() {
 
           {/* Conteudo do guia */}
           {activeGuide && (
-            <article className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-8">
-              <h1 className="mb-6 text-2xl font-bold text-gray-900">{activeGuide.title}</h1>
+            <article className="min-w-0 flex-1 rounded-xl border border-border bg-card p-8">
+              <h1 className="mb-6 text-2xl font-bold text-foreground">{activeGuide.title}</h1>
               <div
                 className="prose prose-sm max-w-none
-                  prose-headings:text-gray-900 prose-h2:mt-8 prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-2
+                  prose-headings:text-foreground prose-h2:mt-8 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
                   prose-h3:mt-4 prose-h3:text-base
-                  prose-p:text-gray-600 prose-p:leading-relaxed
-                  prose-li:text-gray-600
-                  prose-strong:text-gray-900
+                  prose-p:text-muted-foreground prose-p:leading-relaxed
+                  prose-li:text-muted-foreground
+                  prose-strong:text-foreground
                   prose-a:text-[#0d61ac] prose-a:no-underline hover:prose-a:underline
-                  prose-table:text-sm prose-th:bg-gray-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-gray-700
-                  prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-gray-100
-                  prose-hr:border-gray-200"
+                  prose-table:text-sm prose-th:bg-background prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-foreground
+                  prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-border
+                  prose-hr:border-border"
                 dangerouslySetInnerHTML={{ __html: activeGuide.content }}
               />
             </article>

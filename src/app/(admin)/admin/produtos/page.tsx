@@ -243,7 +243,7 @@ export default function ProductsListPage() {
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") clearSearch(); }}
               placeholder="Buscar produtos..."
-              className="w-full rounded-md border bg-card py-2 pl-10 pr-9 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full rounded-md border bg-card py-2 pl-10 pr-9 text-sm shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             {search && (
               <button
@@ -260,7 +260,7 @@ export default function ProductsListPage() {
           <button
             type="button"
             onClick={() => setShowFilters((p) => !p)}
-            className={`flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm shadow-sm transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm shadow transition-colors ${
               showFilters || activeFilterCount > 0
                 ? "border-[#0d61ac] bg-[#0d61ac]/5 text-[#0d61ac]"
                 : "bg-card text-muted-foreground hover:bg-muted"
@@ -286,7 +286,7 @@ export default function ProductsListPage() {
       {showFilters && (
         <div className="mb-4 rounded-lg border bg-card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-700">Filtros</p>
+            <p className="text-sm font-medium text-foreground">Filtros</p>
             {activeFilterCount > 0 && (
               <button
                 type="button"
@@ -300,11 +300,11 @@ export default function ProductsListPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {/* Status */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Status</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label>
               <select
                 value={currentStatus}
                 onChange={(e) => updateParams({ status: e.target.value })}
-                className="w-full rounded-md border bg-white px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
               >
                 <option value="">Todos</option>
                 <option value="draft">Rascunho</option>
@@ -314,11 +314,11 @@ export default function ProductsListPage() {
 
             {/* Categoria */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Categoria</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Categoria</label>
               <select
                 value={currentCategory}
                 onChange={(e) => updateParams({ category: e.target.value })}
-                className="w-full rounded-md border bg-white px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
               >
                 <option value="">Todas</option>
                 {categories.map((cat) => (
@@ -329,11 +329,11 @@ export default function ProductsListPage() {
 
             {/* Destaque */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Destaque</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Destaque</label>
               <select
                 value={currentFeatured}
                 onChange={(e) => updateParams({ featured: e.target.value })}
-                className="w-full rounded-md border bg-white px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
               >
                 <option value="">Todos</option>
                 <option value="true">Sim</option>
@@ -343,11 +343,11 @@ export default function ProductsListPage() {
 
             {/* Kit */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Kit</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Kit</label>
               <select
                 value={currentIsKit}
                 onChange={(e) => updateParams({ isKit: e.target.value })}
-                className="w-full rounded-md border bg-white px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
               >
                 <option value="">Todos</option>
                 <option value="true">Sim</option>
@@ -357,11 +357,11 @@ export default function ProductsListPage() {
 
             {/* Visivel no site */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Visivel no site</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Visivel no site</label>
               <select
                 value={currentShowOnSite}
                 onChange={(e) => updateParams({ showOnSite: e.target.value })}
-                className="w-full rounded-md border bg-white px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
               >
                 <option value="">Todos</option>
                 <option value="true">Sim</option>
@@ -371,15 +371,15 @@ export default function ProductsListPage() {
 
             {/* Data */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Periodo</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Periodo</label>
               <div className="relative" ref={datePickerRef}>
                 <button
                   type="button"
                   onClick={() => setShowDatePicker(showDatePicker ? null : "from")}
-                  className={`flex w-full items-center gap-1.5 rounded-md border bg-white px-2.5 py-1.5 text-sm transition-colors ${
+                  className={`flex w-full items-center gap-1.5 rounded-md border bg-card px-2.5 py-1.5 text-sm transition-colors ${
                     currentDateFrom || currentDateTo
                       ? "border-[#0d61ac] text-[#0d61ac]"
-                      : "text-gray-500"
+                      : "text-muted-foreground"
                   }`}
                 >
                   <Calendar className="size-3.5" aria-hidden="true" />
@@ -400,7 +400,7 @@ export default function ProductsListPage() {
                         updateParams({ dateFrom: "", dateTo: "" });
                         setShowDatePicker(null);
                       }}
-                      className="ml-auto text-gray-400 hover:text-gray-600"
+                      className="ml-auto text-muted-foreground hover:text-muted-foreground"
                       aria-label="Limpar data"
                     >
                       <X className="size-3.5" aria-hidden="true" />
@@ -768,14 +768,14 @@ function DatePickerDropdown({
   const weekdays = ["D", "S", "T", "Q", "Q", "S", "S"];
 
   return (
-    <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+    <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-xl border border-border bg-card p-3 shadow-xl">
       {/* Tabs */}
-      <div className="mb-3 flex rounded-lg border bg-gray-50 p-0.5">
+      <div className="mb-3 flex rounded-lg border bg-background p-0.5">
         <button
           type="button"
           onClick={() => onChangeField("from")}
           className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-            activeField === "from" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+            activeField === "from" ? "bg-card text-foreground shadow" : "text-muted-foreground"
           }`}
         >
           De: {localFrom ? formatDateShort(localFrom) : "--/--/----"}
@@ -784,7 +784,7 @@ function DatePickerDropdown({
           type="button"
           onClick={() => onChangeField("to")}
           className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-            activeField === "to" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+            activeField === "to" ? "bg-card text-foreground shadow" : "text-muted-foreground"
           }`}
         >
           Ate: {localTo ? formatDateShort(localTo) : "--/--/----"}
@@ -793,11 +793,11 @@ function DatePickerDropdown({
 
       {/* Month nav */}
       <div className="mb-2 flex items-center justify-between">
-        <button type="button" onClick={prevMonth} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+        <button type="button" onClick={prevMonth} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground">
           <ChevronLeft className="size-4" aria-hidden="true" />
         </button>
-        <span className="text-sm font-medium capitalize text-gray-700">{monthName}</span>
-        <button type="button" onClick={nextMonth} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+        <span className="text-sm font-medium capitalize text-foreground">{monthName}</span>
+        <button type="button" onClick={nextMonth} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground">
           <ChevronRightIcon className="size-4" aria-hidden="true" />
         </button>
       </div>
@@ -805,7 +805,7 @@ function DatePickerDropdown({
       {/* Weekday headers */}
       <div className="mb-1 grid grid-cols-7 text-center">
         {weekdays.map((w, i) => (
-          <span key={i} className="py-1 text-xs font-medium text-gray-400">{w}</span>
+          <span key={i} className="py-1 text-xs font-medium text-muted-foreground">{w}</span>
         ))}
       </div>
 
@@ -829,7 +829,7 @@ function DatePickerDropdown({
                   ? "bg-[#0d61ac] font-medium text-white"
                   : inRange
                   ? "bg-[#0d61ac]/10 text-[#0d61ac]"
-                  : "text-gray-700 hover:bg-gray-100"
+                  : "text-foreground hover:bg-accent"
               }`}
             >
               {day}
@@ -842,11 +842,11 @@ function DatePickerDropdown({
       </div>
 
       {/* Actions */}
-      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
         <button
           type="button"
           onClick={() => { onApply("", ""); }}
-          className="text-xs text-gray-500 hover:text-gray-700"
+          className="text-xs text-muted-foreground hover:text-foreground"
         >
           Limpar
         </button>

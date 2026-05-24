@@ -1,299 +1,341 @@
-# Blog Medicinal
+# Brasa CMS — Briefing para Design do Frontend Admin
 
-Portal de conteudo sobre saude, suplementos naturais e fitoterapia com catalogo de produtos farmaceuticos. Inclui CMS administrativo completo, integracao com Supabase como fonte de verdade, sistema de assinaturas Stripe e SEO avancado.
+## O que é
 
-## O que o projeto entrega
+CMS cloud multitenant para gerenciar blogs, catálogos de produtos e páginas de conteúdo. Cada cliente (tenant) acessa o mesmo painel admin, mas vê apenas seus dados. O CMS não tem frontend público — serve dados via API REST para frontends separados (modelo similar ao deco.cx / Sanity / Payload).
 
-### Para o visitante (usuario final)
+Referências visuais: **Payload CMS**, **Strapi**, **Sanity Studio**, **WordPress admin moderno**, **deco.cx admin**.
 
-- **Portal de conteudo** — artigos sobre saude organizados por categorias (Saude, Emagrecedor, Nutricosmetico, Ativos, Fit, Dermocosmeticos, etc.), com hero article na home, secoes editoriais (Escolha do Editor, Tendencias, Novidades, Mais Lidas) e secoes dinamicas por categoria
-- **Catalogo de produtos** — vitrine de produtos farmaceuticos com galeria de imagens (zoom fullscreen, navegacao por setas), descricao detalhada, composicao, instrucoes de uso, beneficios e diferenciais. Cada produto tem botao "Fale com o farmaceutico" que abre conversa no WhatsApp
-- **Busca live** — barra de busca com resultados em tempo real (debounce 250ms) mostrando posts e produtos, acessivel pelo header em qualquer pagina
-- **Navegacao por categorias** — menu horizontal com pills, filtragem por categoria tanto de posts quanto de produtos, paginacao
-- **Newsletter** — formulario de inscricao no footer para captacao de leads
-- **Pagina de autor** — perfil do autor com seus artigos publicados
-- **Politica de privacidade** — pagina institucional editavel pelo CMS
-- **RSS Feed** — feed XML para leitores RSS
+---
 
-### Para o administrador (CMS)
+## Telas necessárias
 
-- **Dashboard** — metricas do CMS (posts, publicados, rascunhos, categorias, inscritos, midias) + analytics com timeseries, paginas mais acessadas, referrers, paises, dispositivos, SO e browsers. Filtro por periodo (7d/30d/90d)
-- **Gestao de posts** — CRUD completo com drawer lateral, editor rich text TipTap (visual + markdown), upload de hero image, selecao de categoria/autor, excerpt, status draft/published, destaque, agendamento de publicacao
-- **SEO avancado por post** — meta title, meta description, focus keyword, secondary keywords, OG title/description/image, canonical URL, schema type (Article, NewsArticle, BlogPosting...), noindex/nofollow, SEO score, SEO notes, word count automatico, reading time
-- **Gestao de produtos** — CRUD com galeria de imagens multiplas, composicao, instrucoes de uso, quem pode usar, beneficios (titulo + subtitulo), diferenciais, marca, flag is_kit, show_on_site, noindex
-- **Categorias** — categorias de posts e categorias de produtos (com hierarquia pai/filho, imagem, ordenacao)
-- **Autores** — nome, slug, bio, avatar
-- **Biblioteca de midias** — upload para Vercel Blob com variantes automaticas (thumbnail, card, hero), gestao e exclusao
-- **Usuarios** — gestao com roles (admin, editor, author, viewer)
-- **Inscritos** — lista de subscribers da newsletter
-- **Operacoes em bulk** — selecao multipla em qualquer listagem com acoes (publicar, despublicar, excluir)
-- **Busca global (Cmd+K)** — busca unificada por posts, produtos, categorias e autores
-- **Configuracoes do site** — nome, descricao, logo, favicon, redes sociais (Facebook, Instagram, YouTube), textos do footer/copyright, configuracao da newsletter (titulo, descricao, consentimento), SEO global (title, description, keywords), politica de privacidade, robots.txt (index, follow, disallow)
-- **Sync com Supabase** — importacao/atualizacao do conteudo do Supabase do cliente (articles, categories, tags, products) com upsert (nunca apaga), barra de progresso via SSE em tempo real, acionavel manualmente ou via webhook
-- **Assinatura Stripe** — checkout, portal do cliente, webhook para lifecycle de subscription, cron para verificar assinaturas expiradas, pagina de pagamento pendente
-- **Variaveis de ambiente** — interface para gerenciar env vars e dominios pelo CMS
+### 1. Login (`/admin/login`)
 
-### SEO e Performance
+**Estado atual:** Card branco centralizado, fundo cinza, logo no topo, campos email + senha, botão "Entrar".
 
-- **Sitemap dinamico** — gerado automaticamente com todos os posts e produtos publicados
-- **Robots.txt dinamico** — configuravel pelo CMS (index, follow, disallow rules)
-- **RSS Feed** — `/feed.xml` automatico
-- **Dados estruturados JSON-LD** — Article/BlogPosting/NewsArticle por post (schema type configuravel), Product nos PDPs, com wordCount, keywords, articleSection
-- **Open Graph + Twitter Cards** — metadata completa por post e por pagina
-- **Canonical URLs** — configuravel por post ou automatica
-- **noindex/nofollow** — granular por post e por produto
-- **Static generation** — `generateStaticParams` para posts publicados
-- **Cache** — `unstable_cache` com tags granulares para revalidation on-demand via `/api/revalidate`
-- **Imagens** — AVIF/WebP, sizes otimizados por contexto, lazy load em nao-criticas, priority/fetchPriority no LCP
-- **Fonts** — Roboto com `font-display: swap`, preload
-- **CSS** — `optimizeCss` habilitado, sem dark mode CSS desnecessario
-- **Browserslist** — moderno (Chrome 109+, Safari 16+) para eliminar polyfills
-- **Preconnect** — origins externas (framerusercontent, vteximg)
-- **Navigation progress** — barra de progresso durante navegacao
+**O que precisa:**
+- Tela de login limpa e profissional
+- Logo do CMS (Brasa CMS — não do cliente)
+- Campos: email, senha
+- Botão de submit com loading state (spinner)
+- Mensagem de erro inline (credenciais inválidas)
+- Fundo que transmita confiança/profissionalismo
+- Sem link de "esqueci senha" por enquanto
+- Sem cadastro — usuários são criados pelo admin
 
-## Stack
+**Comportamento:**
+- `/` redireciona para `/admin` que redireciona para `/admin/login` (se não autenticado)
+- Auth via NextAuth (credentials provider)
+- Após login, redireciona para `/admin` (dashboard)
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Framework | Next.js 15.4 (App Router) + React 19 |
-| Estilizacao | Tailwind CSS 4 + tw-animate-css |
-| ORM | Drizzle ORM (type-safe) |
-| Banco de dados | Neon PostgreSQL (production) |
-| Source of truth | Supabase (cliente) |
-| Autenticacao | NextAuth v5 (beta) |
-| Pagamentos | Stripe (assinaturas) |
-| Upload | Vercel Blob |
-| Editor | TipTap (rich text + markdown) |
-| UI Components | shadcn/ui + Lucide icons + SVG inline |
-| Node | >= 22 (obrigatorio) |
+---
 
-## Arquitetura
+### 2. Layout Admin (shell que envolve todas as telas)
 
+**Estrutura:**
 ```
-src/
-├── app/
-│   ├── (admin)/admin/         # CMS completo (10 paginas)
-│   ├── (frontend)/            # Site publico (11 rotas)
-│   │   └── api/               # Newsletter, busca, revalidate
-│   └── api/
-│       ├── admin/             # 15 endpoints protegidos + bulk
-│       ├── auth/              # NextAuth
-│       ├── webhooks/          # Stripe + Supabase sync
-│       ├── cron/              # Check subscriptions
-│       └── search/            # Busca publica
-├── components/
-│   ├── admin/                 # 22 componentes do CMS
-│   ├── ui/                    # 11 primitives shadcn
-│   └── *.tsx                  # 17 componentes frontend
-├── db/
-│   ├── schema.ts              # 11 tabelas + relations
-│   ├── index.ts               # Drizzle client
-│   ├── seed.ts                # Seed data
-│   └── setup.ts               # DB setup
-├── lib/
-│   ├── queries.ts             # Queries centralizadas com cache
-│   ├── supabase.ts            # Supabase client
-│   ├── stripe.ts              # Stripe client
-│   ├── utils.ts               # Helpers (resolveRelation, cn)
-│   ├── formatDate.ts          # Formatacao pt-BR
-│   └── slug.ts                # Geracao de slugs
-├── middleware.ts               # Auth middleware
-└── styles/                     # Estilos globais
+┌─────────────────────────────────────────────────┐
+│ [Sidebar]  │  [Header: título + ações]          │
+│            │                                     │
+│  Blog      │  [Conteúdo da página]              │
+│   Posts    │                                     │
+│   Categ.  │                                     │
+│   Autores │                                     │
+│   Mídias  │                                     │
+│            │                                     │
+│  Catálogo  │                                     │
+│   Produtos│                                     │
+│   Categ.  │                                     │
+│            │                                     │
+│  Storefront│                                     │
+│   Páginas │                                     │
+│   Footer  │                                     │
+│   Newsletter                                    │
+│            │                                     │
+│  Config    │                                     │
+│   Settings│                                     │
+│   Usuários│                                     │
+│   Analytics                                     │
+│            │                                     │
+│  [?] Ajuda │                                     │
+└─────────────────────────────────────────────────┘
 ```
 
-## Banco de Dados (11 tabelas)
+**Sidebar:**
+- Colapsável (ícone-only mode com 68px, expandida com 240px)
+- Estado salvo no localStorage
+- Mobile: drawer que abre por cima com overlay
+- Grupos de navegação com ícones Lucide:
+  - **Blog:** Posts, Categorias, Autores, Mídias
+  - **Catálogo:** Produtos, Categorias de Produto
+  - **Storefront:** Páginas (page builder), Footer, Newsletter
+  - **Configurações:** Identidade, Contato, Redes Sociais, Robots, Analytics, Usuários
+  - **Integrações:** Supabase
+  - **Ajuda**
+- Grupos são acordeões (expand/collapse com chevron)
+- Busca rápida no topo (Command+K style, usa cmdk)
+- Item ativo destacado visualmente
 
-| Tabela | Campos principais | Observacoes |
-|--------|------------------|-------------|
-| `users` | name, email, passwordHash, role (admin/editor/author/viewer) | Autenticacao CMS |
-| `posts` | title, slug, excerpt, content (JSON TipTap), categoryId, authorId, heroImageId, coverUrl, status, featured, publishedAt + **10 campos SEO** (metaTitle, metaDescription, focusKeyword, secondaryKeywords, ogTitle, ogDescription, ogImageUrl, schemaType, canonicalUrl, seoScore, seoNotes, noindex, nofollow, wordCount, readingTimeMinutes, lastSeoReviewAt, approvedAt) | supabase_id para sync |
-| `products` | name, slug, description, content (JSON), composition, usageInstructions, whoCanUse, benefits (JSON), differentials (JSON), productCategoryId, imageId, galleryImages (JSON), seoTitle, seoDescription, brand, isKit, showOnSite, noindex, status, featured | Catalogo farmaceutico |
-| `categories` | name, slug, description | Categorias de posts, supabase_id |
-| `product_categories` | name, slug, description, parentId (hierarquia), imageId, sortOrder | Categorias de produtos |
-| `authors` | name, slug, bio, avatarId | supabase_id |
-| `media` | filename, alt, url, thumbnailUrl, cardUrl, heroUrl, mimeType, size | supabaseUrl para sync |
-| `tags` | postId, tag | Tags por post |
-| `subscribers` | email, active | Newsletter |
-| `site_settings` | siteName, siteDescription, logoId, faviconId, redes sociais, newsletter config, SEO global, privacyPolicy, robots config, supabase credentials, syncEnabled | Singleton |
-| `subscriptions` | tenantId, status (active/overdue/suspended), nextDueDate, graceDays, stripe IDs | Assinatura Stripe |
+**Header:**
+- Título da página atual (ex: "Posts", "Editar Post")
+- Slot para ações extras (ex: botão "Novo Post", filtros)
+- Hambúrguer no mobile pra abrir sidebar
 
-Relacoes: posts -> categories, authors, media, tags. products -> product_categories, media. product_categories -> self (parent/child), media. authors -> media (avatar). site_settings -> media (logo, favicon).
+**Toast notifications:** Sonner (bottom-right, rich colors, com botão de fechar)
 
-IDs: UUID no Supabase, serial int local (mapeado via `supabase_id`).
+---
 
-## Paginas Publicas (Frontend)
+### 3. Dashboard (`/admin`)
 
-| Rota | O que entrega |
-|------|--------------|
-| `/` | Home editorial: hero article em destaque, Escolha do Editor (3 cards), pills de categorias, Tendencias (8 trend cards) + sidebar Posts Recentes, banner de destaque, secoes por categoria (top 3), Novidades (8 cards compactos), Mais Lidas (top 5 numerado) |
-| `/blog` | Listagem de todos os posts publicados com paginacao |
-| `/posts/[slug]` | Post completo com hero image, breadcrumb, badge de categoria, autor/data, conteudo rich text, posts relacionados (mesma categoria), dados estruturados JSON-LD, OG/Twitter meta |
-| `/categorias` | Grid de todas as categorias |
-| `/categorias/[slug]` | Posts filtrados por categoria com paginacao |
-| `/autores/[slug]` | Perfil do autor + seus posts |
-| `/produtos` | Catalogo completo de produtos publicados com paginacao |
-| `/produtos/[slug]` | Produtos de uma categoria especifica com paginacao (grid 4 colunas, cards com botao WhatsApp) |
-| `/[slug]/p` | PDP: galeria com zoom fullscreen, composicao, instrucoes de uso, quem pode usar, beneficios, diferenciais, botao WhatsApp, breadcrumb, dados estruturados Product |
-| `/search` | Pagina de resultados de busca |
-| `/politica-de-privacidade` | Texto da politica de privacidade (editavel pelo CMS) |
+Primeira tela após login. Mostra overview do tenant:
 
-## CMS Administrativo
+- **Cards de métricas:** Total de posts, total de produtos, pageviews (últimos 7 dias), tempo médio de resposta
+- **Gráfico de tráfego:** Últimos 7 dias (barras ou linha)
+- **Últimas alterações:** Lista com ícone + título + "há X minutos"
+- **Performance:** Latência p50/p95, taxa de erro, páginas mais lentas
+- **Posts recentes:** Mini-lista dos últimos 5 posts publicados
 
-| Rota | Funcionalidade |
-|------|---------------|
-| `/admin` | Dashboard: cards de metricas (posts, publicados, rascunhos, categorias, inscritos, midias) + analytics (timeseries chart, overview, top paginas, referrers, paises, device types, OS, browsers) com filtro de periodo |
-| `/admin/posts` | DataTable com busca, filtro por status, selecao multipla, bulk actions. PostDrawer lateral com editor TipTap (visual/markdown toggle), upload hero image, campos SEO completos |
-| `/admin/posts/novo` | Criacao de post |
-| `/admin/posts/[id]` | Edicao de post |
-| `/admin/produtos` | DataTable de produtos com bulk actions. ProductDrawer com galeria de imagens, campos de produto farmaceutico |
-| `/admin/categorias` | CRUD categorias de posts. CategoryDrawer |
-| `/admin/categorias-produto` | CRUD categorias de produtos com hierarquia. ProductCategoryDrawer |
-| `/admin/autores` | CRUD autores. AuthorDrawer. Paginas novo/[id] |
-| `/admin/midias` | Biblioteca de midias: grid de imagens, upload, edicao de alt/filename, exclusao |
-| `/admin/usuarios` | Gestao de usuarios + roles. UserDrawer |
-| `/admin/inscritos` | Lista de subscribers da newsletter |
-| `/admin/configuracoes` | Tabs: Geral (nome, descricao, logo, favicon), Redes Sociais, Newsletter, SEO (title, description, keywords), Paginas (politica de privacidade), Robots (index, follow, disallow), Supabase (credentials + sync com barra de progresso SSE), Assinatura Stripe |
-| `/admin/pagamento-pendente` | Tela para assinaturas expiradas/suspensas |
-| `/admin/login` | Autenticacao por email/senha |
+---
 
-## API Routes
+### 4. Listagens (Posts, Produtos, Categorias, Autores, Mídias, Usuários)
 
-### Admin (protegidas por auth)
-| Endpoint | Metodos | Funcao |
-|----------|---------|--------|
-| `/api/admin/posts` | GET, POST | Listar/criar posts |
-| `/api/admin/posts/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir post |
-| `/api/admin/posts/bulk` | POST | Publicar/despublicar/excluir em massa |
-| `/api/admin/products` | GET, POST | Listar/criar produtos |
-| `/api/admin/products/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir produto |
-| `/api/admin/products/bulk` | POST | Acoes em massa em produtos |
-| `/api/admin/categories` | GET, POST | Listar/criar categorias |
-| `/api/admin/categories/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir categoria |
-| `/api/admin/categories/bulk` | POST | Acoes em massa em categorias |
-| `/api/admin/product-categories` | GET, POST | Listar/criar categorias de produto |
-| `/api/admin/product-categories/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir |
-| `/api/admin/product-categories/bulk` | POST | Acoes em massa |
-| `/api/admin/authors` | GET, POST | Listar/criar autores |
-| `/api/admin/authors/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir autor |
-| `/api/admin/authors/bulk` | POST | Acoes em massa em autores |
-| `/api/admin/media` | GET, POST | Listar/upload midias |
-| `/api/admin/media/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir midia |
-| `/api/admin/users` | GET, POST | Listar/criar usuarios |
-| `/api/admin/users/[id]` | GET, PUT, DELETE | Detalhe/editar/excluir usuario |
-| `/api/admin/subscribers` | GET | Lista inscritos newsletter |
-| `/api/admin/analytics` | GET | Metricas do dashboard |
-| `/api/admin/search` | GET | Busca global admin |
-| `/api/admin/settings` | GET, POST | Ler/salvar configuracoes do site |
-| `/api/admin/supabase-sync` | POST, DELETE | Sync upsert (SSE) / Truncate + resync |
-| `/api/admin/upload` | POST | Upload de arquivo |
-| `/api/admin/domains` | GET, POST | Gestao de dominios |
-| `/api/admin/env-vars` | GET, POST | Gestao de variaveis de ambiente |
-| `/api/admin/subscription` | GET | Status da assinatura |
-| `/api/admin/stripe/checkout` | POST | Criar sessao Stripe Checkout |
-| `/api/admin/stripe/portal` | POST | Abrir Stripe Customer Portal |
+Padrão consistente para todas as listagens:
 
-### Publicas
-| Endpoint | Funcao |
-|----------|--------|
-| `/api/search` | Busca publica (posts + produtos, ilike case-insensitive) |
-| `/api/subscription-status` | Status da assinatura Stripe |
-| `(frontend)/api/newsletter` | Inscricao newsletter |
-| `(frontend)/api/search` | Busca frontend |
-| `(frontend)/api/revalidate` | Revalidation on-demand por tag |
+**Header:** Título + botão "Novo [item]"
 
-### Webhooks e Cron
-| Endpoint | Funcao |
-|----------|--------|
-| `/api/webhooks/stripe` | Eventos Stripe (subscription lifecycle) |
-| `/api/webhooks/supabase-sync` | Webhook para sync automatico |
-| `/api/cron/check-subscriptions` | Verifica assinaturas expiradas |
+**Filtros:**
+- Barra de busca (full-text search)
+- Filtros por status (draft/published), categoria, data
+- Posts e produtos: filtro por destaque (featured)
 
-### SEO automatico
-| Rota | Funcao |
-|------|--------|
-| `/sitemap.ts` | Sitemap dinamico com posts + produtos publicados |
-| `/robots.ts` | Robots.txt dinamico (configuravel pelo CMS) |
-| `/feed.xml` | RSS feed |
+**Tabela:**
+- Colunas: checkbox, imagem (thumbnail), título/nome, status badge, categoria, data, ações
+- Sorting por coluna
+- Seleção múltipla com checkbox
+- Ações em massa (excluir, publicar, despublicar) — barra fixa no bottom quando items selecionados
+- Paginação no footer da tabela
 
-## Sync com Supabase
+**Status badges:**
+- Published → verde
+- Draft → amarelo/cinza
 
-O Supabase do cliente (`hsixbybpwvhvkwxeaxup.supabase.co`) e a fonte de verdade para conteudo. Tabelas sincronizadas: articles (104), categories (7), tags (7), article_tags (N:N), products (191).
+**Ações por item:** Editar (link), excluir (confirmação)
 
-Fluxo:
-1. Admin clica "Sincronizar" em `/admin/configuracoes` ou webhook dispara
-2. `POST /api/admin/supabase-sync` faz fetch de todas as tabelas do Supabase
-3. Upsert no banco local: insere novos, atualiza existentes, **nunca apaga dados locais**
-4. Mapeamento de IDs: UUID do Supabase -> serial int local via campo `supabase_id`
-5. Conteudo markdown do Supabase e armazenado como `{type:"doc", _html:"..."}` no campo content
-6. Streaming SSE envia progresso em tempo real para a UI (barra de progresso)
+**Mídias:** Grid de cards (não tabela) com thumbnail, nome, tamanho. Upload com drag-and-drop + crop.
 
-Para reset completo: `DELETE /api/admin/supabase-sync` (truncate cascade + resync).
+---
 
-## Componentes
+### 5. Formulários de edição (Post, Produto, Categoria, Autor)
 
-### Frontend (17 componentes)
-| Componente | Descricao |
-|-----------|-----------|
-| `Header` | Grid 3 colunas (breadcrumb, busca, user menu + botoes Area Restrita/Fale Conosco), sticky z-50, 2 linhas |
-| `CategoryMenu` | Pills horizontais com scroll, categorias que possuem produtos publicados (EXISTS query), "Ver Todos os Produtos" fixo |
-| `MobileMenu` | Hamburger modal (w-80 z-50), overlay, Esc handler, body overflow control |
-| `SearchBar` | Input com dropdown live results, debounce 250ms, ilike case-insensitive, mostra produtos + posts |
-| `SearchButton` / `SearchModal` | Atalho de busca e modal |
-| `HeroArticle` | Banner principal do post destaque na home |
-| `ArticleCard` | Card de artigo com imagem, categoria, autor, data. Variante com priority/fetchPriority para LCP |
-| `ArticleCardCompact` | Card menor para secao Novidades |
-| `ArticleCardSmall` | Card minimo (titulo + autor + data) para sidebar |
-| `TrendCard` | Card horizontal para secao Tendencias |
-| `CategoryBadge` | Badge de categoria com link |
-| `Breadcrumb` | Navegacao breadcrumb |
-| `ProductGallery` | Galeria com setas always visible, zoom modal fullscreen, sem limite de imagens, sem duplicatas |
-| `TipTapRenderer` | Renderiza content TipTap JSON ou detecta `_html` e converte markdown para HTML |
-| `NewsletterForm` | Formulario de inscricao com feedback de sucesso/erro |
-| `NavigationProgress` | Barra de progresso durante navegacao entre paginas |
-| `Skeleton` | Loading skeleton |
-| `Footer` | Rodape com newsletter, redes sociais, copyright |
+**Post:**
+- Campos: título, slug (auto-gerado), excerpt, conteúdo (TipTap rich editor), categoria (select), autor (select), imagem de capa (upload), tags
+- SEO accordion: meta title, meta description, focus keyword, OG title/description/image, noindex, nofollow, score
+- Status: draft/published toggle
+- Featured: checkbox
+- Botões: Salvar rascunho, Publicar
 
-### Admin (22 componentes)
-| Componente | Descricao |
-|-----------|-----------|
-| `AdminShell` | Layout com sidebar + header |
-| `Sidebar` / `NavLink` / `Logo` | Navegacao lateral |
-| `AdminHeader` | Header do admin |
-| `Dashboard` | Metricas CMS + Analytics (timeseries, ranked lists) |
-| `DataTable` | Tabela generica com selecao, paginacao, acoes bulk |
-| `BulkBar` | Barra de acoes em massa |
-| `PostDrawer` | Edicao de post com TipTap (visual/markdown toggle), campos SEO |
-| `ProductDrawer` | Edicao de produto com galeria multipla |
-| `CategoryDrawer` | Edicao de categoria |
-| `ProductCategoryDrawer` | Edicao de categoria de produto |
-| `AuthorDrawer` | Edicao de autor |
-| `UserDrawer` | Edicao de usuario |
-| `Drawer` | Componente base de drawer lateral |
-| `RichTextEditor` | TipTap com toolbar completa |
-| `ImageUpload` | Upload com preview |
-| `FormField` | Campo de formulario generico (suporta type="password" para chaves sensiveis) |
-| `GlobalSearch` | Cmd+K busca global |
-| `DeleteConfirm` | Modal de confirmacao de exclusao |
-| `StatusBadge` | Badge de status (draft/published) |
-| `Spinner` / `Icon` | Utilitarios |
-| `AssinaturaSection` | Secao de assinatura Stripe nas configuracoes |
-| `DomainsField` / `DomainsView` | Gestao de dominios |
-| `EnvVarsField` / `EnvVarsView` | Gestao de variaveis de ambiente |
-| `BeforeLogin` | Tela pre-login |
+**Produto:**
+- Campos: nome, slug, descrição, conteúdo (TipTap), categoria de produto, imagem principal, galeria (multi-upload), composição, modo de uso, benefícios (array de {titulo, subtitulo}), diferenciais (array de strings)
+- SEO: título, descrição
+- Status, featured, show on site toggles
+- Brand, isKit toggles
 
-### UI Primitives (shadcn/ui - 11)
-badge, button, checkbox, dialog, dropdown-menu, popover, select, separator, sheet, table, tooltip
+**Categoria/Autor:** Formulários mais simples — nome, slug, descrição, avatar/imagem
 
-## Variaveis de Ambiente
+---
 
+### 6. Page Builder (`/admin/paginas/[id]`)
+
+Editor visual de páginas com sections drag-and-drop:
+
+**Layout:**
 ```
-DATABASE_URL              # Neon PostgreSQL connection string
-NEXTAUTH_SECRET           # Secret para NextAuth
-NEXTAUTH_URL              # URL base da aplicacao
-NEXT_PUBLIC_SITE_URL      # URL publica do site
-STRIPE_SECRET_KEY         # Stripe server key
-STRIPE_WEBHOOK_SECRET     # Stripe webhook signing secret
-BLOB_READ_WRITE_TOKEN     # Vercel Blob token para uploads
+┌─────────────────────────────────────────────────┐
+│ [Sidebar seções]  │  [Preview / Editor]          │
+│                   │                               │
+│  + Adicionar      │  ┌─────────────────────┐     │
+│                   │  │  [Section: HeroPost] │     │
+│  HeroPost    ≡    │  │  (props editáveis)   │     │
+│  PostGrid    ≡    │  └─────────────────────┘     │
+│  Banner      ≡    │  ┌─────────────────────┐     │
+│  WhatsAppCTA ≡    │  │  [Section: PostGrid] │     │
+│                   │  │  (props editáveis)   │     │
+│                   │  └─────────────────────┘     │
+└─────────────────────────────────────────────────┘
 ```
 
-Credenciais Supabase sao armazenadas no banco (`site_settings`) e gerenciadas pelo CMS, nao por env vars.
+**Sidebar esquerda:**
+- Lista de sections adicionadas à página (drag-and-drop para reordenar com @dnd-kit)
+- Botão "+ Adicionar seção" abre modal com catálogo de sections disponíveis
+- Cada item: nome da section, ícone de drag handle (≡), botão excluir
+
+**Catálogo de sections (modal):**
+- Sections agrupadas: Home, Marketing, Conteúdo
+- Card para cada section: ícone, título, descrição curta
+- Click adiciona ao final da lista
+
+**Sections disponíveis no manifest:**
+| Key | Título | Grupo | Props principais |
+|-----|--------|-------|-----------------|
+| Banner | Banner | Marketing | image, alt, title, description, backgroundColor, href, height |
+| CategoryBar | Barra de Categorias | Home | title, showAll, limit |
+| Features | Destaques | Conteúdo | title, subtitle, columns, items[] |
+| Hero | Hero | Conteúdo | title, subtitle, backgroundImage, align, cta, dark |
+| HeroPost | Post Destaque | Home | mode, manualSlug, showCategory, showAuthor, sideCount |
+| PostCarousel | Lista de Posts | Home | title, mode, limit, showCategory, viewAllHref |
+| PostGrid | Grade de Posts | Home | title, mode, limit, columns, showCategory, viewAllHref |
+| PostGridWithSidebar | Grade + Lista Lateral | Home | gridTitle, gridMode, sidebarTitle, sidebarMode |
+| ProductShowcase | Vitrine de Produtos | Home | title, mode, limit, columns, viewAllHref |
+| WhatsAppCTA | CTA WhatsApp | Home | title, description, buttonText, defaultMessage, style |
+
+**Editor de props (ao clicar numa section):**
+- Formulário dinâmico baseado no manifest JSON
+- Tipos de campo: text, textarea, rich-text, image (upload), color picker, select, number, boolean (toggle), array (items repetíveis), object (campos aninhados)
+- Preview ao vivo (iframe do frontend com ?draft=true) — futuro
+
+**Metadados da página:** Título, slug, SEO fields (accordion)
+
+**Ações:** Salvar rascunho, Publicar (aplica draftSections → sections)
+
+---
+
+### 7. Configurações
+
+Várias sub-telas, todas com layout de formulário:
+
+- **Identidade:** Nome do site, descrição, logo (upload), favicon (upload)
+- **Contato:** WhatsApp
+- **Redes Sociais:** Facebook, Instagram, YouTube
+- **Footer:** Texto do footer, copyright
+- **Newsletter:** Título, descrição, texto de consentimento
+- **Robots.txt:** Editor de texto simples
+- **SEO:** Título global, descrição, keywords
+- **Analytics:** GTM ID, GA4 ID, Google Ads ID, Facebook Pixel ID, Umami URL + Website ID, custom head/body scripts (textareas)
+- **Usuários:** Listagem + CRUD de usuários com roles (admin, editor, author, viewer)
+- **Supabase:** URL, chaves, toggle de sync, botão "Sincronizar agora"
+
+---
+
+## Stack frontend do admin
+
+| Item | Tecnologia |
+|------|-----------|
+| Framework | Next.js 15 (App Router) |
+| UI Components | shadcn/ui (Radix primitives) |
+| Styling | Tailwind CSS v4 |
+| Icons | Lucide React |
+| Rich Editor | TipTap (ProseMirror) |
+| Drag & Drop | @dnd-kit |
+| Forms | react-hook-form + @hookform/resolvers + Zod |
+| Notifications | Sonner |
+| Command Palette | cmdk |
+| Image Crop | react-image-crop |
+| Charts | (a definir — pode ser Recharts ou Chart.js) |
+| Auth | NextAuth v5 (credentials) |
+| Font | Roboto (300, 400, 500, 700, 900) |
+
+---
+
+## Design tokens / Identidade visual
+
+| Token | Valor atual | Nota |
+|-------|-------------|------|
+| Brand primary | `#0d61ac` | Azul — usado em CTAs, links, sidebar active |
+| Brand hover | `#0a4f8c` | Variação mais escura |
+| Background | `bg-gray-50` | Fundo geral do admin |
+| Card | `bg-white` | Cards e painéis |
+| Text primary | `text-gray-900` | |
+| Text secondary | `text-gray-500` / `text-gray-400` | |
+| Border | `border-gray-200` | |
+| Error | `text-red-700` / `bg-red-50` | |
+| Success | Verde (badges de status) | |
+| Draft badge | Amarelo/cinza | |
+| Font | Roboto, sans-serif | |
+| Border radius | `rounded-md` (6px) para inputs, `rounded-lg` (8px) para cards | |
+
+**Nota:** Esses tokens são do CMS em si — não do site do cliente. O CMS tem identidade própria (Brasa CMS). No futuro, pode ser white-label, mas por agora é branded.
+
+---
+
+## Comportamentos importantes
+
+1. **Multitenant:** Cada usuário vê dados apenas do seu tenant. O tenant é resolvido pelo middleware via domínio/subdomain.
+
+2. **Roles:**
+   - `admin` — acesso total
+   - `editor` — posts, produtos, páginas
+   - `author` — apenas seus próprios posts
+   - `viewer` — read-only
+
+3. **Subscription check:** Middleware verifica status da assinatura antes de carregar admin. Se "suspended", redireciona pra tela de pagamento pendente.
+
+4. **Responsividade:** Admin deve funcionar em desktop (sidebar fixa) e mobile (sidebar como drawer). Não precisa ser perfeito em mobile, mas usável.
+
+5. **Loading states:** Skeleton loaders para listagens, spinner para submits, disabled buttons durante requests.
+
+6. **Confirmações destrutivas:** Modal de confirmação antes de excluir qualquer item.
+
+7. **Feedback:** Toast de sucesso/erro após toda ação (salvar, publicar, excluir).
+
+---
+
+## Fluxo de navegação
+
+```
+/ → redirect → /admin
+/admin → (auth check) → /admin/login OU /admin (dashboard)
+/admin/login → submit → /admin
+/admin → dashboard com métricas
+/admin/posts → listagem → /admin/posts/novo OU /admin/posts/[id]
+/admin/paginas → listagem → /admin/paginas/[id] (page builder)
+/admin/configuracoes → sub-menu de settings
+```
+
+---
+
+## Contexto técnico
+
+### Arquitetura CMS Cloud
+
+```
+store-front/ (este repo → cms.brasa.tech)
+  src/
+    app/
+      (admin)/          ← Painel admin (todas as telas acima)
+      api/admin/        ← 40+ endpoints CRUD protegidos por auth
+      api/v1/           ← 15 endpoints REST públicos (consumidos pelos frontends)
+      api/auth/         ← NextAuth
+      api/webhooks/     ← Stripe, Supabase
+      api/cron/         ← Jobs agendados
+  packages/
+    brasa-core/         ← Schema Drizzle, auth, validations, revalidate
+    brasa-api/          ← Handlers dos endpoints admin
+    brasa-admin/        ← Componentes React do admin (AdminShell, Sidebar, Drawers)
+```
+
+### Banco de dados (Neon PostgreSQL — 15 tabelas)
+
+| Tabela | Uso |
+|--------|-----|
+| tenants | Multitenant (id, slug, name, domain, api_key, frontend_url) |
+| users | Usuários do CMS (email, senha, role) |
+| posts | Blog posts (título, conteúdo TipTap JSON, SEO, status) |
+| products | Catálogo de produtos (nome, descrição, galeria, benefícios) |
+| categories | Categorias de posts |
+| product_categories | Categorias de produtos (hierárquicas) |
+| authors | Autores de posts |
+| media | Biblioteca de mídias (URL, alt, variantes de tamanho) |
+| tags | Tags de posts |
+| pages | Páginas do page builder (sections JSON + draftSections) |
+| site_settings | Config do site (nome, logo, SEO, analytics, scripts) |
+| subscribers | Newsletter |
+| subscriptions | Assinatura Stripe |
+| cms_guides | Ajuda/documentação |
+| request_metrics | Analytics de tráfego |
+
+### O que NÃO faz parte do admin
+
+- Frontend público (blog, produtos, páginas) — projeto separado (brasa-starter)
+- Renderização de sections — admin só armazena JSON `{ component, props }`
+- Preview de páginas — será via iframe apontando pro frontend do cliente com `?draft=true`

@@ -31,7 +31,7 @@ function ToolbarButton({
       className={`inline-flex items-center justify-center rounded p-1.5 transition-colors ${
         active
           ? "bg-primary text-primary-foreground"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground"
       }`}
     >
       {children}
@@ -102,8 +102,8 @@ export default function RichTextEditor({ content, onChange }: Props) {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-300">
-      <div className="flex flex-wrap gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1.5">
+    <div className="overflow-hidden rounded-lg border border-border">
+      <div className="flex flex-wrap gap-0.5 border-b border-border bg-background px-2 py-1.5">
         {/* Bold */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}

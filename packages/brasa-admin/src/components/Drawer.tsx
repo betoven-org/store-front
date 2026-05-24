@@ -39,17 +39,17 @@ export default function Drawer({ open, onClose, title, children, maxWidth = "max
         aria-hidden="true"
       />
       <div
-        className={`fixed inset-y-0 right-0 z-50 flex w-full ${maxWidth} flex-col bg-white shadow-2xl`}
+        className={`fixed inset-y-0 right-0 z-50 flex w-full ${maxWidth} flex-col bg-card shadow-2xl`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-muted-foreground"
             aria-label="Fechar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">

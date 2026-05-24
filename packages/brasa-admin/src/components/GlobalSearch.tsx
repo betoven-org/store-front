@@ -131,7 +131,7 @@ export default function GlobalSearch() {
       {/* Input */}
       <div className="relative">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400"
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
           aria-hidden="true"
         />
         <input
@@ -142,20 +142,20 @@ export default function GlobalSearch() {
           onFocus={() => { if (query.length >= 2) setShowResults(true); }}
           onKeyDown={handleKeyDown}
           placeholder="Buscar posts, categorias, autores, produtos..."
-          className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-20 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+          className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-20 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus:border-border focus:bg-card focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
           {query && (
             <button
               type="button"
               onClick={clearSearch}
-              className="rounded p-0.5 text-gray-400 hover:text-gray-600"
+              className="rounded p-0.5 text-muted-foreground hover:text-muted-foreground"
               aria-label="Limpar busca"
             >
               <X className="size-4" aria-hidden="true" />
             </button>
           )}
-          <kbd className="hidden rounded border border-gray-200 bg-white px-1.5 py-0.5 text-xs font-medium text-gray-400 sm:inline-block">
+          <kbd className="hidden rounded border border-border bg-card px-1.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline-block">
             <span className="text-xs">&#8984;</span>K
           </kbd>
         </div>
@@ -163,16 +163,16 @@ export default function GlobalSearch() {
 
       {/* Dropdown */}
       {hasDropdown && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
           <div className="max-h-80 overflow-y-auto">
             {loading && (
-              <div className="px-4 py-4 text-center text-sm text-gray-400">
+              <div className="px-4 py-4 text-center text-sm text-muted-foreground">
                 Buscando...
               </div>
             )}
 
             {!loading && results.length === 0 && (
-              <div className="px-4 py-4 text-center text-sm text-gray-400">
+              <div className="px-4 py-4 text-center text-sm text-muted-foreground">
                 Nenhum resultado para &ldquo;{query}&rdquo;
               </div>
             )}
@@ -185,7 +185,7 @@ export default function GlobalSearch() {
 
                   return (
                     <div key={type}>
-                      <div className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <div className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {config.label}s
                       </div>
                       {items.map((item) => {
@@ -201,7 +201,7 @@ export default function GlobalSearch() {
                             className={`flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors ${
                               isActive
                                 ? "bg-[#0d61ac]/5 text-[#0d61ac]"
-                                : "text-gray-700 hover:bg-gray-50"
+                                : "text-foreground hover:bg-background"
                             }`}
                           >
                             <Icon className="size-4 flex-shrink-0 opacity-60" aria-hidden="true" />
@@ -210,7 +210,7 @@ export default function GlobalSearch() {
                               <span className={`rounded-full px-2 py-0.5 text-xs ${
                                 item.meta === "published"
                                   ? "bg-green-50 text-green-700"
-                                  : "bg-gray-100 text-gray-500"
+                                  : "bg-accent text-muted-foreground"
                               }`}>
                                 {item.meta === "published" ? "Publicado" : "Rascunho"}
                               </span>

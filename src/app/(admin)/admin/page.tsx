@@ -127,7 +127,7 @@ export default function DashboardPage() {
     <AdminShell title="Dashboard">
       {/* Period selector */}
       <div className="mb-6 flex items-center justify-end">
-        <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+        <div className="flex gap-1 rounded-lg border border-border bg-background p-1">
           {[
             { days: 1, label: "24h" },
             { days: 7, label: "7 dias" },
@@ -139,8 +139,8 @@ export default function DashboardPage() {
               onClick={() => setPeriod(opt.days)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 period === opt.days
-                  ? "bg-white text-[#0d61ac] shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "bg-card text-[#0d61ac] shadow"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {opt.label}
@@ -150,8 +150,8 @@ export default function DashboardPage() {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <p className="text-sm font-medium text-gray-500">Erro ao carregar dashboard</p>
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-sm font-medium text-muted-foreground">Erro ao carregar dashboard</p>
           <button
             type="button"
             onClick={() => fetchData(period)}
@@ -163,19 +163,19 @@ export default function DashboardPage() {
       ) : loading ? (
         <div className="space-y-6">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-64 animate-pulse rounded-xl border border-gray-200 bg-white" />
+            <div key={i} className="h-64 animate-pulse rounded-xl border border-border bg-card" />
           ))}
         </div>
       ) : data ? (
         <div className="space-y-6">
           {/* ── Performance Benchmark ─────────────────────────────────────── */}
-          <section className="rounded-xl border border-gray-200 bg-white">
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <h2 className="text-sm font-semibold text-gray-900">Desempenho do Site</h2>
+          <section className="rounded-xl border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="text-sm font-semibold text-foreground">Desempenho do Site</h2>
               {data.performance.current.totalRequests > 0 && (() => {
                 const h = healthLabel(data.performance.current.avgLatency, data.performance.current.errorRate);
                 return (
-                  <span className={`rounded-full bg-gray-50 px-2.5 py-1 text-xs font-semibold ${h.color}`}>
+                  <span className={`rounded-full bg-background px-2.5 py-1 text-xs font-semibold ${h.color}`}>
                     {h.text}
                   </span>
                 );
@@ -190,10 +190,10 @@ export default function DashboardPage() {
                   { label: "P95", value: `${data.performance.current.p95Latency}ms`, diff: null, invertColor: true },
                   { label: "Taxa de Erro", value: `${data.performance.current.errorRate}%`, diff: delta(data.performance.current.errorRate, data.performance.previous.errorRate), invertColor: true },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-lg bg-gray-50 px-3 py-2.5">
-                    <p className="text-[11px] font-medium text-gray-500">{item.label}</p>
+                  <div key={item.label} className="rounded-lg bg-background px-3 py-2.5">
+                    <p className="text-[11px] font-medium text-muted-foreground">{item.label}</p>
                     <div className="mt-0.5 flex items-baseline gap-1.5">
-                      <span className="text-lg font-bold text-gray-900">{item.value}</span>
+                      <span className="text-lg font-bold text-foreground">{item.value}</span>
                       {item.diff && (
                         <span className={`text-[11px] font-medium ${
                           item.invertColor
@@ -211,7 +211,7 @@ export default function DashboardPage() {
               {/* Pages by response time — only show if any page is above 300ms */}
               {data.performance.slowestPages.some((p) => p.avgLatency > 300) && (
                 <div>
-                  <p className="mb-2 text-xs font-medium text-gray-500">Tempo de Resposta por Pagina</p>
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">Tempo de Resposta por Pagina</p>
                   <div className="space-y-1">
                     {data.performance.slowestPages.filter((p) => p.avgLatency > 200).map((page, i) => {
                       const maxLatency = data.performance.slowestPages[0]?.avgLatency || 1;
@@ -223,12 +223,12 @@ export default function DashboardPage() {
                             style={{ width: `${pct}%` }}
                           />
                           <div className="relative flex items-center justify-between px-3 text-sm">
-                            <span className="truncate text-gray-700" title={page.path}>
+                            <span className="truncate text-foreground" title={page.path}>
                               {page.path.length > 50 ? page.path.slice(0, 50) + "..." : page.path}
                             </span>
                             <div className="ml-3 flex items-center gap-3 text-xs">
-                              <span className="text-gray-400">{page.count} req</span>
-                              <span className="text-gray-400">p95: {page.p95Latency}ms</span>
+                              <span className="text-muted-foreground">{page.count} req</span>
+                              <span className="text-muted-foreground">p95: {page.p95Latency}ms</span>
                               <span className={`font-semibold ${latencyColor(page.avgLatency)}`}>
                                 {page.avgLatency}ms
                               </span>
@@ -242,15 +242,15 @@ export default function DashboardPage() {
               )}
 
               {data.performance.current.totalRequests === 0 && (
-                <p className="py-6 text-center text-sm text-gray-400">Sem dados de performance no periodo</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">Sem dados de performance no periodo</p>
               )}
             </div>
           </section>
 
           {/* ── Recent Changes ────────────────────────────────────────────── */}
-          <section className="rounded-xl border border-gray-200 bg-white">
-            <div className="border-b border-gray-100 px-5 py-4">
-              <h2 className="text-sm font-semibold text-gray-900">Recent Changes</h2>
+          <section className="rounded-xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="text-sm font-semibold text-foreground">Recent Changes</h2>
             </div>
             <div className="divide-y divide-gray-50">
               {data.recentChanges.length > 0 ? (
@@ -264,31 +264,31 @@ export default function DashboardPage() {
                       {item.type === "post" ? "Post" : "Produto"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
-                      <p className="text-xs text-gray-400">/{item.slug}</p>
+                      <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">/{item.slug}</p>
                     </div>
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
                       item.status === "published"
                         ? "bg-green-50 text-green-700"
-                        : "bg-gray-100 text-gray-500"
+                        : "bg-accent text-muted-foreground"
                     }`}>
                       {item.status === "published" ? "publicado" : "rascunho"}
                     </span>
-                    <span className="flex-shrink-0 text-xs text-gray-400" title={item.updated_at}>
+                    <span className="flex-shrink-0 text-xs text-muted-foreground" title={item.updated_at}>
                       {timeAgo(item.updated_at)}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="px-5 py-6 text-center text-sm text-gray-400">Nenhuma alteracao recente</p>
+                <p className="px-5 py-6 text-center text-sm text-muted-foreground">Nenhuma alteracao recente</p>
               )}
             </div>
           </section>
 
           {/* ── Releases & Impact ─────────────────────────────────────────── */}
-          <section className="rounded-xl border border-gray-200 bg-white">
-            <div className="border-b border-gray-100 px-5 py-4">
-              <h2 className="text-sm font-semibold text-gray-900">Releases & Impact</h2>
+          <section className="rounded-xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="text-sm font-semibold text-foreground">Releases & Impact</h2>
             </div>
             <div className="divide-y divide-gray-50">
               {data.releases.length > 0 ? (
@@ -303,23 +303,23 @@ export default function DashboardPage() {
                       />
                       <div className="relative flex items-center justify-between">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-gray-900">{item.title}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">
                             Publicado {timeAgo(item.published_at)}
                           </p>
                         </div>
                         <div className="ml-3 flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-900">
+                          <span className="text-sm font-semibold text-foreground">
                             {formatNumber(item.views)}
                           </span>
-                          <span className="text-xs text-gray-400">views</span>
+                          <span className="text-xs text-muted-foreground">views</span>
                         </div>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <p className="px-5 py-6 text-center text-sm text-gray-400">Nenhum post publicado ainda</p>
+                <p className="px-5 py-6 text-center text-sm text-muted-foreground">Nenhum post publicado ainda</p>
               )}
             </div>
           </section>

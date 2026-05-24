@@ -218,12 +218,12 @@ function CollapsibleGroup({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
         aria-expanded={open}
       >
-        <span className="flex-shrink-0 text-gray-500">{group.icon}</span>
+        <span className="flex-shrink-0 text-muted-foreground">{group.icon}</span>
         <span className="flex-1 text-left">{group.label}</span>
-        <span className="text-gray-400">
+        <span className="text-muted-foreground">
           <IconChevron open={open} />
         </span>
       </button>
@@ -241,7 +241,7 @@ function CollapsibleGroup({
                     "w-full rounded-md py-1.5 px-3 pl-9 text-left text-sm transition-colors",
                     isActive
                       ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      : "text-muted-foreground hover:text-foreground hover:bg-background",
                   ].join(" ")}
                   aria-current={isActive ? "true" : undefined}
                 >
@@ -290,7 +290,7 @@ function MobileDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm hover:bg-gray-50 transition-colors"
+        className="flex w-full items-center justify-between rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm hover:bg-background transition-colors"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -300,12 +300,12 @@ function MobileDropdown({
 
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-1 w-full rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute left-0 top-full z-50 mt-1 w-full rounded-md border border-border bg-card py-1 shadow-lg"
           role="listbox"
         >
           {groups.map((group) => (
             <div key={group.id}>
-              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {group.label}
               </p>
               {group.items.map((item) => {
@@ -324,7 +324,7 @@ function MobileDropdown({
                       "w-full px-6 py-2 text-left text-sm transition-colors",
                       isActive
                         ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                        : "text-muted-foreground hover:bg-background hover:text-foreground",
                     ].join(" ")}
                   >
                     {item.label}
@@ -335,7 +335,7 @@ function MobileDropdown({
           ))}
 
           {/* Standalone: Assinatura */}
-          <div className="mt-1 border-t border-gray-100 pt-1">
+          <div className="mt-1 border-t border-border pt-1">
             {(() => {
               const isActive = activeSection === "assinatura";
               return (
@@ -351,7 +351,7 @@ function MobileDropdown({
                     "w-full px-3 py-2 text-left text-sm transition-colors",
                     isActive
                       ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                      : "text-muted-foreground hover:bg-background hover:text-foreground",
                   ].join(" ")}
                 >
                   Assinatura
@@ -383,7 +383,7 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
 
         {/* Divider */}
         <div className="pt-2">
-          <div className="mb-1 border-t border-gray-100" />
+          <div className="mb-1 border-t border-border" />
           {(() => {
             const isActive = activeSection === "assinatura";
             return (
@@ -394,11 +394,11 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
                   "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
                   isActive
                     ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
-                    : "font-medium text-gray-900 hover:bg-gray-50",
+                    : "font-medium text-foreground hover:bg-background",
                 ].join(" ")}
                 aria-current={isActive ? "true" : undefined}
               >
-                <span className={isActive ? "text-[#0d61ac]" : "text-gray-500"}>
+                <span className={isActive ? "text-[#0d61ac]" : "text-muted-foreground"}>
                   <IconCreditCard />
                 </span>
                 Assinatura

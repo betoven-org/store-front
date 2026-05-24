@@ -118,9 +118,9 @@ const ICONS = {
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-xl border border-gray-200 bg-white p-5">
-      <div className="mb-2 h-4 w-20 rounded bg-gray-100" />
-      <div className="h-8 w-16 rounded bg-gray-100" />
+    <div className="animate-pulse rounded-xl border border-border bg-card p-5">
+      <div className="mb-2 h-4 w-20 rounded bg-accent" />
+      <div className="h-8 w-16 rounded bg-accent" />
     </div>
   );
 }
@@ -160,7 +160,7 @@ export default function AnalyticsPage() {
     <AdminShell title="Analytics">
       {/* Period selector */}
       <div className="mb-6 flex items-center justify-end">
-        <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+        <div className="flex gap-1 rounded-lg border border-border bg-background p-1">
           {[
             { days: 1, label: "24h" },
             { days: 7, label: "7 dias" },
@@ -173,8 +173,8 @@ export default function AnalyticsPage() {
               onClick={() => setPeriod(opt.days)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 period === opt.days
-                  ? "bg-white text-[#0d61ac] shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "bg-card text-[#0d61ac] shadow"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {opt.label}
@@ -184,11 +184,11 @@ export default function AnalyticsPage() {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <p className="text-sm font-medium text-gray-500">
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-sm font-medium text-muted-foreground">
             Erro ao carregar metricas
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Verifique se a tabela request_metrics existe no banco.
           </p>
           <button
@@ -206,7 +206,7 @@ export default function AnalyticsPage() {
               <SkeletonCard key={i} />
             ))}
           </div>
-          <div className="h-64 animate-pulse rounded-xl border border-gray-200 bg-white" />
+          <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
         </div>
       ) : data ? (
         <div className="space-y-6">
@@ -241,15 +241,15 @@ export default function AnalyticsPage() {
             ].map((card) => (
               <div
                 key={card.label}
-                className="rounded-xl border border-gray-200 bg-white p-5"
+                className="rounded-xl border border-border bg-card p-5"
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {card.label}
                   </p>
-                  <span className="text-gray-400">{card.icon}</span>
+                  <span className="text-muted-foreground">{card.icon}</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-foreground">
                   {card.value}
                 </p>
               </div>
@@ -258,8 +258,8 @@ export default function AnalyticsPage() {
 
           {/* Timeline chart */}
           {data.timeline.length > 0 && (
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="mb-4 text-sm font-semibold text-gray-700">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h3 className="mb-4 text-sm font-semibold text-foreground">
                 Requests por Dia
               </h3>
               <div className="flex h-48 items-end gap-[2px]">
@@ -280,7 +280,7 @@ export default function AnalyticsPage() {
                           {point.requests.toLocaleString("pt-BR")} req
                         </span>
                         <br />
-                        <span className="text-gray-300">
+                        <span className="text-muted-foreground">
                           {point.avgLatency}ms avg
                         </span>
                         {point.errors > 0 && (
@@ -292,13 +292,13 @@ export default function AnalyticsPage() {
                           </>
                         )}
                         <br />
-                        <span className="text-gray-400">{point.date}</span>
+                        <span className="text-muted-foreground">{point.date}</span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-2 flex justify-between text-[10px] text-gray-400">
+              <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
                 <span>{data.timeline[0]?.date ?? ""}</span>
                 <span>
                   {data.timeline[data.timeline.length - 1]?.date ?? ""}
@@ -311,14 +311,14 @@ export default function AnalyticsPage() {
           <div className="grid gap-4 lg:grid-cols-3">
             {/* Top URLs */}
             {data.topPaths.length > 0 && (
-              <div className="rounded-xl border border-gray-200 bg-white p-5 lg:col-span-1">
-                <h3 className="mb-3 text-sm font-semibold text-gray-700">
+              <div className="rounded-xl border border-border bg-card p-5 lg:col-span-1">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
                   Top URLs
                 </h3>
                 <div className="max-h-80 overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+                      <tr className="border-b border-border text-left text-xs text-muted-foreground">
                         <th className="pb-2 font-medium">Path</th>
                         <th className="pb-2 text-right font-medium">Req</th>
                         <th className="pb-2 text-right font-medium">Avg ms</th>
@@ -335,16 +335,16 @@ export default function AnalyticsPage() {
                                 className="absolute inset-y-0 left-0 rounded bg-[#0d61ac]/5"
                                 style={{ width: `${pct}%` }}
                               />
-                              <span className="relative truncate text-gray-700" title={item.path}>
+                              <span className="relative truncate text-foreground" title={item.path}>
                                 {item.path.length > 30
                                   ? item.path.slice(0, 30) + "..."
                                   : item.path}
                               </span>
                             </td>
-                            <td className="py-2 text-right font-medium text-gray-900">
+                            <td className="py-2 text-right font-medium text-foreground">
                               {item.count.toLocaleString("pt-BR")}
                             </td>
-                            <td className="py-2 text-right text-gray-500">
+                            <td className="py-2 text-right text-muted-foreground">
                               {item.avgLatency}
                             </td>
                           </tr>
@@ -358,8 +358,8 @@ export default function AnalyticsPage() {
 
             {/* Top Countries */}
             {data.topCountries.length > 0 && (
-              <div className="rounded-xl border border-gray-200 bg-white p-5">
-                <h3 className="mb-3 text-sm font-semibold text-gray-700">
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
                   Top Paises
                 </h3>
                 <ul className="space-y-2">
@@ -375,13 +375,13 @@ export default function AnalyticsPage() {
                           style={{ width: `${pct}%` }}
                         />
                         <div className="relative flex items-center justify-between px-2 py-1.5">
-                          <span className="text-sm text-gray-700">
-                            <span className="mr-2 font-mono text-xs text-gray-400">
+                          <span className="text-sm text-foreground">
+                            <span className="mr-2 font-mono text-xs text-muted-foreground">
                               {code}
                             </span>
                             {name}
                           </span>
-                          <span className="ml-2 text-sm font-medium text-gray-900">
+                          <span className="ml-2 text-sm font-medium text-foreground">
                             {item.count.toLocaleString("pt-BR")}
                           </span>
                         </div>
@@ -394,8 +394,8 @@ export default function AnalyticsPage() {
 
             {/* Status Codes */}
             {data.statusBreakdown.length > 0 && (
-              <div className="rounded-xl border border-gray-200 bg-white p-5">
-                <h3 className="mb-3 text-sm font-semibold text-gray-700">
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
                   Status Codes
                 </h3>
                 <ul className="space-y-2">
@@ -420,10 +420,10 @@ export default function AnalyticsPage() {
                           style={{ width: `${pct}%` }}
                         />
                         <div className="relative flex items-center justify-between px-2 py-1.5">
-                          <span className="text-sm font-mono text-gray-700">
+                          <span className="text-sm font-mono text-foreground">
                             {item.statusGroup}
                           </span>
-                          <span className="ml-2 text-sm font-medium text-gray-900">
+                          <span className="ml-2 text-sm font-medium text-foreground">
                             {item.count.toLocaleString("pt-BR")}
                           </span>
                         </div>
@@ -437,14 +437,14 @@ export default function AnalyticsPage() {
 
           {/* Empty state */}
           {data.overview.totalRequests === 0 && (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-              <span className="mx-auto mb-3 block text-gray-300">
+            <div className="rounded-xl border border-border bg-card p-8 text-center">
+              <span className="mx-auto mb-3 block text-muted-foreground">
                 {ICONS.requests}
               </span>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-muted-foreground">
                 Sem dados de metricas
               </p>
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Os dados aparecerao aqui conforme o site receber trafego.
               </p>
             </div>

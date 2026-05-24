@@ -107,7 +107,7 @@ export default function EditarAutorPage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       </AdminShell>
     );
@@ -118,7 +118,7 @@ export default function EditarAutorPage() {
       <div className="mb-6 flex items-center justify-between">
         <Link
           href="/admin/autores"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-700"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +136,7 @@ export default function EditarAutorPage() {
         <button
           type="button"
           onClick={() => setShowDelete(true)}
-          className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+          className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-card px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -159,7 +159,7 @@ export default function EditarAutorPage() {
       )}
 
       <form onSubmit={handleSubmit} className="max-w-lg space-y-6">
-        <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
+        <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <FormField
             label="Nome"
             name="name"
@@ -170,11 +170,11 @@ export default function EditarAutorPage() {
           />
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Slug</label>
-            <p className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
+            <label className="block text-sm font-medium text-foreground">Slug</label>
+            <p className="rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
               {slug}
             </p>
-            <p className="text-xs text-gray-400">O slug e gerado automaticamente e nao pode ser alterado.</p>
+            <p className="text-xs text-muted-foreground">O slug e gerado automaticamente e nao pode ser alterado.</p>
           </div>
 
           <FormField
@@ -187,7 +187,7 @@ export default function EditarAutorPage() {
           />
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Avatar</label>
+            <label className="block text-sm font-medium text-foreground">Avatar</label>
             <ImageUpload
               value={avatarId}
               onChange={(id, url) => {
@@ -203,13 +203,13 @@ export default function EditarAutorPage() {
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar Alteracoes"}
           </button>
           <Link
             href="/admin/autores"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
           >
             Cancelar
           </Link>

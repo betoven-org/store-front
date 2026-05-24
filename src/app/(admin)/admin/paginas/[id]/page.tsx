@@ -122,12 +122,12 @@ function ContentTabs({
   onSwitch: (tab: "code" | "preview") => void;
 }) {
   return (
-    <div className="flex gap-0.5 rounded-md bg-gray-100 p-0.5">
+    <div className="flex gap-0.5 rounded-md bg-accent p-0.5">
       <button
         type="button"
         onClick={() => onSwitch("code")}
         className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-          active === "code" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          active === "code" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         Codigo
@@ -136,7 +136,7 @@ function ContentTabs({
         type="button"
         onClick={() => onSwitch("preview")}
         className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-          active === "preview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          active === "preview" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         Preview
@@ -189,7 +189,7 @@ function PreviewFrame({
     // Desktop: iframe at real width, scaled to fit column, full height
     const iframeHeight = scale > 0 ? `${100 / scale}%` : "100%";
     return (
-      <div ref={containerRef} className="flex-1 bg-gray-100 overflow-hidden">
+      <div ref={containerRef} className="flex-1 bg-accent overflow-hidden">
         <div
           style={{
             width: config.width,
@@ -201,7 +201,7 @@ function PreviewFrame({
           <iframe
             ref={iframeRef}
             src={src}
-            className="border-0 bg-white"
+            className="border-0 bg-card"
             style={{ width: config.width, height: iframeHeight }}
             title={title}
           />
@@ -213,7 +213,7 @@ function PreviewFrame({
   // Tablet / Mobile: same scaling approach, no device mockup
   const frameHeight = scale > 0 ? `${100 / scale}%` : "100%";
   return (
-    <div ref={containerRef} className="flex-1 bg-gray-100 overflow-hidden flex justify-center">
+    <div ref={containerRef} className="flex-1 bg-accent overflow-hidden flex justify-center">
       <div
         style={{
           width: config.width,
@@ -225,7 +225,7 @@ function PreviewFrame({
         <iframe
           ref={iframeRef}
           src={src}
-          className="border-0 bg-white"
+          className="border-0 bg-card"
           style={{ width: config.width, height: frameHeight }}
           title={title}
         />
@@ -238,12 +238,12 @@ function PreviewFrame({
 
 function ColumnHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2.5">
-      <span className="text-xs font-semibold text-gray-700">{title}</span>
+    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+      <span className="text-xs font-semibold text-foreground">{title}</span>
       <button
         type="button"
         onClick={onClose}
-        className="rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-accent hover:text-muted-foreground"
         aria-label={`Fechar ${title}`}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -575,7 +575,7 @@ export default function EditPagePage({
       <AdminShell title="Editar pagina" headerExtra={null}>
         <div className="flex items-center justify-center py-12">
           <Spinner />
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       </AdminShell>
     );
@@ -614,11 +614,11 @@ export default function EditPagePage({
   // Header extra
   const publishButton = (
     <div className="flex items-center gap-2">
-      {saving && <span className="flex items-center gap-1.5 text-xs text-gray-400"><Spinner small /></span>}
+      {saving && <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Spinner small /></span>}
       {/* Staging indicator — links to /admin/publicar */}
       <a
         href="/admin/publicar"
-        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow transition-colors hover:bg-background"
       >
         <span>staging</span>
         {hasDraft && (
@@ -633,7 +633,7 @@ export default function EditPagePage({
         type="button"
         onClick={handlePublish}
         disabled={isBusy || !hasDraft}
-        className="rounded-md border border-[#0d61ac] bg-white px-4 py-1.5 text-xs font-semibold text-[#0d61ac] shadow-sm transition-colors hover:bg-[#0d61ac]/5 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-md border border-[#0d61ac] bg-card px-4 py-1.5 text-xs font-semibold text-[#0d61ac] shadow transition-colors hover:bg-[#0d61ac]/5 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {publishing ? "Publicando..." : "Publicar"}
       </button>
@@ -645,13 +645,13 @@ export default function EditPagePage({
       <div className="-mx-2 -mt-2 lg:-mx-4 lg:-mt-4 flex gap-1 pr-12" style={{ minHeight: "calc(100vh - 5.5rem)" }}>
         {/* ── Sections column (includes page properties) ─────────── */}
         {openColumns.has("sections") && (
-          <div className="flex flex-col border border-gray-200 bg-white rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
+          <div className="flex flex-col border border-border bg-card rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
             <ColumnHeader title={`Sections${savingSections ? " (salvando...)" : ""}`} onClose={() => toggleColumn("sections")} />
             <div className="flex-1 overflow-y-auto">
               {/* Page properties */}
-              <div className="border-b border-gray-200 p-4 space-y-3">
+              <div className="border-b border-border p-4 space-y-3">
                 <FormField label="Titulo" name="title" value={editState.title} onChange={handleChange} required />
-                <div className="flex items-center gap-1.5 text-xs text-gray-400 font-mono">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
@@ -671,16 +671,16 @@ export default function EditPagePage({
 
         {/* ── Preview column ─────────────────────────────────────── */}
         {openColumns.has("preview") && (
-          <div className="flex flex-col border border-gray-200 bg-white rounded-t-lg overflow-hidden" style={{ width: colWidth(openColumns.size) }}>
+          <div className="flex flex-col border border-border bg-card rounded-t-lg overflow-hidden" style={{ width: colWidth(openColumns.size) }}>
             <ColumnHeader title="Preview" onClose={() => toggleColumn("preview")} />
-            <div className="flex-1 relative bg-gray-100 flex flex-col min-h-0">
-              <div className="flex items-center gap-1.5 border-b border-gray-200 bg-gray-50 px-3 py-1.5">
+            <div className="flex-1 relative bg-accent flex flex-col min-h-0">
+              <div className="flex items-center gap-1.5 border-b border-border bg-background px-3 py-1.5">
                 {/* Device switcher */}
                 <div className="flex gap-0.5 rounded-md bg-gray-200/60 p-0.5">
                   <button
                     type="button"
                     onClick={() => setPreviewDevice("desktop")}
-                    className={`rounded p-1 transition-colors ${previewDevice === "desktop" ? "bg-white text-gray-700 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                    className={`rounded p-1 transition-colors ${previewDevice === "desktop" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-muted-foreground"}`}
                     title="Desktop"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -692,7 +692,7 @@ export default function EditPagePage({
                   <button
                     type="button"
                     onClick={() => setPreviewDevice("tablet")}
-                    className={`rounded p-1 transition-colors ${previewDevice === "tablet" ? "bg-white text-gray-700 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                    className={`rounded p-1 transition-colors ${previewDevice === "tablet" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-muted-foreground"}`}
                     title="Tablet"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -703,7 +703,7 @@ export default function EditPagePage({
                   <button
                     type="button"
                     onClick={() => setPreviewDevice("mobile")}
-                    className={`rounded p-1 transition-colors ${previewDevice === "mobile" ? "bg-white text-gray-700 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                    className={`rounded p-1 transition-colors ${previewDevice === "mobile" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-muted-foreground"}`}
                     title="Mobile"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -722,7 +722,7 @@ export default function EditPagePage({
                   className={`rounded p-1 transition-colors ${
                     inlineEdit
                       ? "bg-[#0d61ac] text-white"
-                      : "text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                      : "text-muted-foreground hover:bg-gray-200 hover:text-muted-foreground"
                   }`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -731,13 +731,13 @@ export default function EditPagePage({
                   </svg>
                 </button>
 
-                <span className="flex-1 rounded bg-white px-2 py-0.5 text-[11px] text-gray-400 font-mono border border-gray-200 truncate">
+                <span className="flex-1 rounded bg-card px-2 py-0.5 text-[11px] text-muted-foreground font-mono border border-border truncate">
                   {typeof window !== "undefined" ? window.location.origin : ""}{slugToPath(page.slug)}
                 </span>
                 <button
                   type="button"
                   onClick={() => { if (iframeRef.current) iframeRef.current.src = previewUrl; }}
-                  className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
+                  className="rounded p-1 text-muted-foreground hover:bg-gray-200 hover:text-muted-foreground transition-colors"
                   title="Recarregar"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -758,20 +758,20 @@ export default function EditPagePage({
 
         {/* ── SEO column ─────────────────────────────────────────── */}
         {openColumns.has("seo") && (
-          <div className="flex flex-col border border-gray-200 bg-white rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
+          <div className="flex flex-col border border-border bg-card rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
             <ColumnHeader title="Page SEO" onClose={() => toggleColumn("seo")} />
             <div className="flex-1 overflow-y-auto p-5">
               <div className="space-y-5">
                 {/* Google preview */}
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">Google</p>
+                <div className="rounded-md border border-border bg-background p-3">
+                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Google</p>
                   <p className="text-sm font-medium text-[#1a0dab] leading-tight truncate">
                     {editState.metaTitle || editState.title || "Titulo"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-green-700 font-mono truncate">
                     {typeof window !== "undefined" ? window.location.origin : ""}{slugToPath(page.slug)}
                   </p>
-                  <p className="mt-1 text-[11px] text-gray-500 line-clamp-2">
+                  <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
                     {editState.metaDescription || "Sem descricao"}
                   </p>
                 </div>
@@ -780,15 +780,15 @@ export default function EditPagePage({
                 <FormField label="Meta Description" name="metaDescription" type="textarea" value={editState.metaDescription ?? ""} onChange={handleChange} placeholder="Descricao no Google" description={`${(editState.metaDescription ?? "").length}/160`} />
 
                 <div className="flex items-center gap-3 pt-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Open Graph</span>
-                  <div className="flex-1 border-t border-gray-200" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Open Graph</span>
+                  <div className="flex-1 border-t border-border" />
                 </div>
 
                 <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Titulo redes sociais" />
                 <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descricao redes sociais" />
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-gray-700">OG Image</label>
+                  <label className="block text-sm font-medium text-foreground">OG Image</label>
                   <ImageUpload
                     value={null}
                     previewUrl={ogImagePreview}
@@ -811,34 +811,34 @@ export default function EditPagePage({
 
         {/* ── Changes column ────────────────────────────────────── */}
         {openColumns.has("changes") && (
-          <div className="flex flex-col border border-gray-200 bg-white rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
+          <div className="flex flex-col border border-border bg-card rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
             <ColumnHeader title={`Alteracoes${draftCount > 0 ? ` (${draftCount})` : ""}`} onClose={() => toggleColumn("changes")} />
             <div className="flex-1 overflow-y-auto p-5">
               {!hasDraft ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300" aria-hidden="true">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground" aria-hidden="true">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
-                  <p className="mt-3 text-sm font-medium text-gray-500">Nenhuma alteracao pendente</p>
-                  <p className="mt-1 text-xs text-gray-400">Todas as alteracoes foram publicadas.</p>
+                  <p className="mt-3 text-sm font-medium text-muted-foreground">Nenhuma alteracao pendente</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Todas as alteracoes foram publicadas.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     {draftCount} campo{draftCount !== 1 ? "s" : ""} alterado{draftCount !== 1 ? "s" : ""} desde a ultima publicacao.
                   </p>
 
                   {getChanges(page).map((change) => (
-                    <div key={change.field} className="rounded-lg border border-gray-200 overflow-hidden">
-                      <div className="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2">
+                    <div key={change.field} className="rounded-lg border border-border overflow-hidden">
+                      <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-2">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#0d61ac]" aria-hidden="true">
                           <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                           <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84.84-2.872a2 2 0 0 1 .506-.854z" />
                         </svg>
-                        <span className="text-xs font-semibold text-gray-700">{change.label}</span>
+                        <span className="text-xs font-semibold text-foreground">{change.label}</span>
                       </div>
-                      <div className="divide-y divide-gray-100">
+                      <div className="divide-y divide-border">
                         {/* Published (old) */}
                         <div className="px-3 py-2">
                           <span className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-red-500">
@@ -849,11 +849,11 @@ export default function EditPagePage({
                           </span>
                           {change.field === "content" ? (
                             <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-red-50 p-2 font-mono text-[11px] leading-relaxed text-red-800 max-h-40 overflow-y-auto">
-                              {change.published ? truncate(change.published, 500) : <span className="italic text-gray-400">(vazio)</span>}
+                              {change.published ? truncate(change.published, 500) : <span className="italic text-muted-foreground">(vazio)</span>}
                             </pre>
                           ) : (
                             <p className="mt-1 rounded bg-red-50 px-2 py-1.5 text-xs text-red-800 break-words">
-                              {change.published || <span className="italic text-gray-400">(vazio)</span>}
+                              {change.published || <span className="italic text-muted-foreground">(vazio)</span>}
                             </p>
                           )}
                         </div>
@@ -868,11 +868,11 @@ export default function EditPagePage({
                           </span>
                           {change.field === "content" ? (
                             <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-green-50 p-2 font-mono text-[11px] leading-relaxed text-green-800 max-h-40 overflow-y-auto">
-                              {change.draft ? truncate(change.draft, 500) : <span className="italic text-gray-400">(vazio)</span>}
+                              {change.draft ? truncate(change.draft, 500) : <span className="italic text-muted-foreground">(vazio)</span>}
                             </pre>
                           ) : (
                             <p className="mt-1 rounded bg-green-50 px-2 py-1.5 text-xs text-green-800 break-words">
-                              {change.draft || <span className="italic text-gray-400">(vazio)</span>}
+                              {change.draft || <span className="italic text-muted-foreground">(vazio)</span>}
                             </p>
                           )}
                         </div>
@@ -883,10 +883,10 @@ export default function EditPagePage({
                   {/* Section changes */}
                   {sectionChanges.length > 0 && (
                     <div className="mt-3">
-                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Sections</p>
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sections</p>
                       <div className="space-y-2">
                         {sectionChanges.map((sc, i) => (
-                          <div key={i} className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2">
+                          <div key={i} className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
                             <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
                               sc.type === "added"
                                 ? "bg-green-50 text-green-600"
@@ -896,9 +896,9 @@ export default function EditPagePage({
                             }`}>
                               {sc.type === "added" ? "nova" : sc.type === "removed" ? "removida" : "editada"}
                             </span>
-                            <span className="text-xs font-medium text-gray-700">{sc.component}</span>
+                            <span className="text-xs font-medium text-foreground">{sc.component}</span>
                             {sc.details && (
-                              <span className="text-[10px] text-gray-400">{sc.details}</span>
+                              <span className="text-[10px] text-muted-foreground">{sc.details}</span>
                             )}
                           </div>
                         ))}
@@ -911,7 +911,7 @@ export default function EditPagePage({
                     type="button"
                     onClick={handlePublish}
                     disabled={isBusy}
-                    className="mt-2 w-full rounded-md bg-[#0d61ac] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="mt-2 w-full rounded-md bg-[#0d61ac] px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {publishing ? "Publicando..." : `Publicar ${draftCount} alterac${draftCount !== 1 ? "oes" : "ao"}`}
                   </button>
@@ -923,7 +923,7 @@ export default function EditPagePage({
 
         {/* Empty state when all closed */}
         {openColumns.size === 0 && (
-          <div className="flex flex-1 items-center justify-center text-gray-400">
+          <div className="flex flex-1 items-center justify-center text-muted-foreground">
             <div className="text-center">
               <p className="text-sm">Nenhum painel aberto</p>
               <p className="mt-1 text-xs">Use a barra lateral para abrir paineis</p>
@@ -933,7 +933,7 @@ export default function EditPagePage({
       </div>
 
       {/* ── Right toolbar (fixed to viewport right edge) ─────────── */}
-      <div className="fixed right-0 top-14 bottom-0 z-20 flex w-12 flex-col items-center justify-center gap-1 border-l border-gray-200 bg-white">
+      <div className="fixed right-0 top-14 bottom-0 z-20 flex w-12 flex-col items-center justify-center gap-1 border-l border-border bg-card">
         {COLUMNS.map((col) => {
           const isActive = openColumns.has(col.key);
           const showBadge = col.key === "changes" && draftCount > 0;
@@ -946,7 +946,7 @@ export default function EditPagePage({
                   "relative flex h-9 w-9 items-center justify-center rounded-md transition-all duration-150",
                   isActive
                     ? "bg-[#0d61ac]/5 text-[#0d61ac]"
-                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
+                    : "text-muted-foreground hover:bg-accent hover:text-muted-foreground",
                 ].join(" ")}
                 aria-label={col.label}
                 aria-pressed={isActive}
@@ -958,7 +958,7 @@ export default function EditPagePage({
                   </span>
                 )}
               </button>
-              <div className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              <div className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                 {col.label}
               </div>
             </div>

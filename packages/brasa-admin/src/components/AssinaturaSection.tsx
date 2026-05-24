@@ -147,7 +147,7 @@ export default function AssinaturaSection() {
     return (
       <div className="flex items-center justify-center py-12">
         <SpinnerIcon className="h-8 w-8 text-[#0d61ac]" />
-        <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+        <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function AssinaturaSection() {
   if (!subscription) {
     return (
       <div className="py-8 text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Nenhuma assinatura encontrada.
         </p>
       </div>
@@ -168,15 +168,15 @@ export default function AssinaturaSection() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <CreditCardIcon />
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-foreground">
           Detalhes da Assinatura
         </h3>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Status */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Status
           </p>
           <span
@@ -187,29 +187,29 @@ export default function AssinaturaSection() {
         </div>
 
         {/* Proxima cobranca */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Proxima cobranca
           </p>
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-sm font-medium text-foreground">
             {formatDate(subscription.nextDueDate)}
           </p>
         </div>
 
         {/* Valor */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Valor
           </p>
-          <p className="text-sm font-medium text-gray-900">R$ 450,00/mes</p>
+          <p className="text-sm font-medium text-foreground">R$ 450,00/mes</p>
         </div>
 
         {/* Periodo de carencia */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Carencia
           </p>
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-sm font-medium text-foreground">
             {subscription.graceDays} dias
           </p>
         </div>
@@ -217,7 +217,7 @@ export default function AssinaturaSection() {
 
       {/* Gerenciar assinatura */}
       {subscription.stripeCustomerId && (
-        <div className="border-t border-gray-100 pt-6">
+        <div className="border-t border-border pt-6">
           <button
             type="button"
             onClick={handlePortal}
@@ -227,7 +227,7 @@ export default function AssinaturaSection() {
             {portalLoading && <SpinnerIcon className="h-4 w-4" />}
             {portalLoading ? "Redirecionando..." : "Gerenciar assinatura"}
           </button>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-muted-foreground">
             Altere forma de pagamento, visualize faturas ou cancele sua
             assinatura pelo portal do Stripe.
           </p>

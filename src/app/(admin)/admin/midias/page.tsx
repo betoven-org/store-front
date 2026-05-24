@@ -219,23 +219,23 @@ export default function MidiasPage() {
         className={`mb-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-colors ${
           dragging
             ? "border-[#0d61ac] bg-blue-50/50"
-            : "border-gray-200 bg-gray-50 hover:border-[#0d61ac] hover:bg-blue-50/20"
+            : "border-border bg-background hover:border-[#0d61ac] hover:bg-blue-50/20"
         }`}
       >
         {uploading ? (
           <div className="flex items-center gap-3">
             <Spinner className="h-5 w-5" />
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-muted-foreground">
               Enviando...
             </span>
           </div>
         ) : (
           <>
             <Upload className="mb-3 size-8 text-muted-foreground" aria-hidden="true" />
-            <p className="text-sm font-medium text-gray-700">
+            <p className="text-sm font-medium text-foreground">
               Arraste imagens aqui ou clique para selecionar
             </p>
-            <p className="mt-1 text-xs text-gray-400">PNG, JPG, GIF, WebP</p>
+            <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, GIF, WebP</p>
           </>
         )}
       </div>
@@ -272,15 +272,15 @@ export default function MidiasPage() {
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Spinner className="h-7 w-7" />
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       ) : data.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-16 text-center">
+        <div className="rounded-xl border border-border bg-card p-16 text-center">
           <ImageIcon className="mx-auto mb-4 size-12 text-muted-foreground/40" aria-hidden="true" />
-          <p className="text-sm font-medium text-gray-600">
+          <p className="text-sm font-medium text-muted-foreground">
             Nenhuma midia encontrada.
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Envie imagens usando a area acima.
           </p>
         </div>
@@ -293,15 +293,15 @@ export default function MidiasPage() {
               return (
                 <div
                   key={item.id}
-                  className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-white transition-all hover:shadow-md ${
+                  className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg ${
                     isSelected
                       ? "border-[#0d61ac] ring-2 ring-[#0d61ac]/25"
-                      : "border-gray-200 hover:border-gray-300"
+                      : "border-border hover:border-border"
                   }`}
                   onClick={() => openSheet(item)}
                 >
                   {/* Image */}
-                  <div className="relative aspect-square bg-gray-100">
+                  <div className="relative aspect-square bg-accent">
                     <Image
                       src={item.url}
                       alt={item.alt || item.filename}
@@ -315,10 +315,10 @@ export default function MidiasPage() {
 
                   {/* Info */}
                   <div className="px-2.5 py-2">
-                    <p className="truncate text-xs font-medium text-gray-800">
+                    <p className="truncate text-xs font-medium text-foreground">
                       {item.filename}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-gray-400">
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
                       {formatFileSize(item.filesize)}
                       {item.width && item.height
                         ? ` · ${item.width}x${item.height}`
@@ -335,7 +335,7 @@ export default function MidiasPage() {
                     }`}
                     onClick={(e) => toggleSelect(item.id, e)}
                   >
-                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-white shadow-sm">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-card shadow">
                       <Checkbox
                         checked={isSelected}
                         onCheckedChange={() => {}}
@@ -365,7 +365,7 @@ export default function MidiasPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-6 flex items-center justify-between">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Pagina {currentPage} de {totalPages}
               </p>
               <div className="flex gap-2">
@@ -396,7 +396,7 @@ export default function MidiasPage() {
       {/* Media detail sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader className="border-b border-gray-100 pb-4">
+          <SheetHeader className="border-b border-border pb-4">
             <SheetTitle className="truncate pr-8 text-sm">
               {sheetItem?.filename}
             </SheetTitle>
@@ -405,7 +405,7 @@ export default function MidiasPage() {
           {sheetItem && (
             <div className="flex flex-col gap-5 p-4">
               {/* Preview */}
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-background">
                 <Image
                   src={sheetItem.url}
                   alt={sheetItem.alt || sheetItem.filename}
@@ -416,62 +416,62 @@ export default function MidiasPage() {
               </div>
 
               {/* Metadata */}
-              <dl className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white text-sm">
+              <dl className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
                 <div className="flex items-center gap-2 px-3 py-2.5">
-                  <dt className="w-24 shrink-0 text-xs font-medium text-gray-500">
+                  <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
                     Arquivo
                   </dt>
-                  <dd className="truncate text-gray-800">
+                  <dd className="truncate text-foreground">
                     {sheetItem.filename}
                   </dd>
                 </div>
                 {sheetItem.mimeType && (
                   <div className="flex items-center gap-2 px-3 py-2.5">
-                    <dt className="w-24 shrink-0 text-xs font-medium text-gray-500">
+                    <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
                       Tipo
                     </dt>
-                    <dd className="text-gray-800">{sheetItem.mimeType}</dd>
+                    <dd className="text-foreground">{sheetItem.mimeType}</dd>
                   </div>
                 )}
                 <div className="flex items-center gap-2 px-3 py-2.5">
-                  <dt className="w-24 shrink-0 text-xs font-medium text-gray-500">
+                  <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
                     Tamanho
                   </dt>
-                  <dd className="text-gray-800">
+                  <dd className="text-foreground">
                     {formatFileSize(sheetItem.filesize)}
                   </dd>
                 </div>
                 {sheetItem.width && sheetItem.height && (
                   <div className="flex items-center gap-2 px-3 py-2.5">
-                    <dt className="w-24 shrink-0 text-xs font-medium text-gray-500">
+                    <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
                       Dimensoes
                     </dt>
-                    <dd className="text-gray-800">
+                    <dd className="text-foreground">
                       {sheetItem.width}x{sheetItem.height}px
                     </dd>
                   </div>
                 )}
                 {sheetItem.alt && (
                   <div className="flex items-center gap-2 px-3 py-2.5">
-                    <dt className="w-24 shrink-0 text-xs font-medium text-gray-500">
+                    <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
                       Alt text
                     </dt>
-                    <dd className="text-gray-800">{sheetItem.alt}</dd>
+                    <dd className="text-foreground">{sheetItem.alt}</dd>
                   </div>
                 )}
               </dl>
 
               {/* URL copiavel */}
               <div>
-                <p className="mb-1.5 text-xs font-medium text-gray-500">URL</p>
-                <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                  <p className="flex-1 truncate text-xs text-gray-700">
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">URL</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+                  <p className="flex-1 truncate text-xs text-foreground">
                     {sheetItem.url}
                   </p>
                   <button
                     type="button"
                     onClick={() => copyUrl(sheetItem.url)}
-                    className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700"
+                    className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-gray-200 hover:text-foreground"
                     aria-label="Copiar URL"
                   >
                     {copied ? (

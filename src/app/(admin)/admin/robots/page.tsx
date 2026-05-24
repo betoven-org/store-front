@@ -43,7 +43,7 @@ export default function RobotsPage() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       </AdminShell>
     );
@@ -51,7 +51,7 @@ export default function RobotsPage() {
 
   return (
     <AdminShell title="Robots">
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <SettingsContent
           activeSection="robots"
           settings={settings}
@@ -74,12 +74,12 @@ export default function RobotsPage() {
           onShowClearConfirm={() => {}}
         />
 
-        <div className="mt-8 flex items-center gap-4 border-t border-gray-100 pt-6">
+        <div className="mt-8 flex items-center gap-4 border-t border-border pt-6">
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-5 py-2.5 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (
               <svg

@@ -187,7 +187,7 @@ export default function UserDrawer({ userId, onClose, onSaved }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

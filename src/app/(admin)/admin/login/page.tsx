@@ -184,7 +184,7 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-1 items-center justify-center relative z-10">
-          <div className="text-center">
+          <div className="text-center flex flex-col items-center">
             <BrandGlyph size={72} />
             <h2 className="font-display text-[28px] font-medium mt-6 tracking-tight leading-tight">
               Gerencie conteúdo,<br />construa páginas,<br />publique em segundos.

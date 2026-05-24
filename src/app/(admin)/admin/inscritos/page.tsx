@@ -95,7 +95,7 @@ export default function InscritosPage() {
 
   const columns = [
     { key: "name", label: "Nome", render: (item: Subscriber) => (
-      <span className="text-gray-900">{item.name || "-"}</span>
+      <span className="text-foreground">{item.name || "-"}</span>
     )},
     { key: "email", label: "Email" },
     {
@@ -109,7 +109,7 @@ export default function InscritosPage() {
           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             item.active
               ? "bg-green-100 text-green-700 hover:bg-green-200"
-              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              : "bg-accent text-muted-foreground hover:bg-gray-200"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           {togglingId === item.id ? (
@@ -149,7 +149,7 @@ export default function InscritosPage() {
       key: "createdAt",
       label: "Data de Inscricao",
       render: (item: Subscriber) => (
-        <span className="text-gray-500">{formatDate(item.createdAt)}</span>
+        <span className="text-muted-foreground">{formatDate(item.createdAt)}</span>
       ),
     },
   ];
@@ -158,7 +158,7 @@ export default function InscritosPage() {
     <AdminShell title="Inscritos">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Gerencie os inscritos da newsletter.
           </p>
           {!loading && (
@@ -169,7 +169,7 @@ export default function InscritosPage() {
         </div>
         <div className="relative">
           <svg
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 256 256"
             fill="currentColor"
@@ -182,7 +182,7 @@ export default function InscritosPage() {
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar por nome ou email..."
-            className="w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition-colors focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20 sm:w-72"
+            className="w-full rounded-md border border-border bg-card py-2 pl-10 pr-4 text-sm text-foreground placeholder-gray-400 shadow transition-colors focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20 sm:w-72"
           />
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function InscritosPage() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <span className="ml-3 text-sm text-gray-500">Carregando...</span>
+          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
         </div>
       ) : error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">

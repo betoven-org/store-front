@@ -100,7 +100,7 @@ export default function PagamentoPendentePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-8 flex items-center gap-3">
         <LogoIcon />
         <span className="text-2xl font-bold text-[#0d61ac]">
@@ -108,20 +108,20 @@ export default function PagamentoPendentePage() {
         </span>
       </div>
 
-      <div className="w-full max-w-lg rounded-2xl bg-white p-10 text-center shadow-lg">
+      <div className="w-full max-w-lg rounded-2xl bg-card p-10 text-center shadow-lg">
         <div className="mb-6 flex justify-center">
           <WarningIcon />
         </div>
 
-        <h1 className="mb-3 text-2xl font-bold text-gray-900">
+        <h1 className="mb-3 text-2xl font-bold text-foreground">
           Servico temporariamente suspenso
         </h1>
 
-        <p className="mb-2 text-lg text-gray-600">
+        <p className="mb-2 text-lg text-muted-foreground">
           Existe uma pendencia financeira na sua assinatura.
         </p>
 
-        <p className="mb-8 text-sm leading-relaxed text-gray-500">
+        <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
           Para reativar automaticamente, regularize o pagamento. Assim que o
           pagamento for confirmado, o acesso sera restaurado em segundos.
         </p>
@@ -140,7 +140,7 @@ export default function PagamentoPendentePage() {
           <p className="mt-4 text-sm font-medium text-red-600">{error}</p>
         )}
 
-        <p className="mt-6 text-sm text-gray-400">
+        <p className="mt-6 text-sm text-muted-foreground">
           Precisa de ajuda? Entre em contato:{" "}
           <a
             href="mailto:contato@medicinalweb.com"

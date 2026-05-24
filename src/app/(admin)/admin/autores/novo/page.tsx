@@ -47,7 +47,7 @@ export default function NovoAutorPage() {
       <div className="mb-6">
         <Link
           href="/admin/autores"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-700"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -70,7 +70,7 @@ export default function NovoAutorPage() {
       )}
 
       <form onSubmit={handleSubmit} className="max-w-lg space-y-6">
-        <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
+        <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <FormField
             label="Nome"
             name="name"
@@ -91,7 +91,7 @@ export default function NovoAutorPage() {
           />
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Avatar</label>
+            <label className="block text-sm font-medium text-foreground">Avatar</label>
             <ImageUpload
               value={avatarId}
               onChange={(id, url) => {
@@ -107,13 +107,13 @@ export default function NovoAutorPage() {
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Criar Autor"}
           </button>
           <Link
             href="/admin/autores"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
           >
             Cancelar
           </Link>

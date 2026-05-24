@@ -146,8 +146,8 @@ function SectionHeader({
 }) {
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-      <p className="text-sm text-gray-500">{description}</p>
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -197,7 +197,7 @@ export function SettingsContent({
             placeholder="Uma breve descricao do seu site..."
           />
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-foreground">
               Logo
             </label>
             <ImageUpload
@@ -207,7 +207,7 @@ export function SettingsContent({
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-foreground">
               Favicon
             </label>
             <ImageUpload
@@ -329,10 +329,10 @@ export function SettingsContent({
             description="Conteudo de paginas gerenciadas pelo CMS"
           />
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
               Politica de Privacidade
             </label>
-            <p className="mb-3 text-xs text-gray-500">
+            <p className="mb-3 text-xs text-muted-foreground">
               Cole o conteudo HTML da sua politica de privacidade. Ele sera exibido na pagina /politica-de-privacidade.
             </p>
             <textarea
@@ -349,7 +349,7 @@ export function SettingsContent({
                   Preview do conteudo
                 </summary>
                 <div
-                  className="prose prose-sm mt-2 max-w-none rounded-md border bg-white p-4"
+                  className="prose prose-sm mt-2 max-w-none rounded-md border bg-card p-4"
                   dangerouslySetInnerHTML={{ __html: settings.privacyPolicy }}
                 />
               </details>
@@ -397,7 +397,7 @@ export function SettingsContent({
             description="Conteudo do arquivo robots.txt que sera servido em /robots.txt"
           />
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-foreground">
               Conteudo do robots.txt
             </label>
             <textarea
@@ -406,9 +406,9 @@ export function SettingsContent({
               onChange={onSettingsChange}
               rows={12}
               placeholder={"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\n\nSitemap: https://seusite.com/sitemap.xml"}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+              className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Use o formato padrao de robots.txt. O Sitemap sera adicionado automaticamente se nao estiver presente.
             </p>
           </div>
@@ -422,8 +422,8 @@ export function SettingsContent({
             description="Conexao com o Supabase para sincronizacao de conteudo"
           />
 
-          <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
-            <p className="text-sm text-gray-600">
+          <div className="rounded-md border border-border bg-background p-4">
+            <p className="text-sm text-muted-foreground">
               Configure a conexao com o Supabase do cliente para sincronizar conteudo
               (posts, autores e categorias). O Supabase e a fonte de verdade para conteudo
               -- nosso banco armazena uma copia sincronizada.
@@ -463,8 +463,8 @@ export function SettingsContent({
             description="Quando ativo, webhooks do Supabase serao processados automaticamente."
           />
 
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="mb-4 text-sm font-semibold text-gray-900">
+          <div className="border-t border-border pt-6">
+            <h3 className="mb-4 text-sm font-semibold text-foreground">
               Acoes de Sincronizacao
             </h3>
             <div className="flex flex-wrap gap-3">
@@ -486,7 +486,7 @@ export function SettingsContent({
                 type="button"
                 onClick={() => onShowClearConfirm(true)}
                 disabled={clearing}
-                className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-card px-4 py-2 text-sm font-medium text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {clearing ? <SvgSpinner /> : <SvgTrash />}
                 {clearing ? "Limpando..." : "Limpar dados de conteudo"}
@@ -496,7 +496,7 @@ export function SettingsContent({
             {syncing && (
               <div className="mt-4 rounded-md border border-[#0d61ac]/20 bg-[#0d61ac]/5 p-4">
                 <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-700">{syncLabel}</span>
+                  <span className="font-medium text-foreground">{syncLabel}</span>
                   <span className="text-xs font-semibold text-[#0d61ac]">
                     {syncProgress}%
                   </span>
@@ -518,7 +518,7 @@ export function SettingsContent({
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-green-700 sm:grid-cols-4">
                   {Object.entries(syncResult).map(([key, val]) => (
-                    <div key={key} className="rounded-md bg-white/60 px-3 py-2">
+                    <div key={key} className="rounded-md bg-card/60 px-3 py-2">
                       <p className="text-xs text-green-600 capitalize">{key}</p>
                       <p className="font-semibold">
                         {typeof val === "object" && val !== null
@@ -550,7 +550,7 @@ export function SettingsContent({
             )}
 
             {lastSyncAt && (
-              <p className="mt-3 text-xs text-gray-500">
+              <p className="mt-3 text-xs text-muted-foreground">
                 Ultima sincronizacao: {lastSyncAt}
               </p>
             )}
