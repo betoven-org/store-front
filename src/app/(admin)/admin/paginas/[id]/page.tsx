@@ -598,16 +598,12 @@ export default function EditPagePage({
   const hasSectionsDraft = page.draftSections !== null &&
     JSON.stringify(page.draftSections) !== JSON.stringify(page.sections);
   const hasDraft = page.draft !== null || hasSectionsDraft;
-  const hasContent = !!(editState?.content || page.content);
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.frontendUrl || "";
-  const hasPreviewTarget = Boolean(frontendBase);
   const pagePath = slugToPath(page.slug);
-  const previewUrl = hasPreviewTarget
-    ? (hasSections
-        ? `${frontendBase}${pagePath}${pagePath.includes("?") ? "&" : "?"}draft=true`
-        : `${frontendBase}${pagePath}`)
-    : (hasContent ? `/api/admin/pages/${id}/preview` : "");
+  const previewUrl = frontendBase
+    ? `${frontendBase}${pagePath}${pagePath.includes("?") ? "&" : "?"}draft=true`
+    : "";
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
