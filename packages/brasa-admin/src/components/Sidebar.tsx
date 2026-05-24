@@ -4,148 +4,83 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-  FileText,
-  PanelLeftOpen,
-  PanelLeftClose,
-  X,
-  Package,
-  PanelBottom,
-  ChevronDown,
-  Search,
-  Settings,
-  Plug,
-  BarChart3,
-  HelpCircle,
+  Newspaper, Tag, Users, Image, Package, Layers,
+  PanelBottom, Layout, Mail, Sparkles, Search, Share2,
+  BarChart3, UserCog, Database, CreditCard, HelpCircle,
+  PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
+  ChevronsUpDown,
 } from "lucide-react";
 
-type NavItem = {
+type NavItemDef = {
   href: string;
   label: string;
+  icon: React.ReactNode;
+  count?: number;
 };
 
 type NavGroup = {
   label: string;
-  icon: React.ReactNode;
-  items: NavItem[];
+  items: NavItemDef[];
 };
 
 const navGroups: NavGroup[] = [
   {
     label: "Blog",
-    icon: <FileText className="size-[18px]" />,
     items: [
-      { href: "/admin/posts", label: "Posts" },
-      { href: "/admin/categorias", label: "Categorias" },
-      { href: "/admin/autores", label: "Autores" },
-      { href: "/admin/midias", label: "Midias" },
+      { href: "/admin/posts", label: "Posts", icon: <Newspaper className="size-[15px]" /> },
+      { href: "/admin/categorias", label: "Categorias", icon: <Tag className="size-[15px]" /> },
+      { href: "/admin/autores", label: "Autores", icon: <Users className="size-[15px]" /> },
+      { href: "/admin/midias", label: "Midias", icon: <Image className="size-[15px]" /> },
     ],
   },
   {
     label: "Catalogo",
-    icon: <Package className="size-[18px]" />,
     items: [
-      { href: "/admin/produtos", label: "Produtos" },
-      { href: "/admin/categorias-produto", label: "Categorias de Produto" },
+      { href: "/admin/produtos", label: "Produtos", icon: <Package className="size-[15px]" /> },
+      { href: "/admin/categorias-produto", label: "Categorias de Produto", icon: <Layers className="size-[15px]" /> },
     ],
   },
   {
     label: "Storefront",
-    icon: <PanelBottom className="size-[18px]" />,
     items: [
-      { href: "/admin/footer", label: "Footer" },
-      { href: "/admin/newsletter", label: "Newsletter" },
-      { href: "/admin/paginas", label: "Paginas" },
-    ],
-  },
-  {
-    label: "Analytics",
-    icon: <BarChart3 className="size-[18px]" />,
-    items: [
-      { href: "/admin/analytics", label: "Metricas" },
-    ],
-  },
-  {
-    label: "SEO",
-    icon: <Search className="size-[18px]" />,
-    items: [
-      { href: "/admin/robots", label: "Robots" },
+      { href: "/admin/paginas", label: "Paginas", icon: <Layout className="size-[15px]" /> },
+      { href: "/admin/footer", label: "Footer", icon: <PanelBottom className="size-[15px]" /> },
+      { href: "/admin/newsletter", label: "Newsletter", icon: <Mail className="size-[15px]" /> },
     ],
   },
   {
     label: "Configuracoes",
-    icon: <Settings className="size-[18px]" />,
     items: [
-      { href: "/admin/inscritos", label: "Inscritos" },
-      { href: "/admin/identidade", label: "Identidade do Site" },
-      { href: "/admin/contato", label: "Contato" },
-      { href: "/admin/redes-sociais", label: "Redes Sociais" },
-      { href: "/admin/usuarios", label: "Usuarios e Permissoes" },
+      { href: "/admin/identidade", label: "Identidade", icon: <Sparkles className="size-[15px]" /> },
+      { href: "/admin/robots", label: "SEO", icon: <Search className="size-[15px]" /> },
+      { href: "/admin/redes-sociais", label: "Redes sociais", icon: <Share2 className="size-[15px]" /> },
+      { href: "/admin/analytics", label: "Analytics", icon: <BarChart3 className="size-[15px]" /> },
+      { href: "/admin/usuarios", label: "Usuarios", icon: <UserCog className="size-[15px]" /> },
     ],
   },
   {
     label: "Integracoes",
-    icon: <Plug className="size-[18px]" />,
     items: [
-      { href: "/admin/supabase", label: "Supabase" },
-      { href: "/admin/assinatura", label: "Assinatura" },
-    ],
-  },
-  {
-    label: "Ajuda",
-    icon: <HelpCircle className="size-[18px]" />,
-    items: [
-      { href: "/admin/ajuda", label: "Guias" },
+      { href: "/admin/supabase", label: "Supabase", icon: <Database className="size-[15px]" /> },
+      { href: "/admin/assinatura", label: "Stripe", icon: <CreditCard className="size-[15px]" /> },
     ],
   },
 ];
 
-/* ── Tooltip ─────────────────────────────────────────────────────────── */
-
-function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
-  const [visible, setVisible] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
-  const ref = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const show = useCallback(() => {
-    clearTimeout(timeoutRef.current);
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setPosition({ top: rect.top + rect.height / 2, left: rect.right + 8 });
-    }
-    setVisible(true);
-  }, []);
-
-  const hide = useCallback(() => {
-    timeoutRef.current = setTimeout(() => setVisible(false), 100);
-  }, []);
-
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
+function BrandGlyph({ size = 24 }: { size?: number }) {
   return (
-    <div ref={ref} onMouseEnter={show} onMouseLeave={hide} className="relative">
-      {children}
-      {visible && (
-        <div
-          className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg"
-          style={{ top: position.top, left: position.left, transform: "translateY(-50%)" }}
-          role="tooltip"
-        >
-          {label}
-        </div>
-      )}
-    </div>
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="oklch(0.72 0.19 60)" />
+          <stop offset="1" stopColor="oklch(0.58 0.20 32)" />
+        </linearGradient>
+      </defs>
+      <rect x="1" y="1" width="30" height="30" rx="8" fill="url(#bg1)" />
+      <path d="M16.5 6c.4 3.6-3.2 5-3.2 8.6 0 2.2 1.4 3.8 3.4 3.8 1.7 0 3-1 3-2.6 0-1.3-.6-2-1.5-2.5 2.6.4 4.8 2.6 4.8 5.5 0 3.4-2.8 6.2-6.7 6.2-4 0-7-2.7-7-6.6 0-5.2 5.7-6.9 7.2-12.4Z" fill="#fff" fillOpacity="0.96" />
+    </svg>
   );
 }
-
-/* ── Sidebar ─────────────────────────────────────────────────────────── */
-
-type SidebarProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  collapsed: boolean;
-  onToggleCollapse: () => void;
-};
 
 function findActiveGroup(pathname: string): string | null {
   for (const group of navGroups) {
@@ -158,165 +93,141 @@ function findActiveGroup(pathname: string): string | null {
   return null;
 }
 
+type SidebarProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+};
+
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
-  const [openGroup, setOpenGroup] = useState<string | null>(() => findActiveGroup(pathname));
+  const [openGroups, setOpenGroups] = useState<string[]>(() => {
+    const active = findActiveGroup(pathname);
+    return active ? [active] : [];
+  });
 
   useEffect(() => {
     const active = findActiveGroup(pathname);
-    if (active) setOpenGroup(active);
+    if (active && !openGroups.includes(active)) {
+      setOpenGroups((prev) => [...prev, active]);
+    }
   }, [pathname]);
 
   const toggleGroup = (label: string) => {
-    setOpenGroup((prev) => (prev === label ? null : label));
+    setOpenGroups((prev) =>
+      prev.includes(label) ? prev.filter((g) => g !== label) : [...prev, label]
+    );
   };
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={onClose}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] lg:hidden" onClick={onClose} />
       )}
 
       <aside
         className={[
-          "fixed top-0 left-0 z-50 flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-200",
-          collapsed ? "lg:w-[68px]" : "lg:w-60",
-          "w-60 lg:translate-x-0",
+          "fixed top-0 left-0 z-50 flex h-full flex-col transition-all duration-[160ms] ease-[cubic-bezier(0.4,0,0.2,1)]",
+          "bg-sidebar border-r border-sidebar-border text-sidebar-foreground",
+          collapsed ? "lg:w-16" : "lg:w-[232px]",
+          "w-[232px] lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
       >
-        {/* Header: Logo + Collapse toggle */}
-        <div className={`flex h-14 items-center border-b border-gray-200 ${collapsed ? "lg:justify-center lg:px-2" : "justify-between px-4"} justify-between px-4`}>
+        {/* Brand */}
+        <div className={`flex items-center border-b border-sidebar-border ${collapsed ? "lg:justify-center lg:px-3 h-[52px]" : "justify-between px-3.5 h-[52px]"} px-3.5`}>
           {collapsed ? (
-            <>
-              <button
-                type="button"
-                onClick={onToggleCollapse}
-                className="hidden rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 lg:flex"
-                aria-label="Expandir sidebar"
-              >
-                <PanelLeftOpen className="size-5" />
-              </button>
-              <Link href="/admin" className="lg:hidden">
-                <img src="/logo.svg" alt="Logo" className="h-7" />
-              </Link>
-            </>
+            <button onClick={onToggleCollapse} className="hidden lg:flex" title="Expandir">
+              <BrandGlyph size={28} />
+            </button>
           ) : (
             <>
-              <Link href="/admin">
-                <img src="/logo.svg" alt="Logo" className="h-7" />
+              <Link href="/admin" className="flex items-center gap-2">
+                <BrandGlyph size={26} />
+                <span className="font-display text-[15px] font-medium tracking-tight">
+                  brasa<span className="text-brand">.</span>
+                </span>
               </Link>
               <button
-                type="button"
                 onClick={onToggleCollapse}
-                className="hidden rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 lg:flex"
-                aria-label="Recolher sidebar"
+                className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+                title="Recolher"
               >
-                <PanelLeftClose className="size-4" />
+                <PanelLeftClose className="size-[14px]" />
               </button>
             </>
           )}
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 lg:hidden"
-            aria-label="Fechar menu"
-          >
+          <button onClick={onClose} className="lg:hidden rounded-md p-1 text-muted-foreground hover:text-foreground" aria-label="Fechar">
             <X className="size-4" />
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className={`flex-1 overflow-y-auto py-3 ${collapsed ? "lg:px-2" : "px-3"} px-3`}>
+        {/* Nav */}
+        <nav className={`flex-1 overflow-y-auto ${collapsed ? "lg:px-1.5 py-1" : "px-2 py-1"} px-2 py-1`}>
           {navGroups.map((group) => {
-            const isGroupOpen = openGroup === group.label;
-            const hasActiveItem = group.items.some(
-              (item) => pathname === item.href || pathname.startsWith(item.href + "/")
-            );
-
-            const groupHeader = (
-              <button
-                type="button"
-                onClick={() => toggleGroup(group.label)}
-                className={[
-                  "flex w-full items-center rounded-md text-[13px] font-semibold transition-colors",
-                  collapsed ? "lg:justify-center lg:px-0 lg:py-2.5" : "gap-3 px-3 py-2",
-                  "gap-3 px-3 py-2",
-                  hasActiveItem
-                    ? "text-primary"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                ].join(" ")}
-              >
-                <span className="flex-shrink-0">{group.icon}</span>
-                <span className={`flex-1 text-left ${collapsed ? "lg:hidden" : ""}`}>{group.label}</span>
-                <ChevronDown
-                  className={[
-                    "size-4 text-gray-400 transition-transform duration-200",
-                    isGroupOpen ? "rotate-180" : "",
-                    collapsed ? "lg:hidden" : "",
-                  ].join(" ")}
-                />
-              </button>
-            );
-
+            const isOpen = openGroups.includes(group.label);
             return (
               <div key={group.label} className="mb-1">
-                {collapsed ? (
-                  <>
-                    <div className="hidden lg:block">
-                      <Tooltip label={group.label}>{groupHeader}</Tooltip>
-                    </div>
-                    <div className="lg:hidden">{groupHeader}</div>
-                  </>
-                ) : (
-                  groupHeader
+                {!collapsed && (
+                  <button
+                    onClick={() => toggleGroup(group.label)}
+                    className="flex w-full items-center justify-between px-2 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                  >
+                    <span>{group.label}</span>
+                    {isOpen
+                      ? <ChevronDown className="size-[11px]" />
+                      : <ChevronRight className="size-[11px]" />}
+                  </button>
                 )}
 
-                <div
-                  className={[
-                    "overflow-hidden transition-all duration-200",
-                    isGroupOpen && !collapsed ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
-                  ].join(" ")}
-                >
-                  <ul className="mt-0.5 space-y-0.5">
-                    {group.items.map((item) => {
-                      const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-
-                      return (
-                        <li key={item.href}>
-                          <Link
-                            href={item.href}
-                            onClick={() => {
-                              if (window.innerWidth < 1024) onClose();
-                            }}
-                            className={[
-                              "flex items-center rounded-md text-[13px] font-medium transition-colors",
-                              "gap-3 py-2",
-                              collapsed ? "lg:pl-3" : "pl-10 pr-3",
-                              "pl-10 pr-3",
-                              isActive
-                                ? "bg-primary/5 text-primary"
-                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                            ].join(" ")}
-                            aria-current={isActive ? "page" : undefined}
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                {(isOpen || collapsed) && group.items.map((item) => {
+                  const active = pathname === item.href || (pathname.startsWith(item.href + "/") && item.href !== "/admin");
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => { if (window.innerWidth < 1024) onClose(); }}
+                      title={collapsed ? item.label : undefined}
+                      className={[
+                        "relative flex items-center gap-2.5 h-[30px] text-[13px] rounded-md transition-colors",
+                        collapsed ? "lg:justify-center lg:px-0 px-2" : "px-2",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                      ].join(" ")}
+                    >
+                      {/* Active indicator */}
+                      {active && !collapsed && (
+                        <span className="absolute -left-2 top-1.5 bottom-1.5 w-0.5 rounded-full bg-brand" />
+                      )}
+                      <span className={active ? "text-brand" : "text-muted-foreground"}>
+                        {item.icon}
+                      </span>
+                      {!collapsed && (
+                        <span className="flex-1 truncate">{item.label}</span>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             );
           })}
         </nav>
+
+        {/* Footer: expand button when collapsed */}
+        {collapsed && (
+          <div className="border-t border-sidebar-border p-2 hidden lg:flex justify-center">
+            <button
+              onClick={onToggleCollapse}
+              className="flex items-center justify-center w-full h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+              title="Expandir"
+            >
+              <PanelLeftOpen className="size-[15px]" />
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );
