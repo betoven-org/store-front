@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import {
   Menu, ChevronRight, ChevronDown, LogOut, ExternalLink,
-  HelpCircle, Bell, UserCog, Settings, CreditCard,
+  HelpCircle, Bell, UserCog, Settings, CreditCard, Upload,
 } from "lucide-react";
 import GlobalSearch from "./GlobalSearch";
 import { useTenant } from "./TenantProvider";
@@ -99,6 +99,16 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  const [draftCount, setDraftCount] = useState(0);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/admin/pages/pending")
+      .then((r) => r.ok ? r.json() : { docs: [] })
+      .then((d) => setDraftCount(d.docs?.length ?? 0))
+      .catch(() => {});
+  }, [status, pathname]);
+
   const userName = session?.user?.name || "Usuario";
   const userEmail = session?.user?.email || "";
   const initials = userName.split(" ").filter(Boolean).slice(0, 2).map(s => s[0]).join("").toUpperCase();
@@ -121,6 +131,20 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
       </div>
 
       <div className="flex-1" />
+
+      {/* Drafts / Publish */}
+      {draftCount > 0 && (
+        <Link
+          href="/admin/publicar"
+          className="inline-flex items-center gap-1.5 rounded-md bg-foreground text-background text-[12.5px] font-medium h-7 px-2.5 transition-all hover:brightness-[0.97]"
+        >
+          <Upload className="size-3.5" />
+          Publicar
+          <span className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-brand px-1 text-[9px] font-bold text-white leading-none">
+            {draftCount}
+          </span>
+        </Link>
+      )}
 
       {/* Quick actions */}
       <div className="flex items-center gap-0.5">

@@ -140,7 +140,8 @@
       "Read(//Users/wesleymoraesserafim/Projetos/**)",
       "Bash(DANGER='inline-flex items-center justify-center gap-1.5 rounded-md border border-destructive/20 bg-card text-destructive text-[13px] font-medium h-8 px-3 transition-all hover:bg-danger-bg focus-visible:ring-2 focus-visible:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50' __NEW_LINE_665b49898f3e7627__ find /Users/wesleymoraesserafim/Projetos/store-front/src/app/\\\\\\(admin\\\\\\) /Users/wesleymoraesserafim/Projetos/store-front/packages/brasa-admin/src -name \"*.tsx\" -type f)",
       "Bash(while read:*)",
-      "Bash(do sed:*)"
+      "Bash(do sed:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }
