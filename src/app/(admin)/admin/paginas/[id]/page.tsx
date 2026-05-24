@@ -168,6 +168,13 @@ function PreviewFrame({
   const [scale, setScale] = useState(1);
   const config = DEVICE_CONFIGS[device];
 
+  // Update iframe src when preview URL changes (e.g. tenant loads async)
+  useEffect(() => {
+    if (iframeRef.current && src && iframeRef.current.src !== src) {
+      iframeRef.current.src = src;
+    }
+  }, [src, iframeRef]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
