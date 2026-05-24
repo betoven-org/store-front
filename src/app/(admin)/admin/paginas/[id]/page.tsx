@@ -602,10 +602,11 @@ export default function EditPagePage({
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.frontendUrl || "";
   const hasPreviewTarget = Boolean(frontendBase);
+  const pagePath = slugToPath(page.slug);
   const previewUrl = hasPreviewTarget
     ? (hasSections
-        ? `${frontendBase}${slugToPath(page.slug)}${slugToPath(page.slug) === "/" ? "" : "/"}?draft=true`
-        : `${frontendBase}${slugToPath(page.slug)}`)
+        ? `${frontendBase}${pagePath}${pagePath.includes("?") ? "&" : "?"}draft=true`
+        : `${frontendBase}${pagePath}`)
     : (hasContent ? `/api/admin/pages/${id}/preview` : "");
   const isBusy = saving || publishing;
 
