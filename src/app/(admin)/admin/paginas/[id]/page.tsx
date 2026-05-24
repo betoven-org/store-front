@@ -601,11 +601,12 @@ export default function EditPagePage({
   const hasContent = !!(editState?.content || page.content);
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.frontendUrl || "";
-  const previewUrl = hasSections
-    ? `${frontendBase}${slugToPath(page.slug)}${slugToPath(page.slug) === "/" ? "" : "/"}?draft=true`
-    : hasContent
-      ? `/api/admin/pages/${id}/preview`
-      : `${frontendBase}${slugToPath(page.slug)}`;
+  const hasPreviewTarget = Boolean(frontendBase);
+  const previewUrl = hasPreviewTarget
+    ? (hasSections
+        ? `${frontendBase}${slugToPath(page.slug)}${slugToPath(page.slug) === "/" ? "" : "/"}?draft=true`
+        : `${frontendBase}${slugToPath(page.slug)}`)
+    : (hasContent ? `/api/admin/pages/${id}/preview` : "");
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
@@ -760,12 +761,31 @@ export default function EditPagePage({
                   </svg>
                 </button>
               </div>
-              <PreviewFrame
-                iframeRef={iframeRef}
-                src={previewUrl}
-                device={previewDevice}
-                title={`Preview: ${page.title}`}
-              />
+              {previewUrl ? (
+                <PreviewFrame
+                  iframeRef={iframeRef}
+                  src={previewUrl}
+                  device={previewDevice}
+                  title={`Preview: ${page.title}`}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-center p-8">
+                  <div>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-muted-foreground/40">
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                      <path d="m15 9-6 6" /><path d="m9 9 6 6" />
+                    </svg>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {tenant === null ? "Carregando preview..." : "Configure a URL do frontend para habilitar o preview."}
+                    </p>
+                    {tenant && !tenant.frontendUrl && (
+                      <p className="mt-1 text-xs text-muted-foreground/60">
+                        Defina o frontend_url no painel de configuracoes do tenant.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
