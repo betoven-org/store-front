@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { AdminShell } from "@brasa/admin";
 
 /* ── Types ──────────────────────────────────────────────────────────────────── */
@@ -452,7 +453,7 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-border bg-card lg:col-span-3">
               <div className="flex items-center justify-between border-b border-border px-5 py-4">
                 <h2 className="text-sm font-semibold text-foreground">Posts recentes</h2>
-                <a
+                <Link
                   href="/admin/posts"
                   className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -461,7 +462,7 @@ export default function DashboardPage() {
                     <path d="M5 12h14" />
                     <path d="m12 5 7 7-7 7" />
                   </svg>
-                </a>
+                </Link>
               </div>
               <div className="divide-y divide-border">
                 {data.releases.length > 0 ? (
