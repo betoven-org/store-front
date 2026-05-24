@@ -488,7 +488,7 @@ function UploadTab({
             onClick={() => handleAspectChange(key)}
             className={`px-3 py-1 text-xs font-medium rounded-md border transition-colors ${
               aspectRatio === key
-                ? "border-primary bg-primary text-white"
+                ? "border-foreground bg-foreground text-background"
                 : "border-border text-muted-foreground hover:border-primary hover:text-primary"
             }`}
           >

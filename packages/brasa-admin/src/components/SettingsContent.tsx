@@ -476,7 +476,7 @@ export function SettingsContent({
                   !settings.supabaseUrl ||
                   !settings.supabaseServiceRoleKey
                 }
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
               >
                 {syncing ? <SvgSpinner /> : <SvgSync />}
                 {syncing ? "Sincronizando..." : "Sincronizar agora"}
@@ -486,7 +486,7 @@ export function SettingsContent({
                 type="button"
                 onClick={() => onShowClearConfirm(true)}
                 disabled={clearing}
-                className="inline-flex items-center gap-2 rounded-md border border-destructive/30 bg-card px-4 py-2 text-sm font-medium text-destructive shadow-sm transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md border border-destructive/20 bg-card text-destructive text-[13px] font-medium h-8 px-3 transition-all hover:bg-danger-bg focus-visible:ring-2 focus-visible:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50"
               >
                 {clearing ? <SvgSpinner /> : <SvgTrash />}
                 {clearing ? "Limpando..." : "Limpar dados de conteudo"}

@@ -113,7 +113,7 @@ export default function FormField({
           type="file"
           onChange={onChange}
           required={required}
-          className={`${baseInputClasses} ${borderClass} file:mr-3 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1 file:text-sm file:font-medium file:text-white hover:file:bg-primary/90`}
+          className={`${baseInputClasses} ${borderClass} file:mr-3 file:rounded file:border-0 file:bg-foreground file:px-3 file:py-1 file:text-sm file:font-medium file:text-background hover:file:bg-foreground/90`}
           {...ariaProps}
         />
       );

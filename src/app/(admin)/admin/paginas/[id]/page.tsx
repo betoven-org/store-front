@@ -723,7 +723,7 @@ export default function EditPagePage({
                   aria-pressed={inlineEdit}
                   className={`rounded p-1 transition-colors ${
                     inlineEdit
-                      ? "bg-primary text-white"
+                      ? "bg-foreground text-background"
                       : "text-muted-foreground hover:bg-accent hover:text-muted-foreground"
                   }`}
                 >
@@ -913,7 +913,7 @@ export default function EditPagePage({
                     type="button"
                     onClick={handlePublish}
                     disabled={isBusy}
-                    className="mt-2 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
                   >
                     {publishing ? "Publicando..." : `Publicar ${draftCount} alterac${draftCount !== 1 ? "oes" : "ao"}`}
                   </button>

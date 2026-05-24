@@ -826,7 +826,7 @@ function DatePickerDropdown({
               onClick={() => selectDay(day)}
               className={`relative mx-auto flex size-8 items-center justify-center rounded-full text-sm transition-colors ${
                 selected
-                  ? "bg-primary font-medium text-white"
+                  ? "bg-foreground font-medium text-background"
                   : inRange
                   ? "bg-primary/10 text-primary"
                   : "text-foreground hover:bg-accent"
@@ -853,7 +853,7 @@ function DatePickerDropdown({
         <button
           type="button"
           onClick={() => onApply(localFrom, localTo)}
-          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90"
+          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 text-xs h-7"
         >
           Aplicar
         </button>

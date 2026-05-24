@@ -303,7 +303,7 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={() => setShowDiscardConfirm(false)}
-                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-card text-foreground text-[13px] font-medium h-8 px-3 transition-all hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -347,7 +347,7 @@ export default function PublicarPage() {
                   type="button"
                   onClick={handlePublish}
                   disabled={publishing || discarding || selected.size === 0}
-                  className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {publishing ? "Publicando..." : "Publicar agora"}
                 </button>
@@ -355,7 +355,7 @@ export default function PublicarPage() {
                   type="button"
                   onClick={() => setShowDiscardConfirm(true)}
                   disabled={publishing || discarding || selected.size === 0}
-                  className="w-full rounded-md border border-destructive/20 bg-card px-4 py-2.5 text-sm font-medium text-destructive shadow transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-destructive/20 bg-card text-destructive text-[13px] font-medium h-8 px-3 transition-all hover:bg-danger-bg focus-visible:ring-2 focus-visible:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {discarding ? "Descartando..." : "Descartar selecionados"}
                 </button>

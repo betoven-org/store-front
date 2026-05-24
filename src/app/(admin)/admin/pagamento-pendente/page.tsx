@@ -130,7 +130,7 @@ export default function PagamentoPendentePage() {
           type="button"
           onClick={handleCheckout}
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 h-10 text-sm"
         >
           {loading && <SpinnerIcon />}
           {loading ? "Redirecionando..." : "Regularizar pagamento"}
