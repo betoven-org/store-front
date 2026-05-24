@@ -602,7 +602,7 @@ export default function EditPagePage({
   const frontendBase = tenant?.frontendUrl || "";
   const pagePath = slugToPath(page.slug);
   const previewUrl = frontendBase
-    ? `${frontendBase}${pagePath}${pagePath.includes("?") ? "&" : "?"}draft=true`
+    ? `${frontendBase}${pagePath}${pagePath.includes("?") ? "&" : "?"}preview=draft&pageId=${id}`
     : "";
   const isBusy = saving || publishing;
 
