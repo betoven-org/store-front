@@ -7,14 +7,10 @@ import { useRouter } from "next/navigation";
 function BrandGlyph({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ flexShrink: 0 }}>
-      <defs>
-        <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="oklch(0.72 0.19 60)" />
-          <stop offset="1" stopColor="oklch(0.58 0.20 32)" />
-        </linearGradient>
-      </defs>
-      <rect x="1" y="1" width="30" height="30" rx="8" fill="url(#bg1)" />
-      <path d="M16.5 6c.4 3.6-3.2 5-3.2 8.6 0 2.2 1.4 3.8 3.4 3.8 1.7 0 3-1 3-2.6 0-1.3-.6-2-1.5-2.5 2.6.4 4.8 2.6 4.8 5.5 0 3.4-2.8 6.2-6.7 6.2-4 0-7-2.7-7-6.6 0-5.2 5.7-6.9 7.2-12.4Z" fill="#fff" fillOpacity="0.96" />
+      <rect x="0" y="0" width="32" height="32" rx="7" fill="oklch(0.20 0.012 45)" />
+      <rect x="7" y="4" width="5" height="24" rx="2" fill="oklch(0.96 0.020 65)" />
+      <circle cx="17" cy="20" r="7.5" fill="oklch(0.96 0.020 65)" />
+      <circle cx="17" cy="20" r="4.1" fill="oklch(0.20 0.012 45)" />
     </svg>
   );
 }
