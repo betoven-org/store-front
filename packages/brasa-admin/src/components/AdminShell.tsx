@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { SessionProvider } from "next-auth/react";
 import Sidebar from "./Sidebar";
 import AdminHeader from "./AdminHeader";
+import { TenantProvider } from "./TenantProvider";
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
 
@@ -58,7 +59,9 @@ function ShellInner({ title, children, headerExtra }: AdminShellProps) {
 export default function AdminShell({ title, children, headerExtra }: AdminShellProps) {
   return (
     <SessionProvider>
-      <ShellInner title={title} headerExtra={headerExtra}>{children}</ShellInner>
+      <TenantProvider>
+        <ShellInner title={title} headerExtra={headerExtra}>{children}</ShellInner>
+      </TenantProvider>
     </SessionProvider>
   );
 }

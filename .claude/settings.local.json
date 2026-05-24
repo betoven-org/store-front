@@ -133,7 +133,9 @@
       "Bash(pnpm exec:*)",
       "Bash(pnpm:*)",
       "Bash(cat:*)",
-      "WebFetch(domain:api.anthropic.com)"
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(grep -n \"previewUrl\\\\|iframeRef\\\\|iframe\\\\|preview.*url\\\\|SITE_URL\" /Users/wesleymoraesserafim/Projetos/store-front/src/app/\\\\\\(admin\\\\\\)/admin/paginas/[id]/page.tsx)",
+      "Bash(grep -n \"function.*Page\\\\b\\\\|export default\" /Users/wesleymoraesserafim/Projetos/store-front/src/app/\\\\\\(admin\\\\\\)/admin/paginas/[id]/page.tsx)"
     ]
   }
 }

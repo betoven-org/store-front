@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, PageBuilder } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, PageBuilder, useTenant } from "@brasa/admin";
 import manifest from "@/manifest.json";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 
@@ -310,6 +310,7 @@ export default function EditPagePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = React.use(params);
+  const tenant = useTenant();
 
   const [page, setPage] = useState<Page | null>(null);
   const [editState, setEditState] = useState<EditState | null>(null);
@@ -599,11 +600,12 @@ export default function EditPagePage({
   const hasDraft = page.draft !== null || hasSectionsDraft;
   const hasContent = !!(editState?.content || page.content);
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
+  const frontendBase = tenant?.frontendUrl || "";
   const previewUrl = hasSections
-    ? `${slugToPath(page.slug)}${slugToPath(page.slug) === "/" ? "" : "/"}?preview=draft&pageId=${id}`
+    ? `${frontendBase}${slugToPath(page.slug)}${slugToPath(page.slug) === "/" ? "" : "/"}?draft=true`
     : hasContent
       ? `/api/admin/pages/${id}/preview`
-      : slugToPath(page.slug);
+      : `${frontendBase}${slugToPath(page.slug)}`;
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
@@ -732,7 +734,7 @@ export default function EditPagePage({
                 </button>
 
                 <span className="flex-1 rounded bg-card px-2 py-0.5 text-[11px] text-muted-foreground font-mono border border-border truncate">
-                  {typeof window !== "undefined" ? window.location.origin : ""}{slugToPath(page.slug)}
+                  {frontendBase || "configure frontend_url"}{slugToPath(page.slug)}
                 </span>
                 <button
                   type="button"

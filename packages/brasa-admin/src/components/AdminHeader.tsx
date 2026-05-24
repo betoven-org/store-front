@@ -9,6 +9,7 @@ import {
   HelpCircle, Bell, UserCog, Settings, CreditCard,
 } from "lucide-react";
 import GlobalSearch from "./GlobalSearch";
+import { useTenant } from "./TenantProvider";
 
 type AdminHeaderProps = {
   title: string;
@@ -79,6 +80,7 @@ function IconBtn({ icon: Icon, title, badge, onClick }: {
 export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHeaderProps) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const tenant = useTenant();
   const crumbs = getBreadcrumbs(pathname);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -122,7 +124,15 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
 
       {/* Quick actions */}
       <div className="flex items-center gap-0.5">
-        <IconBtn icon={ExternalLink} title="Ver site publico" />
+        <IconBtn
+          icon={ExternalLink}
+          title="Ver site publico"
+          onClick={() => {
+            if (tenant?.frontendUrl) {
+              window.open(tenant.frontendUrl, "_blank");
+            }
+          }}
+        />
         <IconBtn icon={HelpCircle} title="Ajuda" />
         <IconBtn icon={Bell} title="Notificacoes" badge={3} />
       </div>
