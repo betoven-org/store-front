@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AdminShell, SettingsContent, FormField, useTenant } from "@brasa/admin";
+import { AdminShell, SettingsContent, FormField, useTenant, useTenantRefetch } from "@brasa/admin";
 import { useSettings } from "@/hooks/useSettings";
 
 export default function IdentidadePage() {
@@ -20,6 +20,7 @@ export default function IdentidadePage() {
   } = useSettings();
 
   const tenant = useTenant();
+  const refetchTenant = useTenantRefetch();
   const [frontendUrl, setFrontendUrl] = useState("");
   const [tenantSaving, setTenantSaving] = useState(false);
   const [tenantSuccess, setTenantSuccess] = useState(false);
@@ -45,6 +46,7 @@ export default function IdentidadePage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error ?? "Erro ao salvar");
       }
+      refetchTenant();
       setTenantSuccess(true);
       setTimeout(() => setTenantSuccess(false), 3000);
     } catch (err) {

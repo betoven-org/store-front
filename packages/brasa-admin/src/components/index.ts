@@ -35,5 +35,5 @@ export { default as DomainsView } from "./DomainsView";
 export { default as PageBuilder } from "./PageBuilder";
 export { default as SectionEditor } from "./SectionEditor";
 export { default as MediaLibrary } from "./MediaLibrary";
-export { TenantProvider, useTenant } from "./TenantProvider";
+export { TenantProvider, useTenant, useTenantRefetch } from "./TenantProvider";
 export { default as ToggleSwitch } from "./ToggleSwitch";

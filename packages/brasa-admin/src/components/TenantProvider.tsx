@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 type TenantInfo = {
   id: number;
@@ -11,21 +11,35 @@ type TenantInfo = {
   revalidateSecret: string | null;
 };
 
-const TenantCtx = createContext<TenantInfo | null>(null);
+type TenantCtxValue = {
+  tenant: TenantInfo | null;
+  refetch: () => void;
+};
+
+const TenantCtx = createContext<TenantCtxValue>({ tenant: null, refetch: () => {} });
 
 export function useTenant() {
-  return useContext(TenantCtx);
+  const ctx = useContext(TenantCtx);
+  return ctx.tenant;
+}
+
+export function useTenantRefetch() {
+  return useContext(TenantCtx).refetch;
 }
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
 
-  useEffect(() => {
+  const refetch = useCallback(() => {
     fetch("/api/admin/tenant-info")
       .then((r) => (r.ok ? r.json() : null))
       .then(setTenant)
       .catch(() => {});
   }, []);
 
-  return <TenantCtx.Provider value={tenant}>{children}</TenantCtx.Provider>;
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  return <TenantCtx.Provider value={{ tenant, refetch }}>{children}</TenantCtx.Provider>;
 }
