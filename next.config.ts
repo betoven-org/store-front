@@ -3,30 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 31536000,
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "framerusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "*.public.blob.vercel-storage.com",
-      },
-      {
-        protocol: "https",
-        hostname: "medicinalnaweb.vteximg.com.br",
-      },
-      {
-        protocol: "https",
-        hostname: "medicinalnaweb.vtexassets.com",
-      },
-      {
-        protocol: "https",
-        hostname: "hsixbybpwvhvkwxeaxup.supabase.co",
-      },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+      { protocol: "https", hostname: "*.supabase.co" },
     ],
   },
   async headers() {
@@ -42,15 +22,18 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/:path*\\.(ico|png|svg|jpg|jpeg|webp|woff|woff2)",
+        source: "/api/v1/:path*",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "x-api-key, x-preview-secret, Content-Type" },
+          { key: "Access-Control-Max-Age", value: "86400" },
         ],
       },
       {
-        source: "/api/search",
+        source: "/:path*\\.(ico|png|svg|jpg|jpeg|webp|woff|woff2)",
         headers: [
-          { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
     ];
