@@ -96,10 +96,9 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
-  const [openGroups, setOpenGroups] = useState<string[]>(() => {
-    const active = findActiveGroup(pathname);
-    return active ? [active] : [];
-  });
+  const [openGroups, setOpenGroups] = useState<string[]>(() =>
+    navGroups.map((g) => g.label)
+  );
 
   useEffect(() => {
     const active = findActiveGroup(pathname);
