@@ -1,15 +1,19 @@
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
-import { Roboto } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 
 export const dynamic = "force-dynamic";
 
-const roboto = Roboto({
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700", "900"],
-  variable: "--font-roboto",
+  variable: "--font-geist",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
 export default function AdminRootLayout({
@@ -18,14 +22,14 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={`${roboto.variable} antialiased`}>
+    <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable} antialiased`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="bg-gray-50 font-sans text-gray-900">
+      <body className="bg-background font-sans text-foreground">
         <SessionProvider>
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster position="bottom-right" richColors closeButton />
