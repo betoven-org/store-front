@@ -53,6 +53,11 @@ export default auth(async (req) => {
     return new Response("Forbidden", { status: 403 });
   }
 
+  // Root → admin
+  if (pathname === "/") {
+    return Response.redirect(new URL("/admin", req.nextUrl.origin));
+  }
+
   // Skip tenant resolution for internal APIs
   if (pathname === "/api/tenant") {
     return NextResponse.next();
