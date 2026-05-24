@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import ToggleSwitch from "./ToggleSwitch";
 
 // ---------------------------------------------------------------------------
 // Types (mirrors packages/brasa-core/src/manifest.ts)
@@ -385,16 +386,7 @@ function BooleanField({ fieldKey, schema, value, onChange }: FieldRendererProps)
 
   return (
     <FieldWrapper>
-      <div className="flex items-start gap-3">
-        <div className="flex h-5 items-center">
-          <input
-            id={id}
-            type="checkbox"
-            checked={checked}
-            onChange={(e) => onChange(e.target.checked)}
-            className="h-4 w-4 cursor-pointer rounded border-border text-primary accent-primary focus:ring-ring"
-          />
-        </div>
+      <div className="flex items-center justify-between gap-3">
         <div>
           <label htmlFor={id} className={`${labelCls} cursor-pointer`}>
             {schema.title ?? fieldKey}
@@ -408,6 +400,7 @@ function BooleanField({ fieldKey, schema, value, onChange }: FieldRendererProps)
             <p className="mt-0.5 text-xs text-muted-foreground">{schema.description}</p>
           )}
         </div>
+        <ToggleSwitch id={id} checked={checked} onChange={(v) => onChange(v)} />
       </div>
     </FieldWrapper>
   );

@@ -1,3 +1,5 @@
+import ToggleSwitch from "./ToggleSwitch";
+
 type SelectOption = {
   value: string;
   label: string;
@@ -87,20 +89,23 @@ export default function FormField({
 
     if (type === "checkbox") {
       return (
-        <div className="flex items-center gap-2">
-          <input
-            id={inputId}
-            name={name}
-            type="checkbox"
-            checked={value as boolean}
-            onChange={onChange}
-            className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
-            {...ariaProps}
-          />
-          <label htmlFor={inputId} className="text-sm text-foreground">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor={inputId} className="text-[12.5px] font-medium text-muted-foreground cursor-pointer">
             {label}
             {required && <span className="ml-0.5 text-destructive">*</span>}
           </label>
+          <ToggleSwitch
+            id={inputId}
+            checked={Boolean(value)}
+            onChange={(checked) => {
+              if (onChange) {
+                const syntheticEvent = {
+                  target: { name, type: "checkbox", checked, value: String(checked) },
+                } as unknown as React.ChangeEvent<HTMLInputElement>;
+                onChange(syntheticEvent);
+              }
+            }}
+          />
         </div>
       );
     }
