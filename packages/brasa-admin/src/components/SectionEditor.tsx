@@ -44,7 +44,7 @@ export type SectionEditorProps = {
 // ---------------------------------------------------------------------------
 
 const inputCls =
-  "w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground transition-colors focus:border-[#0d61ac] focus:outline-none focus:ring-1 focus:ring-[#0d61ac]";
+  "w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring";
 
 const labelCls = "block text-sm font-medium text-foreground";
 
@@ -392,7 +392,7 @@ function BooleanField({ fieldKey, schema, value, onChange }: FieldRendererProps)
             type="checkbox"
             checked={checked}
             onChange={(e) => onChange(e.target.checked)}
-            className="h-4 w-4 cursor-pointer rounded border-border text-[#0d61ac] accent-[#0d61ac] focus:ring-[#0d61ac]"
+            className="h-4 w-4 cursor-pointer rounded border-border text-primary accent-primary focus:ring-ring"
           />
         </div>
         <div>
@@ -479,7 +479,7 @@ function ArrayField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRende
         {arrVal.map((item, index) => (
           <div
             key={index}
-            className="relative border-l-2 border-[#0d61ac]/20 pl-4"
+            className="relative border-l-2 border-primary/20 pl-4"
           >
             <button
               type="button"
@@ -512,7 +512,7 @@ function ArrayField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRende
       <button
         type="button"
         onClick={handleAdd}
-        className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#0d61ac]/30 bg-[#0d61ac]/5 px-3 py-1.5 text-xs font-medium text-[#0d61ac] transition-colors hover:bg-[#0d61ac]/10"
+        className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
       >
         <SvgPlus />
         Adicionar

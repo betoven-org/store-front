@@ -206,7 +206,7 @@ function LibraryTab({
             placeholder="Buscar por nome ou alt..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-[#0d61ac] focus:border-transparent bg-card"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-card"
           />
         </div>
       </div>
@@ -224,10 +224,10 @@ function LibraryTab({
                   key={item.id}
                   type="button"
                   onClick={() => handleItemClick(item)}
-                  className={`relative aspect-square rounded-lg overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0d61ac] focus-visible:ring-offset-2 transition-all ${
+                  className={`relative aspect-square rounded-lg overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all ${
                     isSelected
-                      ? "ring-2 ring-[#0d61ac] ring-offset-2"
-                      : "hover:ring-2 hover:ring-[#0d61ac] hover:ring-offset-1"
+                      ? "ring-2 ring-ring ring-offset-2"
+                      : "hover:ring-2 hover:ring-ring hover:ring-offset-1"
                   }`}
                   aria-pressed={isSelected}
                   aria-label={item.filename}
@@ -241,7 +241,7 @@ function LibraryTab({
                     height={160}
                   />
                   {isSelected && (
-                    <span className="absolute top-1.5 right-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-[#0d61ac] text-white shadow-md">
+                    <span className="absolute top-1.5 right-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow-md">
                       <IconCheck />
                     </span>
                   )}
@@ -262,7 +262,7 @@ function LibraryTab({
             <button
               type="button"
               onClick={() => setPage((p) => p + 1)}
-              className="px-4 py-2 text-sm font-medium text-[#0d61ac] border border-[#0d61ac] rounded-lg hover:bg-[#0d61ac]/5 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors"
             >
               Carregar mais
             </button>
@@ -291,7 +291,7 @@ function LibraryTab({
           disabled={!selected}
           onClick={() => selected && onSelect(selected)}
           className="shrink-0 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ backgroundColor: "#0d61ac" }}
+          style={{ backgroundColor: "var(--primary)" }}
         >
           Selecionar
         </button>
@@ -439,8 +439,8 @@ function UploadTab({
           aria-label="Selecionar imagem para upload"
           className={`flex flex-col items-center justify-center gap-3 flex-1 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${
             isDragging
-              ? "border-[#0d61ac] bg-[#0d61ac]/5"
-              : "border-border hover:border-[#0d61ac] hover:bg-background"
+              ? "border-primary bg-primary/5"
+              : "border-border hover:border-primary hover:bg-background"
           }`}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -459,7 +459,7 @@ function UploadTab({
           <div className="text-center">
             <p className="text-sm font-medium text-foreground">
               Arraste uma imagem ou{" "}
-              <span className="text-[#0d61ac]">clique para selecionar</span>
+              <span className="text-primary">clique para selecionar</span>
             </p>
             <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WebP — max 10 MB</p>
           </div>
@@ -488,8 +488,8 @@ function UploadTab({
             onClick={() => handleAspectChange(key)}
             className={`px-3 py-1 text-xs font-medium rounded-md border transition-colors ${
               aspectRatio === key
-                ? "border-[#0d61ac] bg-[#0d61ac] text-white"
-                : "border-border text-muted-foreground hover:border-[#0d61ac] hover:text-[#0d61ac]"
+                ? "border-primary bg-primary text-white"
+                : "border-border text-muted-foreground hover:border-primary hover:text-primary"
             }`}
           >
             {key === "free" ? "Livre" : key}
@@ -536,7 +536,7 @@ function UploadTab({
             onClick={handleUpload}
             disabled={uploading}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: "#0d61ac" }}
+            style={{ backgroundColor: "var(--primary)" }}
           >
             {uploading && <IconSpinner />}
             {uploading ? "Enviando..." : "Upload"}
@@ -626,7 +626,7 @@ export default function MediaLibrary({ open, onClose, onSelect }: MediaLibraryPr
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors -mb-px ${
                 activeTab === tab
-                  ? "border-[#0d61ac] text-[#0d61ac]"
+                  ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >

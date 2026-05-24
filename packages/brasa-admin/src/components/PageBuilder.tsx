@@ -149,7 +149,7 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
               placeholder="Buscar secoes..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-1 focus:ring-[#0d61ac]"
+              className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
                     key={section.key}
                     type="button"
                     onClick={() => onSelect(section)}
-                    className="flex w-full flex-col rounded-md px-3 py-2.5 text-left hover:bg-[#0d61ac]/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0d61ac]"
+                    className="flex w-full flex-col rounded-md px-3 py-2.5 text-left hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <span className="text-sm font-medium text-foreground">
                       {section.title}
@@ -217,7 +217,7 @@ function BlockItem({
         isDragging
           ? "opacity-50"
           : isSelected
-          ? "border-[#0d61ac] bg-[#0d61ac]/5"
+          ? "border-primary bg-primary/5"
           : "border-border bg-card hover:border-border hover:bg-background"
       }`}
       onClick={onSelect}
@@ -244,7 +244,7 @@ function BlockItem({
       {/* title */}
       <span
         className={`min-w-0 flex-1 truncate text-sm font-medium ${
-          isSelected ? "text-[#0d61ac]" : "text-foreground"
+          isSelected ? "text-primary" : "text-foreground"
         }`}
       >
         {title}
@@ -401,7 +401,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
             <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Secoes
             </h2>
-            <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-muted-foreground">
               {value.length}
             </span>
           </div>
@@ -441,7 +441,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
 
                 <DragOverlay>
                   {activeBlock && (
-                    <div className="rounded-lg shadow-lg ring-2 ring-[#0d61ac]">
+                    <div className="rounded-lg shadow-lg ring-2 ring-ring">
                       <BlockItem
                         title={activeSchema?.title ?? activeBlock.component}
                         isSelected={false}
@@ -460,7 +460,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
             <button
               type="button"
               onClick={() => setShowPicker(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2.5 text-sm text-muted-foreground transition-colors hover:border-[#0d61ac] hover:text-[#0d61ac]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
             >
               <IconPlus />
               Adicionar secao

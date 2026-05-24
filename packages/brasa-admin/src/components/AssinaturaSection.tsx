@@ -146,7 +146,7 @@ export default function AssinaturaSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <SpinnerIcon className="h-8 w-8 text-[#0d61ac]" />
+        <SpinnerIcon className="h-8 w-8 text-primary" />
         <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
       </div>
     );
@@ -222,7 +222,7 @@ export default function AssinaturaSection() {
             type="button"
             onClick={handlePortal}
             disabled={portalLoading}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {portalLoading && <SpinnerIcon className="h-4 w-4" />}
             {portalLoading ? "Redirecionando..." : "Gerenciar assinatura"}

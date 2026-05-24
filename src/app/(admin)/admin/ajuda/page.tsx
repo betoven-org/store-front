@@ -33,7 +33,7 @@ export default function AjudaPage() {
     <AdminShell title="Ajuda">
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-[#0d61ac]" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
         </div>
       ) : guides.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-8 text-center">
@@ -52,7 +52,7 @@ export default function AjudaPage() {
                       onClick={() => setActiveSlug(guide.slug)}
                       className={`w-full rounded-md px-3 py-2 text-left text-sm font-medium transition-colors ${
                         activeSlug === guide.slug
-                          ? "bg-[#0d61ac]/5 text-[#0d61ac]"
+                          ? "bg-primary/5 text-primary"
                           : "text-muted-foreground hover:bg-background hover:text-foreground"
                       }`}
                     >
@@ -75,7 +75,7 @@ export default function AjudaPage() {
                   prose-p:text-muted-foreground prose-p:leading-relaxed
                   prose-li:text-muted-foreground
                   prose-strong:text-foreground
-                  prose-a:text-[#0d61ac] prose-a:no-underline hover:prose-a:underline
+                  prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                   prose-table:text-sm prose-th:bg-background prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-foreground
                   prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-border
                   prose-hr:border-border"

@@ -29,7 +29,7 @@ type Page = {
 function Spinner() {
   return (
     <svg
-      className="h-8 w-8 animate-spin text-[#0d61ac]"
+      className="h-8 w-8 animate-spin text-primary"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -180,7 +180,7 @@ export default function PaginasPage() {
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground shadow transition-colors hover:bg-background"
             >
               staging
-              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#0d61ac] px-1 text-[10px] font-bold text-white leading-none">
+              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white leading-none">
                 {pendingCount}
               </span>
             </a>
@@ -188,7 +188,7 @@ export default function PaginasPage() {
           <button
             type="button"
             onClick={() => { setShowCreate(true); form.reset(); }}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c]"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 5v14" />
@@ -215,7 +215,7 @@ export default function PaginasPage() {
                     onChange: (e) => handleTitleChange(e.target.value),
                   })}
                   placeholder="Ex: Sobre nos"
-                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                   autoFocus
                 />
                 {form.formState.errors.title && (
@@ -228,7 +228,7 @@ export default function PaginasPage() {
                   type="text"
                   {...form.register("slug")}
                   placeholder="sobre-nos"
-                  className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">URL: /{form.watch("slug") || "..."}</p>
                 {form.formState.errors.slug && (
@@ -248,7 +248,7 @@ export default function PaginasPage() {
               <button
                 type="submit"
                 disabled={form.formState.isSubmitting}
-                className="rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {form.formState.isSubmitting ? "Criando..." : "Criar pagina"}
               </button>

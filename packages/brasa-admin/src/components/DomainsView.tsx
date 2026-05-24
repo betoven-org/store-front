@@ -105,7 +105,7 @@ export default function DomainsView() {
           placeholder="meusite.com.br"
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           style={{
-            flex: 1, padding: "10px 14px", border: "1px solid #d1d5db", borderRadius: 6,
+            flex: 1, padding: "10px 14px", border: "1px solid var(--border)", borderRadius: 6,
             fontSize: 14, fontFamily: "monospace",
           }}
         />
@@ -113,7 +113,7 @@ export default function DomainsView() {
           onClick={handleAdd}
           disabled={adding || !newDomain.trim()}
           style={{
-            background: "#0d61ac", color: "#fff", border: "none", borderRadius: 6,
+            background: "var(--primary)", color: "var(--card)", border: "none", borderRadius: 6,
             padding: "10px 20px", fontSize: 14, fontWeight: 500, cursor: "pointer",
             opacity: adding ? 0.6 : 1, whiteSpace: "nowrap",
           }}
@@ -133,7 +133,7 @@ export default function DomainsView() {
           {domains.map((d) => (
             <div key={d.name} style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "16px 20px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fff",
+              padding: "16px 20px", border: "1px solid #e5e7eb", borderRadius: 8, background: "var(--card)",
             }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -170,8 +170,8 @@ export default function DomainsView() {
         <p style={{ fontSize: 13, fontWeight: 600, color: "#374151", margin: "0 0 8px" }}>Como configurar</p>
         <ol style={{ fontSize: 12, color: "#6b7280", margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
           <li>Adicione o dominio acima</li>
-          <li>No painel DNS do seu provedor, crie um registro CNAME apontando para <code style={{ background: "#fff", padding: "1px 4px", borderRadius: 2 }}>cname.vercel-dns.com</code></li>
-          <li>Para dominio raiz (sem www), use um registro A apontando para <code style={{ background: "#fff", padding: "1px 4px", borderRadius: 2 }}>76.76.21.21</code></li>
+          <li>No painel DNS do seu provedor, crie um registro CNAME apontando para <code style={{ background: "var(--card)", padding: "1px 4px", borderRadius: 2 }}>cname.vercel-dns.com</code></li>
+          <li>Para dominio raiz (sem www), use um registro A apontando para <code style={{ background: "var(--card)", padding: "1px 4px", borderRadius: 2 }}>76.76.21.21</code></li>
           <li>Aguarde a propagacao do DNS (ate 48h, geralmente minutos)</li>
         </ol>
       </div>

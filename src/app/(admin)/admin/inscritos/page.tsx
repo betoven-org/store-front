@@ -109,7 +109,7 @@ export default function InscritosPage() {
           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             item.active
               ? "bg-green-100 text-green-700 hover:bg-green-200"
-              : "bg-accent text-muted-foreground hover:bg-gray-200"
+              : "bg-accent text-muted-foreground hover:bg-accent"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           {togglingId === item.id ? (
@@ -136,7 +136,7 @@ export default function InscritosPage() {
           ) : (
             <span
               className={`inline-block h-2 w-2 rounded-full ${
-                item.active ? "bg-green-500" : "bg-gray-400"
+                item.active ? "bg-green-500" : "bg-muted-foreground"
               }`}
               aria-hidden="true"
             />
@@ -162,7 +162,7 @@ export default function InscritosPage() {
             Gerencie os inscritos da newsletter.
           </p>
           {!loading && (
-            <span className="inline-flex items-center rounded-full bg-[#0d61ac]/10 px-2.5 py-0.5 text-xs font-medium text-[#0d61ac]">
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
               {totalDocs} total
             </span>
           )}
@@ -182,7 +182,7 @@ export default function InscritosPage() {
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar por nome ou email..."
-            className="w-full rounded-md border border-border bg-card py-2 pl-10 pr-4 text-sm text-foreground placeholder-gray-400 shadow transition-colors focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20 sm:w-72"
+            className="w-full rounded-md border border-border bg-card py-2 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground shadow transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 sm:w-72"
           />
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function InscritosPage() {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <svg
-            className="h-8 w-8 animate-spin text-[#0d61ac]"
+            className="h-8 w-8 animate-spin text-primary"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

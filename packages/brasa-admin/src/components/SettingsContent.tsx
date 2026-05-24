@@ -345,7 +345,7 @@ export function SettingsContent({
             />
             {settings.privacyPolicy && (
               <details className="mt-3">
-                <summary className="cursor-pointer text-xs font-medium text-[#0d61ac] hover:underline">
+                <summary className="cursor-pointer text-xs font-medium text-primary hover:underline">
                   Preview do conteudo
                 </summary>
                 <div
@@ -406,7 +406,7 @@ export function SettingsContent({
               onChange={onSettingsChange}
               rows={12}
               placeholder={"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\n\nSitemap: https://seusite.com/sitemap.xml"}
-              className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+              className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
             <p className="text-xs text-muted-foreground">
               Use o formato padrao de robots.txt. O Sitemap sera adicionado automaticamente se nao estiver presente.
@@ -476,7 +476,7 @@ export function SettingsContent({
                   !settings.supabaseUrl ||
                   !settings.supabaseServiceRoleKey
                 }
-                className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {syncing ? <SvgSpinner /> : <SvgSync />}
                 {syncing ? "Sincronizando..." : "Sincronizar agora"}
@@ -494,16 +494,16 @@ export function SettingsContent({
             </div>
 
             {syncing && (
-              <div className="mt-4 rounded-md border border-[#0d61ac]/20 bg-[#0d61ac]/5 p-4">
+              <div className="mt-4 rounded-md border border-primary/20 bg-primary/5 p-4">
                 <div className="mb-2 flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">{syncLabel}</span>
-                  <span className="text-xs font-semibold text-[#0d61ac]">
+                  <span className="text-xs font-semibold text-primary">
                     {syncProgress}%
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                <div className="h-2 overflow-hidden rounded-full bg-accent">
                   <div
-                    className="h-full rounded-full bg-[#0d61ac] transition-all duration-300"
+                    className="h-full rounded-full bg-primary transition-all duration-300"
                     style={{ width: `${syncProgress}%` }}
                   />
                 </div>

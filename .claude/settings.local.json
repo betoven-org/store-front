@@ -129,7 +129,11 @@
       "Bash(gh run:*)",
       "Bash(source /Users/wesleymoraesserafim/blog-medicinal/.env.local)",
       "WebFetch(domain:www.uol.com.br)",
-      "Bash(psql \"$DATABASE_URI\" -c \":*)"
+      "Bash(psql \"$DATABASE_URI\" -c \":*)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:api.anthropic.com)"
     ]
   }
 }

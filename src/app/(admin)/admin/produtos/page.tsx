@@ -262,14 +262,14 @@ export default function ProductsListPage() {
             onClick={() => setShowFilters((p) => !p)}
             className={`flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm shadow transition-colors ${
               showFilters || activeFilterCount > 0
-                ? "border-[#0d61ac] bg-[#0d61ac]/5 text-[#0d61ac]"
+                ? "border-primary bg-primary/5 text-primary"
                 : "bg-card text-muted-foreground hover:bg-muted"
             }`}
           >
             <SlidersHorizontal className="size-4" aria-hidden="true" />
             Filtros
             {activeFilterCount > 0 && (
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#0d61ac] text-xs font-medium text-white">
+              <span className="flex size-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-white">
                 {activeFilterCount}
               </span>
             )}
@@ -291,7 +291,7 @@ export default function ProductsListPage() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="text-xs text-[#0d61ac] hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 Limpar todos
               </button>
@@ -304,7 +304,7 @@ export default function ProductsListPage() {
               <select
                 value={currentStatus}
                 onChange={(e) => updateParams({ status: e.target.value })}
-                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
               >
                 <option value="">Todos</option>
                 <option value="draft">Rascunho</option>
@@ -318,7 +318,7 @@ export default function ProductsListPage() {
               <select
                 value={currentCategory}
                 onChange={(e) => updateParams({ category: e.target.value })}
-                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
               >
                 <option value="">Todas</option>
                 {categories.map((cat) => (
@@ -333,7 +333,7 @@ export default function ProductsListPage() {
               <select
                 value={currentFeatured}
                 onChange={(e) => updateParams({ featured: e.target.value })}
-                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
               >
                 <option value="">Todos</option>
                 <option value="true">Sim</option>
@@ -347,7 +347,7 @@ export default function ProductsListPage() {
               <select
                 value={currentIsKit}
                 onChange={(e) => updateParams({ isKit: e.target.value })}
-                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
               >
                 <option value="">Todos</option>
                 <option value="true">Sim</option>
@@ -361,7 +361,7 @@ export default function ProductsListPage() {
               <select
                 value={currentShowOnSite}
                 onChange={(e) => updateParams({ showOnSite: e.target.value })}
-                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+                className="w-full rounded-md border bg-card px-2.5 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
               >
                 <option value="">Todos</option>
                 <option value="true">Sim</option>
@@ -378,7 +378,7 @@ export default function ProductsListPage() {
                   onClick={() => setShowDatePicker(showDatePicker ? null : "from")}
                   className={`flex w-full items-center gap-1.5 rounded-md border bg-card px-2.5 py-1.5 text-sm transition-colors ${
                     currentDateFrom || currentDateTo
-                      ? "border-[#0d61ac] text-[#0d61ac]"
+                      ? "border-primary text-primary"
                       : "text-muted-foreground"
                   }`}
                 >
@@ -453,7 +453,7 @@ export default function ProductsListPage() {
           <button
             type="button"
             onClick={clearAllFilters}
-            className="text-xs text-[#0d61ac] hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Limpar todos
           </button>
@@ -687,9 +687,9 @@ function formatDateShort(dateStr: string) {
 
 function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-[#0d61ac]/20 bg-[#0d61ac]/5 px-2.5 py-1 text-xs font-medium text-[#0d61ac]">
+    <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
       {label}
-      <button type="button" onClick={onRemove} className="ml-0.5 hover:text-[#0d61ac]/70" aria-label={`Remover filtro ${label}`}>
+      <button type="button" onClick={onRemove} className="ml-0.5 hover:text-primary/70" aria-label={`Remover filtro ${label}`}>
         <X className="size-3" aria-hidden="true" />
       </button>
     </span>
@@ -826,15 +826,15 @@ function DatePickerDropdown({
               onClick={() => selectDay(day)}
               className={`relative mx-auto flex size-8 items-center justify-center rounded-full text-sm transition-colors ${
                 selected
-                  ? "bg-[#0d61ac] font-medium text-white"
+                  ? "bg-primary font-medium text-white"
                   : inRange
-                  ? "bg-[#0d61ac]/10 text-[#0d61ac]"
+                  ? "bg-primary/10 text-primary"
                   : "text-foreground hover:bg-accent"
               }`}
             >
               {day}
               {todayMark && !selected && (
-                <span className="absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-[#0d61ac]" />
+                <span className="absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary" />
               )}
             </button>
           );
@@ -853,7 +853,7 @@ function DatePickerDropdown({
         <button
           type="button"
           onClick={() => onApply(localFrom, localTo)}
-          className="rounded-md bg-[#0d61ac] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0d61ac]/90"
+          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90"
         >
           Aplicar
         </button>

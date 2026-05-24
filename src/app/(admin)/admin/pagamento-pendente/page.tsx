@@ -28,7 +28,7 @@ function LogoIcon() {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#0d61ac"
+      stroke="var(--primary)"
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -103,7 +103,7 @@ export default function PagamentoPendentePage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-8 flex items-center gap-3">
         <LogoIcon />
-        <span className="text-2xl font-bold text-[#0d61ac]">
+        <span className="text-2xl font-bold text-primary">
           Medicinal na Web
         </span>
       </div>
@@ -130,7 +130,7 @@ export default function PagamentoPendentePage() {
           type="button"
           onClick={handleCheckout}
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0d61ac] px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-[#0a4f8c] focus:outline-none focus:ring-2 focus:ring-[#0d61ac] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading && <SpinnerIcon />}
           {loading ? "Redirecionando..." : "Regularizar pagamento"}
@@ -144,7 +144,7 @@ export default function PagamentoPendentePage() {
           Precisa de ajuda? Entre em contato:{" "}
           <a
             href="mailto:contato@medicinalweb.com"
-            className="text-[#0d61ac] underline hover:text-[#0a4f8c]"
+            className="text-primary underline hover:text-[#0a4f8c]"
           >
             contato@medicinalweb.com
           </a>

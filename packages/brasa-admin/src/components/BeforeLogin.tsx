@@ -21,7 +21,7 @@ export default function BeforeLogin() {
         }}
       >
         Painel administrativo do{" "}
-        <strong style={{ color: "#0d61ac" }}>Medicinal na Web</strong>.
+        <strong style={{ color: "var(--primary)" }}>Medicinal na Web</strong>.
         <br />
         Acesse com suas credenciais para gerenciar o conteudo.
       </p>

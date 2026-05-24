@@ -87,7 +87,7 @@ function RankedList({ title, items, max = 8 }: { title: string; items: RankedIte
             </span>
           </div>
           <div style={{ height: 3, borderRadius: 2, background: "#e5e7eb", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(item.value / highest) * 100}%`, background: "#0d61ac", borderRadius: 2, transition: "width 0.3s" }} />
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(item.value / highest) * 100}%`, background: "var(--primary)", borderRadius: 2, transition: "width 0.3s" }} />
           </div>
         </div>
       ))}
@@ -106,7 +106,7 @@ function MiniChart({ data }: { data: TimeseriesPoint[] }) {
           <div
             key={i}
             title={`${d.key?.split("T")[0] ?? ""}: ${d.total} views`}
-            style={{ flex: 1, minWidth: 0, background: "#0d61ac", borderRadius: "2px 2px 0 0", height: `${Math.max((d.total / max) * 100, 2)}%`, opacity: 0.75, transition: "height 0.3s" }}
+            style={{ flex: 1, minWidth: 0, background: "var(--primary)", borderRadius: "2px 2px 0 0", height: `${Math.max((d.total / max) * 100, 2)}%`, opacity: 0.75, transition: "height 0.3s" }}
           />
         ))}
       </div>
@@ -211,7 +211,7 @@ export default function Dashboard() {
                   key={c.label}
                   href={c.href}
                   style={{ ...card, display: "block", textDecoration: "none", transition: "border-color 0.15s, background 0.15s" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.background = "#fff"; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--card)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#f3f4f6"; e.currentTarget.style.background = "#f9fafb"; }}
                 >
                   <div style={metricLabel}>{c.label}</div>
@@ -238,9 +238,9 @@ export default function Dashboard() {
                 fontWeight: 500,
                 borderRadius: 5,
                 border: "1px solid",
-                borderColor: days === p.days ? "#0d61ac" : "#d1d5db",
-                background: days === p.days ? "#0d61ac" : "transparent",
-                color: days === p.days ? "#fff" : "#374151",
+                borderColor: days === p.days ? "var(--primary)" : "var(--border)",
+                background: days === p.days ? "var(--primary)" : "transparent",
+                color: days === p.days ? "var(--card)" : "#374151",
                 cursor: "pointer",
                 transition: "all 0.15s",
               }}

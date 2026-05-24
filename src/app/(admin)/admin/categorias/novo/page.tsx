@@ -86,7 +86,7 @@ export default function NovaCategoriaPage() {
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Criar Categoria"}
           </button>

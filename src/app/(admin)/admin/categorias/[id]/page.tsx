@@ -90,7 +90,7 @@ export default function EditarCategoriaPage() {
       <AdminShell title="Editar Categoria">
         <div className="flex items-center justify-center py-12">
           <svg
-            className="h-8 w-8 animate-spin text-[#0d61ac]"
+            className="h-8 w-8 animate-spin text-primary"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -174,7 +174,7 @@ export default function EditarCategoriaPage() {
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar Alteracoes"}
           </button>

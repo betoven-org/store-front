@@ -173,7 +173,7 @@ export default function AnalyticsPage() {
               onClick={() => setPeriod(opt.days)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 period === opt.days
-                  ? "bg-card text-[#0d61ac] shadow"
+                  ? "bg-card text-primary shadow"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -194,7 +194,7 @@ export default function AnalyticsPage() {
           <button
             type="button"
             onClick={() => fetchMetrics(period)}
-            className="mt-3 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white hover:bg-[#0b5499]"
+            className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#0b5499]"
           >
             Tentar novamente
           </button>
@@ -272,10 +272,10 @@ export default function AnalyticsPage() {
                       title={`${point.date}: ${point.requests} requests`}
                     >
                       <div
-                        className="w-full rounded-t bg-[#0d61ac]/70 transition-colors group-hover:bg-[#0d61ac]"
+                        className="w-full rounded-t bg-primary/70 transition-colors group-hover:bg-primary"
                         style={{ height: `${Math.max(pct, 2)}%` }}
                       />
-                      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white shadow group-hover:block">
+                      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-xs text-white shadow group-hover:block">
                         <span className="font-medium">
                           {point.requests.toLocaleString("pt-BR")} req
                         </span>
@@ -329,10 +329,10 @@ export default function AnalyticsPage() {
                         const maxCount = data.topPaths[0]?.count || 1;
                         const pct = (item.count / maxCount) * 100;
                         return (
-                          <tr key={i} className="relative border-b border-gray-50">
+                          <tr key={i} className="relative border-b border-border">
                             <td className="relative py-2 pr-2">
                               <div
-                                className="absolute inset-y-0 left-0 rounded bg-[#0d61ac]/5"
+                                className="absolute inset-y-0 left-0 rounded bg-primary/5"
                                 style={{ width: `${pct}%` }}
                               />
                               <span className="relative truncate text-foreground" title={item.path}>
@@ -371,7 +371,7 @@ export default function AnalyticsPage() {
                     return (
                       <li key={i} className="relative">
                         <div
-                          className="absolute inset-y-0 left-0 rounded bg-[#0d61ac]/5"
+                          className="absolute inset-y-0 left-0 rounded bg-primary/5"
                           style={{ width: `${pct}%` }}
                         />
                         <div className="relative flex items-center justify-between px-2 py-1.5">

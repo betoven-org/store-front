@@ -113,7 +113,7 @@ export default function DataTable<T extends { id: number; status?: string }>({
                         {editUrl && (
                           <Link
                             href={editUrl(item)}
-                            className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-[#0d61ac] transition-colors hover:bg-blue-50"
+                            className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-blue-50"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

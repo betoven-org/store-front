@@ -218,8 +218,8 @@ export default function MidiasPage() {
         onDragLeave={handleDragLeave}
         className={`mb-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-colors ${
           dragging
-            ? "border-[#0d61ac] bg-blue-50/50"
-            : "border-border bg-background hover:border-[#0d61ac] hover:bg-blue-50/20"
+            ? "border-primary bg-blue-50/50"
+            : "border-border bg-background hover:border-primary hover:bg-blue-50/20"
         }`}
       >
         {uploading ? (
@@ -295,7 +295,7 @@ export default function MidiasPage() {
                   key={item.id}
                   className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg ${
                     isSelected
-                      ? "border-[#0d61ac] ring-2 ring-[#0d61ac]/25"
+                      ? "border-primary ring-2 ring-ring/25"
                       : "border-border hover:border-border"
                   }`}
                   onClick={() => openSheet(item)}
@@ -471,7 +471,7 @@ export default function MidiasPage() {
                   <button
                     type="button"
                     onClick={() => copyUrl(sheetItem.url)}
-                    className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-gray-200 hover:text-foreground"
+                    className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     aria-label="Copiar URL"
                   >
                     {copied ? (

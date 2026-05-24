@@ -240,7 +240,7 @@ function CollapsibleGroup({
                   className={[
                     "w-full rounded-md py-1.5 px-3 pl-9 text-left text-sm transition-colors",
                     isActive
-                      ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
+                      ? "bg-primary/5 text-primary font-medium"
                       : "text-muted-foreground hover:text-foreground hover:bg-background",
                   ].join(" ")}
                   aria-current={isActive ? "true" : undefined}
@@ -323,7 +323,7 @@ function MobileDropdown({
                     className={[
                       "w-full px-6 py-2 text-left text-sm transition-colors",
                       isActive
-                        ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
+                        ? "bg-primary/5 text-primary font-medium"
                         : "text-muted-foreground hover:bg-background hover:text-foreground",
                     ].join(" ")}
                   >
@@ -350,7 +350,7 @@ function MobileDropdown({
                   className={[
                     "w-full px-3 py-2 text-left text-sm transition-colors",
                     isActive
-                      ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
+                      ? "bg-primary/5 text-primary font-medium"
                       : "text-muted-foreground hover:bg-background hover:text-foreground",
                   ].join(" ")}
                 >
@@ -393,12 +393,12 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
                 className={[
                   "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
                   isActive
-                    ? "bg-[#0d61ac]/5 text-[#0d61ac] font-medium"
+                    ? "bg-primary/5 text-primary font-medium"
                     : "font-medium text-foreground hover:bg-background",
                 ].join(" ")}
                 aria-current={isActive ? "true" : undefined}
               >
-                <span className={isActive ? "text-[#0d61ac]" : "text-muted-foreground"}>
+                <span className={isActive ? "text-primary" : "text-muted-foreground"}>
                   <IconCreditCard />
                 </span>
                 Assinatura

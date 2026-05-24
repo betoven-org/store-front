@@ -139,7 +139,7 @@ export default function DashboardPage() {
               onClick={() => setPeriod(opt.days)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 period === opt.days
-                  ? "bg-card text-[#0d61ac] shadow"
+                  ? "bg-card text-primary shadow"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -155,7 +155,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => fetchData(period)}
-            className="mt-3 rounded-md bg-[#0d61ac] px-4 py-2 text-sm font-medium text-white hover:bg-[#0b5499]"
+            className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#0b5499]"
           >
             Tentar novamente
           </button>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
             <div className="border-b border-border px-5 py-4">
               <h2 className="text-sm font-semibold text-foreground">Recent Changes</h2>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-border">
               {data.recentChanges.length > 0 ? (
                 data.recentChanges.map((item, i) => (
                   <div key={i} className="flex items-center gap-3 px-5 py-3">
@@ -290,7 +290,7 @@ export default function DashboardPage() {
             <div className="border-b border-border px-5 py-4">
               <h2 className="text-sm font-semibold text-foreground">Releases & Impact</h2>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-border">
               {data.releases.length > 0 ? (
                 data.releases.map((item, i) => {
                   const maxViews = Math.max(...data.releases.map((r) => r.views), 1);
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                   return (
                     <div key={i} className="relative px-5 py-3">
                       <div
-                        className="absolute inset-y-0 right-0 rounded-r-xl bg-[#0d61ac]/[0.03]"
+                        className="absolute inset-y-0 right-0 rounded-r-xl bg-primary/[0.03]"
                         style={{ width: `${pct}%` }}
                       />
                       <div className="relative flex items-center justify-between">

@@ -121,8 +121,8 @@ export default function EnvVarsView() {
         <button
           onClick={() => setShowAdd(!showAdd)}
           style={{
-            background: "#0d61ac",
-            color: "#fff",
+            background: "var(--primary)",
+            color: "var(--card)",
             border: "none",
             borderRadius: 6,
             padding: "8px 16px",
@@ -176,7 +176,7 @@ export default function EnvVarsView() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #d1d5db",
+                border: "1px solid var(--border)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontFamily: "monospace",
@@ -194,7 +194,7 @@ export default function EnvVarsView() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #d1d5db",
+                border: "1px solid var(--border)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontFamily: "monospace",
@@ -205,8 +205,8 @@ export default function EnvVarsView() {
             onClick={handleAdd}
             disabled={saving || !newKey || !newValue}
             style={{
-              background: "#0d61ac",
-              color: "#fff",
+              background: "var(--primary)",
+              color: "var(--card)",
               border: "none",
               borderRadius: 6,
               padding: "8px 16px",
@@ -223,7 +223,7 @@ export default function EnvVarsView() {
             style={{
               background: "transparent",
               color: "#6b7280",
-              border: "1px solid #d1d5db",
+              border: "1px solid var(--border)",
               borderRadius: 6,
               padding: "8px 16px",
               fontSize: 14,
@@ -282,7 +282,7 @@ export default function EnvVarsView() {
                         style={{
                           width: "100%",
                           padding: "6px 10px",
-                          border: "1px solid #0d61ac",
+                          border: "1px solid var(--primary)",
                           borderRadius: 4,
                           fontSize: 13,
                           fontFamily: "monospace",
@@ -303,8 +303,8 @@ export default function EnvVarsView() {
                           onClick={() => handleSave(env)}
                           disabled={saving}
                           style={{
-                            background: "#0d61ac",
-                            color: "#fff",
+                            background: "var(--primary)",
+                            color: "var(--card)",
                             border: "none",
                             borderRadius: 4,
                             padding: "4px 10px",
@@ -319,7 +319,7 @@ export default function EnvVarsView() {
                           style={{
                             background: "transparent",
                             color: "#6b7280",
-                            border: "1px solid #d1d5db",
+                            border: "1px solid var(--border)",
                             borderRadius: 4,
                             padding: "4px 10px",
                             fontSize: 12,
@@ -335,8 +335,8 @@ export default function EnvVarsView() {
                           onClick={() => { setEditingId(env.id); setEditValue(env.value); }}
                           style={{
                             background: "transparent",
-                            color: "#0d61ac",
-                            border: "1px solid #d1d5db",
+                            color: "var(--primary)",
+                            border: "1px solid var(--border)",
                             borderRadius: 4,
                             padding: "4px 10px",
                             fontSize: 12,

@@ -42,7 +42,7 @@ function slugToPath(slug: string) {
 function Spinner({ small }: { small?: boolean }) {
   return (
     <svg
-      className={`${small ? "h-3.5 w-3.5" : "h-8 w-8"} animate-spin text-[#0d61ac]`}
+      className={`${small ? "h-3.5 w-3.5" : "h-8 w-8"} animate-spin text-primary`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -622,7 +622,7 @@ export default function EditPagePage({
       >
         <span>staging</span>
         {hasDraft && (
-          <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#0d61ac] px-1 text-[10px] font-bold text-white leading-none">
+          <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white leading-none">
             {draftCount}
           </span>
         )}
@@ -633,7 +633,7 @@ export default function EditPagePage({
         type="button"
         onClick={handlePublish}
         disabled={isBusy || !hasDraft}
-        className="rounded-md border border-[#0d61ac] bg-card px-4 py-1.5 text-xs font-semibold text-[#0d61ac] shadow transition-colors hover:bg-[#0d61ac]/5 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-md border border-primary bg-card px-4 py-1.5 text-xs font-semibold text-primary shadow transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {publishing ? "Publicando..." : "Publicar"}
       </button>
@@ -676,7 +676,7 @@ export default function EditPagePage({
             <div className="flex-1 relative bg-accent flex flex-col min-h-0">
               <div className="flex items-center gap-1.5 border-b border-border bg-background px-3 py-1.5">
                 {/* Device switcher */}
-                <div className="flex gap-0.5 rounded-md bg-gray-200/60 p-0.5">
+                <div className="flex gap-0.5 rounded-md bg-accent p-0.5">
                   <button
                     type="button"
                     onClick={() => setPreviewDevice("desktop")}
@@ -721,8 +721,8 @@ export default function EditPagePage({
                   aria-pressed={inlineEdit}
                   className={`rounded p-1 transition-colors ${
                     inlineEdit
-                      ? "bg-[#0d61ac] text-white"
-                      : "text-muted-foreground hover:bg-gray-200 hover:text-muted-foreground"
+                      ? "bg-primary text-white"
+                      : "text-muted-foreground hover:bg-accent hover:text-muted-foreground"
                   }`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -737,7 +737,7 @@ export default function EditPagePage({
                 <button
                   type="button"
                   onClick={() => { if (iframeRef.current) iframeRef.current.src = previewUrl; }}
-                  className="rounded p-1 text-muted-foreground hover:bg-gray-200 hover:text-muted-foreground transition-colors"
+                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground transition-colors"
                   title="Recarregar"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -832,7 +832,7 @@ export default function EditPagePage({
                   {getChanges(page).map((change) => (
                     <div key={change.field} className="rounded-lg border border-border overflow-hidden">
                       <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-2">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#0d61ac]" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true">
                           <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                           <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84.84-2.872a2 2 0 0 1 .506-.854z" />
                         </svg>
@@ -911,7 +911,7 @@ export default function EditPagePage({
                     type="button"
                     onClick={handlePublish}
                     disabled={isBusy}
-                    className="mt-2 w-full rounded-md bg-[#0d61ac] px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="mt-2 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {publishing ? "Publicando..." : `Publicar ${draftCount} alterac${draftCount !== 1 ? "oes" : "ao"}`}
                   </button>
@@ -945,7 +945,7 @@ export default function EditPagePage({
                 className={[
                   "relative flex h-9 w-9 items-center justify-center rounded-md transition-all duration-150",
                   isActive
-                    ? "bg-[#0d61ac]/5 text-[#0d61ac]"
+                    ? "bg-primary/5 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-muted-foreground",
                 ].join(" ")}
                 aria-label={col.label}
@@ -953,7 +953,7 @@ export default function EditPagePage({
               >
                 {col.icon}
                 {showBadge && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0d61ac] px-0.5 text-[9px] font-bold text-white leading-none">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-white leading-none">
                     {draftCount}
                   </span>
                 )}

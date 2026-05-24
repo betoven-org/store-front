@@ -95,7 +95,7 @@ function InlineDiff({ oldStr, newStr, isContent }: { oldStr: string; newStr: str
 
 function Spinner() {
   return (
-    <svg className="h-8 w-8 animate-spin text-[#0d61ac]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="h-8 w-8 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
@@ -331,7 +331,7 @@ export default function PublicarPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder={`Publicar ${selected.size} alterac${selected.size !== 1 ? "oes" : "ao"} em producao`}
               rows={4}
-              className="mt-3 w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-[#0d61ac] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/20"
+              className="mt-3 w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
           </div>
 
@@ -347,7 +347,7 @@ export default function PublicarPage() {
                   type="button"
                   onClick={handlePublish}
                   disabled={publishing || discarding || selected.size === 0}
-                  className="w-full rounded-md bg-[#0d61ac] px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-[#0a4f8c] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {publishing ? "Publicando..." : "Publicar agora"}
                 </button>
@@ -375,7 +375,7 @@ export default function PublicarPage() {
                 type="checkbox"
                 checked={selected.size === pages.length}
                 onChange={toggleAll}
-                className="h-4 w-4 rounded border-border text-[#0d61ac] focus:ring-[#0d61ac]/30"
+                className="h-4 w-4 rounded border-border text-primary focus:ring-ring/30"
                 aria-label="Selecionar todos"
               />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Alteracao</span>
@@ -401,7 +401,7 @@ export default function PublicarPage() {
                         checked={isSelected}
                         onChange={(e) => { e.stopPropagation(); toggleSelect(page.id); }}
                         onClick={(e) => e.stopPropagation()}
-                        className="h-4 w-4 rounded border-border text-[#0d61ac] focus:ring-[#0d61ac]/30"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-ring/30"
                         aria-label={`Selecionar ${page.title}`}
                       />
 
@@ -423,7 +423,7 @@ export default function PublicarPage() {
                       </button>
 
                       {/* Status dot */}
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#0d61ac]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-primary" />
 
                       {/* Page info */}
                       <div className="flex flex-1 items-center gap-2 min-w-0">
@@ -486,7 +486,7 @@ export default function PublicarPage() {
                           {changes.map((change) => (
                             <div key={change.field} className="rounded-lg border border-border bg-card overflow-hidden">
                               <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-1.5">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#0d61ac]" aria-hidden="true">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true">
                                   <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                   <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84.84-2.872a2 2 0 0 1 .506-.854z" />
                                 </svg>

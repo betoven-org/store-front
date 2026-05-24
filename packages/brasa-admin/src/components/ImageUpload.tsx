@@ -120,7 +120,7 @@ export default function ImageUpload({ value, onChange, previewUrl }: Props) {
         <button
           type="button"
           onClick={() => setLibraryOpen(true)}
-          className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input px-4 py-8 text-xs font-medium text-muted-foreground transition-colors hover:border-[#0d61ac] hover:text-[#0d61ac] hover:bg-[#0d61ac]/5"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input px-4 py-8 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary hover:bg-primary/5"
           aria-label="Abrir biblioteca de midias"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

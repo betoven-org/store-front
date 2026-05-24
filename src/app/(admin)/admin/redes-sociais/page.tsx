@@ -23,7 +23,7 @@ export default function RedesSociaisPage() {
       <AdminShell title="Redes Sociais">
         <div className="flex items-center justify-center py-12">
           <svg
-            className="h-8 w-8 animate-spin text-[#0d61ac]"
+            className="h-8 w-8 animate-spin text-primary"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -79,7 +79,7 @@ export default function RedesSociaisPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-md bg-[#0d61ac] px-5 py-2.5 text-sm font-medium text-white shadow transition-colors hover:bg-[#0a4f8c] focus:outline-none focus:ring-2 focus:ring-[#0d61ac]/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (
               <svg

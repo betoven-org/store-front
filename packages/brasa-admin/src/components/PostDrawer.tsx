@@ -231,7 +231,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
                     <button
                       type="button"
                       onClick={() => setUseHtmlEditor(!useHtmlEditor)}
-                      className="text-xs text-[#0d61ac] hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       {useHtmlEditor ? "Usar editor visual" : "Editar Markdown"}
                     </button>

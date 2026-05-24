@@ -129,7 +129,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           </svg>
         </ToolbarButton>
 
-        <div className="mx-1 w-px bg-gray-300" aria-hidden="true" />
+        <div className="mx-1 w-px bg-border" aria-hidden="true" />
 
         {/* H2 */}
         <ToolbarButton
@@ -175,7 +175,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           </svg>
         </ToolbarButton>
 
-        <div className="mx-1 w-px bg-gray-300" aria-hidden="true" />
+        <div className="mx-1 w-px bg-border" aria-hidden="true" />
 
         {/* Bullet List */}
         <ToolbarButton
@@ -209,7 +209,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           </svg>
         </ToolbarButton>
 
-        <div className="mx-1 w-px bg-gray-300" aria-hidden="true" />
+        <div className="mx-1 w-px bg-border" aria-hidden="true" />
 
         {/* Blockquote */}
         <ToolbarButton
@@ -235,7 +235,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           </svg>
         </ToolbarButton>
 
-        <div className="mx-1 w-px bg-gray-300" aria-hidden="true" />
+        <div className="mx-1 w-px bg-border" aria-hidden="true" />
 
         {/* Horizontal Rule */}
         <ToolbarButton
@@ -271,7 +271,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           </svg>
         </ToolbarButton>
 
-        <div className="mx-1 w-px bg-gray-300" aria-hidden="true" />
+        <div className="mx-1 w-px bg-border" aria-hidden="true" />
 
         {/* Undo */}
         <ToolbarButton
