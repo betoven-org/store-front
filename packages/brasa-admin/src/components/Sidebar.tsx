@@ -44,8 +44,6 @@ const navGroups: NavGroup[] = [
     label: "Storefront",
     items: [
       { href: "/admin/paginas", label: "Paginas", icon: <Layout className="size-[15px]" /> },
-      { href: "/admin/footer", label: "Footer", icon: <PanelBottom className="size-[15px]" /> },
-      { href: "/admin/newsletter", label: "Newsletter", icon: <Mail className="size-[15px]" /> },
     ],
   },
   {

@@ -642,6 +642,33 @@
           ]
         }
       }
+    },
+    {
+      "key": "Footer",
+      "title": "Footer",
+      "description": "Rodape global com newsletter, redes sociais e copyright. Dados vem do Settings.",
+      "group": "Global",
+      "path": "sections/Footer",
+      "props": {
+        "showNewsletter": {
+          "type": "boolean",
+          "title": "Mostrar newsletter",
+          "required": false,
+          "default": true
+        },
+        "showSocial": {
+          "type": "boolean",
+          "title": "Mostrar redes sociais",
+          "required": false,
+          "default": true
+        },
+        "showPrivacy": {
+          "type": "boolean",
+          "title": "Mostrar politica de privacidade",
+          "required": false,
+          "default": true
+        }
+      }
     }
   ]
 }
