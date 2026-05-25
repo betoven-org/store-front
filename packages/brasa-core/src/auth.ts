@@ -75,6 +75,3 @@ export async function auth(): Promise<AuthSession> {
     return null;
   }
 }
-
-// Re-export neonAuth for handler and middleware
-export { neonAuth };
