@@ -106,11 +106,22 @@ function RowMenu({ pageId, slug }: { pageId: number; slug: string }) {
   );
 }
 
+type PageTemplateItem = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  sectionsCount: number;
+};
+
 export default function PaginasPage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [templates, setTemplates] = useState<PageTemplateItem[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("blank");
   const router = useRouter();
 
   const form = useForm<CreatePageForm>({
@@ -129,6 +140,15 @@ export default function PaginasPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (showTemplatePicker && templates.length === 0) {
+      fetch("/api/admin/page-templates")
+        .then((res) => res.json())
+        .then((data) => setTemplates(data.templates ?? []))
+        .catch(() => {});
+    }
+  }, [showTemplatePicker, templates.length]);
+
   function handleTitleChange(val: string) {
     form.setValue("title", val);
     form.setValue("slug", val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
@@ -139,7 +159,11 @@ export default function PaginasPage() {
       const res = await fetch("/api/admin/pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: data.title.trim(), slug: data.slug.trim() }),
+        body: JSON.stringify({
+          title: data.title.trim(),
+          slug: data.slug.trim(),
+          templateId: selectedTemplate,
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -187,7 +211,7 @@ export default function PaginasPage() {
           )}
           <button
             type="button"
-            onClick={() => { setShowCreate(true); form.reset(); }}
+            onClick={() => { setShowTemplatePicker(true); setSelectedTemplate("blank"); }}
             className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -198,6 +222,53 @@ export default function PaginasPage() {
           </button>
         </div>
       </div>
+
+      {/* Modal template picker */}
+      {showTemplatePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-2xl rounded-lg border border-border bg-card p-6 shadow-xl">
+            <h2 className="text-base font-semibold text-foreground">Escolha um template</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Selecione um modelo para comecar sua nova pagina.</p>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {templates.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => setSelectedTemplate(tpl.id)}
+                  className={`flex flex-col items-start rounded-lg border p-3 text-left transition-all hover:border-primary/50 hover:bg-accent ${
+                    selectedTemplate === tpl.id
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : "border-border bg-card"
+                  }`}
+                >
+                  <span className="text-2xl leading-none">{tpl.icon}</span>
+                  <span className="mt-2 text-sm font-medium text-foreground">{tpl.name}</span>
+                  <span className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{tpl.description}</span>
+                  <span className="mt-1.5 text-[10px] text-muted-foreground">{tpl.sectionsCount} sections</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowTemplatePicker(false)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-card text-foreground text-[13px] font-medium h-8 px-3 transition-all hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowTemplatePicker(false); setShowCreate(true); form.reset(); }}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal criar pagina */}
       {showCreate && (

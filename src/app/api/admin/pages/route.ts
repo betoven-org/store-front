@@ -5,6 +5,7 @@ import { pages } from "@brasa/core/schema";
 import { asc, eq } from "drizzle-orm";
 import { parseBody, createPageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
+import { getTemplateById } from "@/lib/page-templates";
 
 export async function GET() {
   const session = await auth();
@@ -39,11 +40,24 @@ export async function POST(request: NextRequest) {
 
     const normalized = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
+    // Resolve sections from template or direct body
+    let initialSections: unknown[] | null = null;
+    if (body.templateId && typeof body.templateId === "string") {
+      const template = getTemplateById(body.templateId);
+      if (template) {
+        initialSections = template.sections;
+      }
+    } else if (Array.isArray(body.sections)) {
+      initialSections = body.sections;
+    }
+
     const now = new Date().toISOString();
     const [created] = await db.insert(pages).values({
       title,
       slug: normalized,
       tenantId,
+      sections: initialSections,
+      draftSections: initialSections,
       createdAt: now,
       updatedAt: now,
     }).returning();
