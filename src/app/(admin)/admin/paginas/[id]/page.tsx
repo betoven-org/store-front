@@ -467,6 +467,10 @@ export default function EditPagePage({
       if (next.has(key)) {
         next.delete(key);
       } else {
+        if (next.size >= 2) {
+          const first = next.values().next().value;
+          if (first) next.delete(first);
+        }
         next.add(key);
       }
       return next;

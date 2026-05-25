@@ -135,15 +135,17 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
       {/* Dev environment + Changes indicator */}
       <div className="flex items-center gap-1.5">
         <DevEnvButton />
-        {draftCount > 0 && (
-          <Link
-            href="/admin/publicar"
-            className="inline-flex items-center gap-1.5 rounded-md border border-warning bg-warning-bg px-2.5 h-7 text-[11px] font-medium text-warning hover:bg-warning/10 transition-colors"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
-            {draftCount} alterac{draftCount !== 1 ? "oes" : "ao"}
-          </Link>
-        )}
+        <Link
+          href="/admin/publicar"
+          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 h-7 text-[11px] font-medium transition-colors ${
+            draftCount > 0
+              ? "border-warning bg-warning-bg text-warning hover:bg-warning/10"
+              : "border-border bg-card text-muted-foreground hover:bg-accent"
+          }`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${draftCount > 0 ? "bg-warning animate-pulse" : "bg-muted-foreground/30"}`} />
+          {draftCount > 0 ? `${draftCount} alterac${draftCount !== 1 ? "oes" : "ao"}` : "publicado"}
+        </Link>
       </div>
 
       {/* Quick actions */}
