@@ -1535,21 +1535,21 @@ export default function EditPagePage({
       </div>
 
       {/* ── Keyboard shortcuts hint bar ────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center gap-4 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-[11px] text-muted-foreground">
+      <div className="fixed bottom-0 left-[232px] right-12 z-20 flex items-center gap-4 border-t border-border bg-card/95 backdrop-blur-sm px-4 py-1.5 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">
-          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+S</kbd>
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">⌘S</kbd>
           <span>salvar</span>
         </span>
         <span className="flex items-center gap-1">
-          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+Shift+P</kbd>
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">⌘⇧P</kbd>
           <span>publicar</span>
         </span>
         <span className="flex items-center gap-1">
-          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+Z</kbd>
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">⌘Z</kbd>
           <span>desfazer</span>
         </span>
         <span className="flex items-center gap-1">
-          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+Shift+Z</kbd>
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">⌘⇧Z</kbd>
           <span>refazer</span>
         </span>
         {lastSaved && (
