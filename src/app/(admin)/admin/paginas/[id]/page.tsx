@@ -645,18 +645,25 @@ export default function EditPagePage({
   const publishButton = (
     <div className="flex items-center gap-2">
       {saving && <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Spinner small /></span>}
-      {/* Staging indicator — links to /admin/publicar */}
-      <a
-        href="/admin/publicar"
-        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow transition-colors hover:bg-background"
-      >
-        <span>staging</span>
-        {hasDraft && (
-          <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white leading-none">
-            {draftCount}
-          </span>
-        )}
-      </a>
+      {/* Changes indicator — toggles changes column */}
+      {hasDraft && (
+        <button
+          type="button"
+          onClick={() => toggleColumn("changes")}
+          className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium shadow transition-colors ${
+            openColumns.has("changes")
+              ? "border-primary bg-primary/5 text-primary"
+              : "border-warning bg-warning-bg text-warning hover:bg-warning/10"
+          }`}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {draftCount} alterac{draftCount !== 1 ? "oes" : "ao"}
+        </button>
+      )}
 
       {/* Publish button */}
       <button
@@ -949,21 +956,47 @@ export default function EditPagePage({
                   {sectionChanges.length > 0 && (
                     <div className="mt-3">
                       <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sections</p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {sectionChanges.map((sc, i) => (
-                          <div key={i} className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-                            <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
-                              sc.type === "added"
-                                ? "bg-success-bg text-success"
-                                : sc.type === "removed"
-                                  ? "bg-danger-bg text-destructive"
-                                  : "bg-warning-bg text-warning"
-                            }`}>
-                              {sc.type === "added" ? "nova" : sc.type === "removed" ? "removida" : "editada"}
-                            </span>
-                            <span className="text-xs font-medium text-foreground">{sc.component}</span>
-                            {sc.details && (
-                              <span className="text-[10px] text-muted-foreground">{sc.details}</span>
+                          <div key={i} className="rounded-lg border border-border overflow-hidden">
+                            <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-2">
+                              <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                                sc.type === "added"
+                                  ? "bg-success-bg text-success"
+                                  : sc.type === "removed"
+                                    ? "bg-danger-bg text-destructive"
+                                    : sc.type === "reordered"
+                                      ? "bg-accent text-muted-foreground"
+                                      : "bg-warning-bg text-warning"
+                              }`}>
+                                {sc.type === "added" ? "nova" : sc.type === "removed" ? "removida" : sc.type === "reordered" ? "reordenada" : "editada"}
+                              </span>
+                              <span className="text-xs font-semibold text-foreground">{sc.component}</span>
+                            </div>
+                            {sc.propDiffs && sc.propDiffs.length > 0 && (
+                              <div className="divide-y divide-border">
+                                {sc.propDiffs.map((diff) => (
+                                  <div key={diff.key} className="px-3 py-2">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{diff.key}</span>
+                                    <div className="mt-1 flex flex-col gap-1">
+                                      {sc.type !== "added" && (
+                                        <div className="flex items-start gap-1.5">
+                                          <span className="mt-0.5 shrink-0 w-3 h-3 rounded-full bg-danger-bg flex items-center justify-center">
+                                            <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" aria-hidden="true" className="text-destructive"><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                                          </span>
+                                          <span className="text-[11px] text-destructive break-words">{diff.published}</span>
+                                        </div>
+                                      )}
+                                      <div className="flex items-start gap-1.5">
+                                        <span className="mt-0.5 shrink-0 w-3 h-3 rounded-full bg-success-bg flex items-center justify-center">
+                                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" aria-hidden="true" className="text-success"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                                        </span>
+                                        <span className="text-[11px] text-success break-words">{diff.draft}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
                         ))}
@@ -1041,12 +1074,31 @@ function countChanges(page: Page): number {
   return keys.filter((k) => (draft[k] ?? "") !== (page[k] ?? "")).length;
 }
 
+type PropDiff = {
+  key: string;
+  published: string;
+  draft: string;
+};
+
 type SectionChange = {
-  type: "added" | "removed" | "modified";
+  type: "added" | "removed" | "modified" | "reordered";
   component: string;
   id: string;
   details?: string;
+  propDiffs?: PropDiff[];
+  position?: { from: number; to: number };
 };
+
+function formatPropValue(val: unknown): string {
+  if (val === null || val === undefined) return "(vazio)";
+  if (typeof val === "boolean") return val ? "sim" : "nao";
+  if (typeof val === "object") {
+    const str = JSON.stringify(val);
+    return str.length > 80 ? str.slice(0, 80) + "..." : str;
+  }
+  const str = String(val);
+  return str.length > 80 ? str.slice(0, 80) + "..." : str;
+}
 
 function getSectionChanges(page: Page, draftBlocks: SectionBlock[]): SectionChange[] {
   const published = (page.sections ?? []) as SectionBlock[];
@@ -1058,7 +1110,12 @@ function getSectionChanges(page: Page, draftBlocks: SectionBlock[]): SectionChan
   // Added
   for (const block of draftBlocks) {
     if (!pubMap.has(block.id)) {
-      changes.push({ type: "added", component: block.component, id: block.id });
+      const propDiffs = Object.entries(block.props).map(([key, val]) => ({
+        key,
+        published: "(novo)",
+        draft: formatPropValue(val),
+      }));
+      changes.push({ type: "added", component: block.component, id: block.id, propDiffs });
     }
   }
 
@@ -1076,24 +1133,33 @@ function getSectionChanges(page: Page, draftBlocks: SectionBlock[]): SectionChan
       const pubProps = JSON.stringify(pub.props);
       const draftProps = JSON.stringify(block.props);
       if (pubProps !== draftProps || pub.component !== block.component) {
-        const changedKeys = Object.keys(block.props).filter(
-          (k) => JSON.stringify(block.props[k]) !== JSON.stringify(pub.props[k])
-        );
+        const allKeys = new Set([...Object.keys(pub.props), ...Object.keys(block.props)]);
+        const propDiffs: PropDiff[] = [];
+        for (const k of allKeys) {
+          if (JSON.stringify(pub.props[k]) !== JSON.stringify(block.props[k])) {
+            propDiffs.push({
+              key: k,
+              published: formatPropValue(pub.props[k]),
+              draft: formatPropValue(block.props[k]),
+            });
+          }
+        }
         changes.push({
           type: "modified",
           component: block.component,
           id: block.id,
-          details: changedKeys.length > 0 ? changedKeys.join(", ") : undefined,
+          details: propDiffs.map((d) => d.key).join(", "),
+          propDiffs,
         });
       }
     }
   }
 
-  // Order changes (check if position changed)
+  // Order changes
   if (changes.length === 0 && published.length === draftBlocks.length) {
     for (let i = 0; i < published.length; i++) {
       if (published[i].id !== draftBlocks[i]?.id) {
-        changes.push({ type: "modified", component: "Ordem", id: "reorder", details: "Sections reordenadas" });
+        changes.push({ type: "reordered", component: "Ordem", id: "reorder", details: "Sections reordenadas" });
         break;
       }
     }
