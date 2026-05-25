@@ -167,9 +167,9 @@ function PreviewFrame({
   const [scale, setScale] = useState(1);
   const config = DEVICE_CONFIGS[device];
 
-  // Update iframe src when preview URL changes (e.g. tenant loads async)
+  // Reload iframe whenever src changes (draft toggle, save, tenant load)
   useEffect(() => {
-    if (iframeRef.current && src && iframeRef.current.src !== src) {
+    if (iframeRef.current && src) {
       iframeRef.current.src = src;
     }
   }, [src, iframeRef]);
@@ -334,6 +334,7 @@ export default function EditPagePage({
   const [page, setPage] = useState<Page | null>(null);
   const [editState, setEditState] = useState<EditState | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState("");
+  const [previewKey, setPreviewKey] = useState(0);
   const [ogImagePreview, setOgImagePreview] = useState<string | null>(null);
   const [openColumns, setOpenColumns] = useState<Set<ColumnKey>>(new Set(["sections", "preview"]));
   const [contentTab, setContentTab] = useState<"code" | "preview">("code");
@@ -517,9 +518,7 @@ export default function EditPagePage({
       setPage(updated);
       setSavedSnapshot(JSON.stringify(state));
       setLastSaved(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
-      if (iframeRef.current) {
-        iframeRef.current.src = iframeRef.current.src;
-      }
+      setPreviewKey((k) => k + 1);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
@@ -540,10 +539,7 @@ export default function EditPagePage({
         setPage(updated);
       }
       setLastSaved(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
-      // Reload preview iframe
-      if (iframeRef.current) {
-        iframeRef.current.src = iframeRef.current.src;
-      }
+      setPreviewKey((k) => k + 1);
     } catch {
       toast.error("Erro ao salvar sections");
     } finally {
@@ -626,13 +622,17 @@ export default function EditPagePage({
   // - No draft + frontend URL → published page on frontend
   // - No draft + no frontend → internal preview fallback
   const hasContent = !!(page.content || page.draft);
-  const previewUrl = hasDraft
+  const previewBase = hasDraft
     ? `/api/admin/pages/${id}/preview?sections=draft`
     : frontendBase
       ? `${frontendBase}${pagePath}`
       : hasContent || hasSections
         ? `/api/admin/pages/${id}/preview`
         : "";
+  // Append previewKey to bust cache on save
+  const previewUrl = previewBase
+    ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
+    : "";
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
