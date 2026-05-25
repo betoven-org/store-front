@@ -618,17 +618,18 @@ export default function EditPagePage({
   const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
   // Preview:
-  // - Draft exists → internal preview (renders draft sections server-side)
-  // - No draft + frontend URL → published page on frontend
-  // - No draft + no frontend → internal preview fallback
+  // Preview: always show the real frontend site
+  // With draft → pass ?preview=draft&pageId=X so frontend fetches draft data
+  // Without draft → load published page normally
+  // No frontend URL → internal preview fallback
   const hasContent = !!(page.content || page.draft);
-  const previewBase = hasDraft
-    ? `/api/admin/pages/${id}/preview?sections=draft`
-    : frontendBase
-      ? `${frontendBase}${pagePath}`
-      : hasContent || hasSections
-        ? `/api/admin/pages/${id}/preview`
-        : "";
+  const previewBase = frontendBase
+    ? hasDraft
+      ? `${frontendBase}${pagePath}?preview=draft&pageId=${id}`
+      : `${frontendBase}${pagePath}`
+    : hasContent || hasSections
+      ? `/api/admin/pages/${id}/preview?sections=draft`
+      : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
     ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
