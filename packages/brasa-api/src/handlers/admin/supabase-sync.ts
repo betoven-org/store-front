@@ -7,15 +7,27 @@ import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { generateSlug } from "@brasa/core/slug";
 
-function getSbConfig() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+async function getSbConfig() {
+  let url = process.env.SUPABASE_URL;
+  let key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    // Fallback: read from first site_settings row
+    const { siteSettings } = await import("@brasa/core/schema");
+    const [settings] = await db
+      .select({ supabaseUrl: siteSettings.supabaseUrl, supabaseServiceRoleKey: siteSettings.supabaseServiceRoleKey })
+      .from(siteSettings)
+      .limit(1);
+    if (settings?.supabaseUrl) url = settings.supabaseUrl;
+    if (settings?.supabaseServiceRoleKey) key = settings.supabaseServiceRoleKey;
+  }
+
   if (!url || !key) throw new Error("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sao obrigatorios");
   return { url: `${url}/rest/v1`, key };
 }
 
 async function sbFetchAll<T>(table: string, orderCol = "created_at"): Promise<T[]> {
-  const { url, key } = getSbConfig();
+  const { url, key } = await getSbConfig();
   const all: T[] = [];
   let offset = 0;
   const limit = 1000;

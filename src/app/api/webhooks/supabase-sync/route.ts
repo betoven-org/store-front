@@ -297,13 +297,15 @@ async function handleArticleTag(
   if (!post) return;
 
   // Fetch tag name from Supabase
-  const sbUrl = process.env.SUPABASE_URL;
-  const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!sbUrl || !sbKey) return;
+  let sbConfig;
+  try {
+    const { getSbConfig } = await import("@/lib/supabase");
+    sbConfig = await getSbConfig();
+  } catch { return; }
 
   const tagId = data.tag_id as string;
-  const res = await fetch(`${sbUrl}/rest/v1/tags?id=eq.${tagId}&select=name&limit=1`, {
-    headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
+  const res = await fetch(`${sbConfig.url.replace("/rest/v1", "")}/rest/v1/tags?id=eq.${tagId}&select=name&limit=1`, {
+    headers: { apikey: sbConfig.key, Authorization: `Bearer ${sbConfig.key}` },
   });
   if (!res.ok) return;
   const tagRows = await res.json();

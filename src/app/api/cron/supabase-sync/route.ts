@@ -7,18 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@brasa/core/slug";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
-
-// ── Supabase helpers ────────────────────────────────────────────────────────────
-
-function getSbConfig() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sao obrigatorios");
-  return { url: `${url}/rest/v1`, key };
-}
+import { getSbConfig } from "@/lib/supabase";
 
 async function sbFetchUpdated<T>(table: string, since: string, orderCol = "updated_at"): Promise<T[]> {
-  const { url, key } = getSbConfig();
+  const { url, key } = await getSbConfig();
   const all: T[] = [];
   let offset = 0;
   const limit = 1000;
@@ -137,7 +129,7 @@ export async function GET(req: NextRequest) {
     // ── Articles ────────────────────────────────────────────────────────────
     if (sbArticles.length > 0) {
       // Fetch tags for changed articles
-      const { url, key } = getSbConfig();
+      const { url, key } = await getSbConfig();
       const articleIds = sbArticles.map((a) => a.id);
       const tagRes = await fetch(
         `${url}/article_tags?article_id=in.(${articleIds.join(",")})`,
