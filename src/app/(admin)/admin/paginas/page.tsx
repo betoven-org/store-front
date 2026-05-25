@@ -219,6 +219,7 @@ export default function PaginasPage() {
   }
 
   async function handleDuplicate(pageId: number) {
+    const loadingToast = toast.loading("Duplicando pagina...");
     try {
       const res = await fetch(`/api/admin/pages/${pageId}/duplicate`, { method: "POST" });
       if (!res.ok) {
@@ -226,9 +227,11 @@ export default function PaginasPage() {
         throw new Error(body.error || "Erro ao duplicar pagina");
       }
       const created = await res.json();
+      toast.dismiss(loadingToast);
       toast.success(`Pagina duplicada: "${created.title}"`);
-      setPages((prev) => [...prev, created]);
+      router.push(`/admin/paginas/${created.id}`);
     } catch (err) {
+      toast.dismiss(loadingToast);
       toast.error(err instanceof Error ? err.message : "Erro ao duplicar pagina");
     }
   }
