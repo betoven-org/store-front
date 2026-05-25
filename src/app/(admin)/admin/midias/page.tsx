@@ -276,7 +276,7 @@ export default function MidiasPage() {
     });
   };
 
-  const totalSize = data.reduce((sum, m) => sum + (m\.size ?? 0), 0);
+  const totalSize = data.reduce((sum, m) => sum + (m.size ?? 0), 0);
 
   return (
     <AdminShell title="Midias">
@@ -512,7 +512,7 @@ export default function MidiasPage() {
                     </p>
                     <div className="mt-0.5 flex items-center justify-between">
                       <span className="text-xs text-muted-foreground tabular-nums">
-                        {formatFileSize(item\.size)}
+                        {formatFileSize(item.size)}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {mimeLabel(item.mimeType)}
@@ -633,7 +633,7 @@ export default function MidiasPage() {
                         {mimeLabel(item.mimeType)}
                       </td>
                       <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
-                        {formatFileSize(item\.size)}
+                        {formatFileSize(item.size)}
                       </td>
                       <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
                         {item.width && item.height
@@ -698,6 +698,7 @@ export default function MidiasPage() {
                 />
               </div>
 
+              {/* Editable fields */}
               <div className="space-y-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">
@@ -733,6 +734,7 @@ export default function MidiasPage() {
                 </Button>
               </div>
 
+              {/* Read-only metadata */}
               <dl className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
                 {sheetItem.mimeType && (
                   <div className="flex items-center gap-2 px-3 py-2.5">
@@ -772,6 +774,7 @@ export default function MidiasPage() {
                 )}
               </dl>
 
+              {/* URL copy */}
               <div>
                 <p className="mb-1.5 text-xs font-medium text-muted-foreground">
                   URL
