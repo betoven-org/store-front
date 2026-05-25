@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AdminShell, SettingsContent, FormField, useTenant, useTenantRefetch } from "@brasa/admin";
+import { toast } from "sonner";
+import { AdminShell, FormField, ImageUpload, useTenant, useTenantRefetch } from "@brasa/admin";
 import { useSettings } from "@/hooks/useSettings";
 
 export default function IdentidadePage() {
@@ -9,8 +10,6 @@ export default function IdentidadePage() {
     settings,
     loading,
     saving,
-    error,
-    success,
     logoPreview,
     faviconPreview,
     handleChange,
@@ -23,8 +22,6 @@ export default function IdentidadePage() {
   const refetchTenant = useTenantRefetch();
   const [frontendUrl, setFrontendUrl] = useState("");
   const [tenantSaving, setTenantSaving] = useState(false);
-  const [tenantSuccess, setTenantSuccess] = useState(false);
-  const [tenantError, setTenantError] = useState<string | null>(null);
   const [tenantLoaded, setTenantLoaded] = useState(false);
 
   if (tenant && !tenantLoaded) {
@@ -32,198 +29,170 @@ export default function IdentidadePage() {
     setTenantLoaded(true);
   }
 
-  async function handleSaveTenant() {
-    setTenantSaving(true);
-    setTenantError(null);
-    setTenantSuccess(false);
-    try {
-      const res = await fetch("/api/admin/tenant-info", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ frontendUrl }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? "Erro ao salvar");
-      }
-      refetchTenant();
-      setTenantSuccess(true);
-      setTimeout(() => setTenantSuccess(false), 3000);
-    } catch (err) {
-      setTenantError(err instanceof Error ? err.message : "Erro desconhecido");
-    } finally {
-      setTenantSaving(false);
+  async function handleSaveAll() {
+    await handleSave();
+    // Also save frontend URL if changed
+    if (tenant && frontendUrl !== (tenant.frontendUrl || "")) {
+      try {
+        const res = await fetch("/api/admin/tenant-info", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ frontendUrl }),
+        });
+        if (res.ok) refetchTenant();
+      } catch {}
     }
+    toast.success("Configuracoes salvas");
   }
 
   if (loading) {
     return (
-      <AdminShell title="Identidade do Site">
-        <div className="flex items-center justify-center py-12">
-          <svg
-            className="h-8 w-8 animate-spin text-primary"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
+      <AdminShell title="Identidade">
+        <div className="flex items-center justify-center py-20">
+          <svg className="h-5 w-5 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
         </div>
       </AdminShell>
     );
   }
 
+  const saveButton = (
+    <button
+      type="button"
+      onClick={handleSaveAll}
+      disabled={saving}
+      className="inline-flex items-center gap-1.5 rounded-md bg-foreground text-background text-[12px] font-medium h-7 px-3 transition-all hover:brightness-[0.97] disabled:opacity-50"
+    >
+      {saving ? "Salvando..." : "Salvar alteracoes"}
+    </button>
+  );
+
   return (
-    <AdminShell title="Identidade do Site">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <SettingsContent
-          activeSection="identidade"
-          settings={settings}
-          logoPreview={logoPreview}
-          faviconPreview={faviconPreview}
-          onSettingsChange={handleChange}
-          onLogoChange={onLogoChange}
-          onFaviconChange={onFaviconChange}
-          syncing={false}
-          syncProgress={0}
-          syncLabel=""
-          syncResult={null}
-          syncError={null}
-          lastSyncAt={null}
-          clearing={false}
-          clearSuccess={false}
-          onSync={() => {}}
-          onClearContent={() => {}}
-          showClearConfirm={false}
-          onShowClearConfirm={() => {}}
-        />
+    <AdminShell title="Identidade" headerExtra={saveButton}>
+      <div className="mx-auto max-w-3xl space-y-6">
 
-        <div className="mt-8 flex items-center gap-4 border-t border-border pt-6">
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
-          >
-            {saving ? (
-              <svg
-                className="h-4 w-4 animate-spin"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 256 256"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M219.31,72,184,36.69A15.86,15.86,0,0,0,172.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V83.31A15.86,15.86,0,0,0,219.31,72ZM168,208H88V152h80Zm40,0H184V152a16,16,0,0,0-16-16H88a16,16,0,0,0-16,16v56H48V48H172.69L208,83.31ZM160,72a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h56A8,8,0,0,1,160,72Z" />
-              </svg>
+        {/* Brand */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-background px-5 py-3">
+            <h3 className="text-[13px] font-semibold text-foreground">Marca</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Nome e descricao que aparecem no site</p>
+          </div>
+          <div className="p-5 space-y-4">
+            <FormField
+              label="Nome do site"
+              name="siteName"
+              value={settings.siteName}
+              onChange={handleChange}
+              placeholder="Ex: Medicinal na Web"
+            />
+            <FormField
+              label="Descricao"
+              name="siteDescription"
+              type="textarea"
+              value={settings.siteDescription}
+              onChange={handleChange}
+              placeholder="Uma breve descricao do seu site..."
+            />
+          </div>
+        </section>
+
+        {/* Visual Identity — Logo + Favicon side by side */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-background px-5 py-3">
+            <h3 className="text-[13px] font-semibold text-foreground">Identidade Visual</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Logo e favicon do seu site</p>
+          </div>
+          <div className="p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Logo */}
+              <div>
+                <label className="block text-[12px] font-semibold text-foreground mb-2">Logo</label>
+                <div className="rounded-lg border border-border bg-background p-4 flex items-center justify-center min-h-[120px]">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo" className="max-h-[80px] max-w-full object-contain" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Nenhuma logo</span>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <ImageUpload
+                    value={settings.logoId}
+                    previewUrl={logoPreview}
+                    onChange={(id, url) => onLogoChange(id, url)}
+                  />
+                </div>
+              </div>
+
+              {/* Favicon */}
+              <div>
+                <label className="block text-[12px] font-semibold text-foreground mb-2">Favicon</label>
+                <div className="rounded-lg border border-border bg-background p-4 flex items-center justify-center min-h-[120px]">
+                  {faviconPreview ? (
+                    <img src={faviconPreview} alt="Favicon" className="max-h-[48px] max-w-[48px] object-contain" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Nenhum favicon</span>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <ImageUpload
+                    value={settings.faviconId}
+                    previewUrl={faviconPreview}
+                    onChange={(id, url) => onFaviconChange(id, url)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Frontend URL */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-background px-5 py-3">
+            <h3 className="text-[13px] font-semibold text-foreground">URL do Frontend</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">URL onde o site e renderizado — usada no preview e webhooks</p>
+          </div>
+          <div className="p-5">
+            <FormField
+              label="Frontend URL"
+              name="frontendUrl"
+              value={frontendUrl}
+              onChange={(e) => setFrontendUrl(e.target.value)}
+              placeholder="https://meusite.vercel.app"
+              description="Sem barra final. Ex: https://blog-medicinal.vercel.app"
+            />
+            {tenant?.frontendUrl && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[11px] text-muted-foreground">
+                  Conectado: <a href={tenant.frontendUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{tenant.frontendUrl}</a>
+                </span>
+              </div>
             )}
-            {saving ? "Salvando..." : "Salvar"}
-          </button>
+          </div>
+        </section>
 
-          {success && (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-success">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 256 256"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z" />
-              </svg>
-              Salvo com sucesso!
+        {/* SEO Preview */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-background px-5 py-3">
+            <h3 className="text-[13px] font-semibold text-foreground">Preview</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Como o site aparece no Google e redes sociais</p>
+          </div>
+          <div className="p-5">
+            {/* Google preview */}
+            <div className="rounded-md border border-border bg-background p-4">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Google</p>
+              <p className="text-[14px] font-medium text-[#1a0dab] leading-tight truncate">
+                {settings.seoTitle || settings.siteName || "Titulo do site"}
+              </p>
+              <p className="mt-0.5 text-[11px] text-emerald-700 font-mono truncate">
+                {frontendUrl || "https://meusite.com"}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
+                {settings.seoDescription || settings.siteDescription || "Descricao do site..."}
+              </p>
             </div>
-          )}
+          </div>
+        </section>
 
-          {error && (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-destructive">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 256 256"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z" />
-              </svg>
-              {error}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Frontend URL — salva no tenant */}
-      <div className="mt-6 rounded-lg border border-border bg-card p-6">
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold text-foreground">URL do Frontend</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            URL do projeto cliente onde o conteudo e renderizado. Usada no preview e nos webhooks de revalidacao.
-          </p>
-        </div>
-
-        <FormField
-          label="Frontend URL"
-          name="frontendUrl"
-          value={frontendUrl}
-          onChange={(e) => setFrontendUrl(e.target.value)}
-          placeholder="https://meusite.vercel.app"
-          description="Ex: https://blog-medicinal.vercel.app (sem barra final)"
-        />
-
-        <div className="mt-6 flex items-center gap-4 border-t border-border pt-6">
-          <button
-            type="button"
-            onClick={handleSaveTenant}
-            disabled={tenantSaving}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
-          >
-            {tenantSaving ? "Salvando..." : "Salvar URL"}
-          </button>
-
-          {tenantSuccess && (
-            <span className="text-sm font-medium text-success">Salvo!</span>
-          )}
-          {tenantError && (
-            <span className="text-sm font-medium text-destructive">{tenantError}</span>
-          )}
-        </div>
       </div>
     </AdminShell>
   );
