@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Newspaper, Tag, Users, Image, Package, Layers,
-  PanelBottom, Layout, Mail, Sparkles, Search, Share2, Bot,
+  PanelBottom, Layout, Mail, Sparkles, Search, Bot,
   BarChart3, UserCog, Database, CreditCard, HelpCircle,
   PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
   ChevronsUpDown, Trash2,
@@ -53,7 +53,6 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/identidade", label: "Identidade", icon: <Sparkles className="size-[15px]" /> },
       { href: "/admin/robots", label: "Robots", icon: <Bot className="size-[15px]" /> },
-      { href: "/admin/redes-sociais", label: "Redes sociais", icon: <Share2 className="size-[15px]" /> },
       { href: "/admin/analytics", label: "Analytics", icon: <BarChart3 className="size-[15px]" /> },
       { href: "/admin/usuarios", label: "Usuarios", icon: <UserCog className="size-[15px]" /> },
     ],

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import FormField from "./FormField";
 import ImageUpload from "./ImageUpload";
 import AssinaturaSection from "./AssinaturaSection";
@@ -152,6 +153,102 @@ function SectionHeader({
   );
 }
 
+const SOCIAL_NETWORKS = [
+  { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/sua-pagina" },
+  { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/seu-perfil" },
+  { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/@seu-canal" },
+  { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@seu-perfil" },
+  { key: "twitter", label: "X (Twitter)", placeholder: "https://x.com/seu-perfil" },
+  { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/company/sua-empresa" },
+  { key: "pinterest", label: "Pinterest", placeholder: "https://pinterest.com/seu-perfil" },
+  { key: "threads", label: "Threads", placeholder: "https://threads.net/@seu-perfil" },
+] as const;
+
+type SocialKey = (typeof SOCIAL_NETWORKS)[number]["key"];
+
+function SocialLinksEditor({
+  settings,
+  onChange,
+}: {
+  settings: Settings;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+}) {
+  // Map existing DB fields to active social links
+  const socialFields: SocialKey[] = ["facebook", "instagram", "youtube"];
+  const activeSocials = socialFields.filter((k) => settings[k as keyof Settings] !== undefined);
+
+  const [visibleNetworks, setVisibleNetworks] = useState<SocialKey[]>(() => {
+    return socialFields.filter((k) => {
+      const val = settings[k as keyof Settings];
+      return val && String(val).trim() !== "";
+    });
+  });
+
+  const availableToAdd = SOCIAL_NETWORKS.filter((n) => !visibleNetworks.includes(n.key));
+
+  function addNetwork(key: SocialKey) {
+    setVisibleNetworks((prev) => [...prev, key]);
+  }
+
+  function removeNetwork(key: SocialKey) {
+    setVisibleNetworks((prev) => prev.filter((k) => k !== key));
+    // Clear the value
+    const syntheticEvent = {
+      target: { name: key, value: "" },
+    } as React.ChangeEvent<HTMLInputElement>;
+    onChange(syntheticEvent);
+  }
+
+  return (
+    <div className="space-y-3">
+      {visibleNetworks.map((key) => {
+        const network = SOCIAL_NETWORKS.find((n) => n.key === key)!;
+        return (
+          <div key={key} className="flex items-end gap-2">
+            <div className="flex-1">
+              <FormField
+                label={network.label}
+                name={key}
+                value={(settings[key as keyof Settings] as string) ?? ""}
+                onChange={onChange}
+                placeholder={network.placeholder}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => removeNetwork(key)}
+              className="mb-0.5 flex h-[34px] w-[34px] items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-danger-bg hover:text-destructive"
+              title={`Remover ${network.label}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+              </svg>
+            </button>
+          </div>
+        );
+      })}
+
+      {availableToAdd.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {availableToAdd.map((network) => (
+            <button
+              key={network.key}
+              type="button"
+              onClick={() => addNetwork(network.key)}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14"/><path d="M12 5v14"/>
+              </svg>
+              {network.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SettingsContent({
   activeSection,
   settings,
@@ -216,6 +313,13 @@ export function SettingsContent({
               onChange={(id, url) => onFaviconChange(id, url)}
             />
           </div>
+
+          {/* Redes Sociais inline */}
+          <SectionHeader
+            title="Redes Sociais"
+            description="Links das redes sociais exibidos no site"
+          />
+          <SocialLinksEditor settings={settings} onChange={onSettingsChange} />
         </div>
       )}
 
@@ -236,35 +340,6 @@ export function SettingsContent({
         </div>
       )}
 
-      {activeSection === "redes" && (
-        <div className="space-y-6">
-          <SectionHeader
-            title="Redes Sociais"
-            description="Links das redes sociais exibidos no site"
-          />
-          <FormField
-            label="Facebook URL"
-            name="facebook"
-            value={settings.facebook}
-            onChange={onSettingsChange}
-            placeholder="https://facebook.com/sua-pagina"
-          />
-          <FormField
-            label="Instagram URL"
-            name="instagram"
-            value={settings.instagram}
-            onChange={onSettingsChange}
-            placeholder="https://instagram.com/seu-perfil"
-          />
-          <FormField
-            label="YouTube URL"
-            name="youtube"
-            value={settings.youtube}
-            onChange={onSettingsChange}
-            placeholder="https://youtube.com/@seu-canal"
-          />
-        </div>
-      )}
 
       {activeSection === "footer" && (
         <div className="space-y-6">

@@ -7,7 +7,6 @@ import { useState, useRef, useEffect } from "react";
 export type SectionKey =
   | "identidade"
   | "contato"
-  | "redes"
   | "footer"
   | "newsletter"
   | "paginas"
@@ -164,7 +163,6 @@ const groups: Group[] = [
     items: [
       { key: "identidade", label: "Identidade" },
       { key: "contato", label: "Contato" },
-      { key: "redes", label: "Redes Sociais" },
     ],
   },
   {
