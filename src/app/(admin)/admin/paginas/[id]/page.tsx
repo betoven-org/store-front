@@ -621,22 +621,13 @@ export default function EditPagePage({
   const frontendBase = tenant?.frontendUrl || "";
   const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
-  // Preview priority:
-  // 1. Draft + frontend URL + secret → frontend preview route (pixel-perfect draft)
-  // 2. Draft + no frontend → internal preview fallback
-  // 3. No draft + frontend URL → published page on client site
-  // 4. No frontend URL + has content → internal preview API
-  // 5. Nothing → empty state
+  // Preview: frontend URL → load page directly, fallback to internal preview
   const hasContent = !!(page.content || page.draft);
-  const previewUrl = hasDraft && frontendBase && previewSecret
-    ? `${frontendBase}/api/cms-preview?path=${encodeURIComponent(pagePath)}&secret=${encodeURIComponent(previewSecret)}`
-    : hasDraft
+  const previewUrl = frontendBase
+    ? `${frontendBase}${pagePath}`
+    : hasContent || hasSections
       ? `/api/admin/pages/${id}/preview?sections=draft`
-      : frontendBase
-        ? `${frontendBase}${pagePath}`
-        : hasContent || hasSections
-          ? `/api/admin/pages/${id}/preview${hasSections ? "?sections=draft" : ""}`
-          : "";
+      : "";
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
