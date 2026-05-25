@@ -8,7 +8,7 @@ import {
   PanelBottom, Layout, Mail, Sparkles, Search, Share2, Bot,
   BarChart3, UserCog, Database, CreditCard, HelpCircle,
   PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
-  ChevronsUpDown,
+  ChevronsUpDown, Trash2,
 } from "lucide-react";
 
 type NavItemDef = {
@@ -45,6 +45,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/paginas", label: "Paginas", icon: <Layout className="size-[15px]" /> },
       { href: "/admin/global-sections", label: "Sections Globais", icon: <Layers className="size-[15px]" /> },
+      { href: "/admin/lixeira", label: "Lixeira", icon: <Trash2 className="size-[15px]" /> },
     ],
   },
   {

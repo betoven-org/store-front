@@ -46,7 +46,7 @@ function slugToPath(slug: string) {
   return slug === "home" ? "/" : `/${slug}`;
 }
 
-function RowMenu({ pageId, slug }: { pageId: number; slug: string }) {
+function RowMenu({ pageId, slug, title, onDuplicate, onDeleted }: { pageId: number; slug: string; title: string; onDuplicate: (pageId: number) => void; onDeleted: (pageId: number) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -101,6 +101,46 @@ function RowMenu({ pageId, slug }: { pageId: number; slug: string }) {
             </svg>
             Ver no site
           </a>
+          <button
+            type="button"
+            onClick={() => { setOpen(false); onDuplicate(pageId); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-background"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            Duplicar
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              setOpen(false);
+              const confirmed = window.confirm(
+                `Tem certeza? A pagina "${title}" sera movida para a lixeira.`
+              );
+              if (!confirmed) return;
+              try {
+                const res = await fetch(`/api/admin/pages/${pageId}`, { method: "DELETE" });
+                if (!res.ok) {
+                  const body = await res.json().catch(() => ({}));
+                  throw new Error(body.error || "Erro ao excluir");
+                }
+                toast.success("Pagina movida para a lixeira");
+                onDeleted(pageId);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Erro ao excluir pagina");
+              }
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-background"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+            Excluir
+          </button>
         </div>
       )}
     </div>
@@ -175,6 +215,21 @@ export default function PaginasPage() {
       router.push(`/admin/paginas/${created.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar pagina");
+    }
+  }
+
+  async function handleDuplicate(pageId: number) {
+    try {
+      const res = await fetch(`/api/admin/pages/${pageId}/duplicate`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Erro ao duplicar pagina");
+      }
+      const created = await res.json();
+      toast.success(`Pagina duplicada: "${created.title}"`);
+      setPages((prev) => [...prev, created]);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao duplicar pagina");
     }
   }
 
@@ -398,7 +453,7 @@ export default function PaginasPage() {
                     })}
                   </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <RowMenu pageId={page.id} slug={page.slug} />
+                    <RowMenu pageId={page.id} slug={page.slug} title={page.title} onDuplicate={handleDuplicate} onDeleted={(id) => setPages((prev) => prev.filter((p) => p.id !== id))} />
                   </td>
                 </tr>
               ))}

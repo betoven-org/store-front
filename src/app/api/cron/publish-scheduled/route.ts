@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@brasa/core/db";
 import { pages, pageVersions } from "@brasa/core/schema";
-import { and, lte, isNotNull, eq, count } from "drizzle-orm";
+import { and, lte, isNotNull, isNull, eq, count } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const scheduledPages = await db
     .select()
     .from(pages)
-    .where(and(isNotNull(pages.scheduledAt), lte(pages.scheduledAt, now)));
+    .where(and(isNotNull(pages.scheduledAt), isNull(pages.deletedAt), lte(pages.scheduledAt, now)));
 
   let publishedCount = 0;
 

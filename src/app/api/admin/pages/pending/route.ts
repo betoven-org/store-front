@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages } from "@brasa/core/schema";
-import { and, eq, or, isNotNull, sql } from "drizzle-orm";
+import { and, eq, or, isNotNull, isNull, sql } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET() {
@@ -25,6 +25,7 @@ export async function GET() {
     .where(
       and(
         eq(pages.tenantId, tenantId),
+        isNull(pages.deletedAt),
         or(
           isNotNull(pages.draft),
           sql`${pages.draftSections} IS NOT NULL AND ${pages.draftSections}::text != COALESCE(${pages.sections}::text, '[]')`

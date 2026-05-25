@@ -246,6 +246,7 @@ export const pages = pgTable("pages", {
   sections: jsonb("sections"),
   draftSections: jsonb("draft_sections"),
   scheduledAt: timestamp("scheduled_at", { mode: "string" }),
+  deletedAt: timestamp("deleted_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });

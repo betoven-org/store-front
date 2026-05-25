@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages } from "@brasa/core/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { parseBody, updatePageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 
@@ -113,6 +113,46 @@ export async function PATCH(
     console.error("Pages update error:", error);
     return NextResponse.json(
       { error: "Erro ao atualizar pagina" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user)
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+
+  try {
+    const { id } = await params;
+    const pageId = Number(id);
+    const tenantId = await getTenantId();
+
+    if (isNaN(pageId))
+      return NextResponse.json({ error: "ID invalido" }, { status: 400 });
+
+    const [existing] = await db
+      .select({ id: pages.id })
+      .from(pages)
+      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId), isNull(pages.deletedAt)))
+      .limit(1);
+
+    if (!existing)
+      return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
+
+    await db
+      .update(pages)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)));
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Pages soft-delete error:", error);
+    return NextResponse.json(
+      { error: "Erro ao excluir pagina" },
       { status: 500 },
     );
   }

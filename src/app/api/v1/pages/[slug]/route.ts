@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withApiKey } from "@/lib/api-key";
 import { db } from "@brasa/core/db";
 import { pages, tenants } from "@brasa/core/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const { slug } = params;
@@ -10,7 +10,7 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const [page] = await db
     .select()
     .from(pages)
-    .where(and(eq(pages.tenantId, tenantId), eq(pages.slug, slug)))
+    .where(and(eq(pages.tenantId, tenantId), eq(pages.slug, slug), isNull(pages.deletedAt)))
     .limit(1);
 
   if (!page) {

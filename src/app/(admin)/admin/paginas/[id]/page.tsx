@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminShell, FormField, ImageUpload, PageBuilder } from "@brasa/admin";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
@@ -337,6 +338,26 @@ export default function EditPagePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = React.use(params);
+  const router = useRouter();
+  const [duplicating, setDuplicating] = useState(false);
+
+  async function handleDuplicate() {
+    setDuplicating(true);
+    try {
+      const res = await fetch(`/api/admin/pages/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Erro ao duplicar pagina");
+      }
+      const created = await res.json();
+      toast.success(`Pagina duplicada: "${created.title}"`);
+      router.push(`/admin/paginas/${created.id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao duplicar pagina");
+    } finally {
+      setDuplicating(false);
+    }
+  }
 
   // Fetch tenant directly — context may not propagate due to bundle duplication in monorepo
   const [tenant, setTenantLocal] = useState<{ frontendUrl: string | null; revalidateSecret: string | null } | null>(null);
@@ -378,6 +399,50 @@ export default function EditPagePage({
   const sectionsDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const saveSectionsRef = useRef<((blocks: SectionBlock[]) => Promise<void>) | null>(null);
+
+  // ── Undo/Redo history for sections ──────────────────────────────
+  const sectionHistoryRef = useRef<SectionBlock[][]>([]);
+  const historyIndexRef = useRef(-1);
+  const isUndoRedoRef = useRef(false);
+  const MAX_HISTORY = 50;
+
+  function pushToHistory(blocks: SectionBlock[]) {
+    // Discard any "future" entries after current index
+    sectionHistoryRef.current = sectionHistoryRef.current.slice(0, historyIndexRef.current + 1);
+    sectionHistoryRef.current.push(structuredClone(blocks));
+    // Enforce max size
+    if (sectionHistoryRef.current.length > MAX_HISTORY) {
+      sectionHistoryRef.current = sectionHistoryRef.current.slice(-MAX_HISTORY);
+    }
+    historyIndexRef.current = sectionHistoryRef.current.length - 1;
+  }
+
+  function undoSections() {
+    if (historyIndexRef.current <= 0) {
+      toast("Nada para desfazer");
+      return;
+    }
+    historyIndexRef.current -= 1;
+    const prev = sectionHistoryRef.current[historyIndexRef.current];
+    isUndoRedoRef.current = true;
+    setSectionBlocks(structuredClone(prev));
+    // Debounced save of the restored state
+    if (sectionsDebounceRef.current) clearTimeout(sectionsDebounceRef.current);
+    sectionsDebounceRef.current = setTimeout(() => saveSectionsRef.current?.(prev), 800);
+  }
+
+  function redoSections() {
+    if (historyIndexRef.current >= sectionHistoryRef.current.length - 1) {
+      toast("Nada para refazer");
+      return;
+    }
+    historyIndexRef.current += 1;
+    const next = sectionHistoryRef.current[historyIndexRef.current];
+    isUndoRedoRef.current = true;
+    setSectionBlocks(structuredClone(next));
+    if (sectionsDebounceRef.current) clearTimeout(sectionsDebounceRef.current);
+    sectionsDebounceRef.current = setTimeout(() => saveSectionsRef.current?.(next), 800);
+  }
 
   // ── Inline editor: inject script and toggle ──────────────────────
   function sendToIframe(msg: object) {
@@ -532,6 +597,8 @@ export default function EditPagePage({
           ? data.draftSections
           : (data.sections ?? []);
         setSectionBlocks(effectiveSections as SectionBlock[]);
+        // Seed undo history with the initial state
+        pushToHistory(effectiveSections as SectionBlock[]);
       })
       .catch((err) => setFetchError(err.message))
       .finally(() => setLoading(false));
@@ -582,8 +649,65 @@ export default function EditPagePage({
   // Keep ref in sync so the message listener always calls the latest version
   saveSectionsRef.current = saveSections;
 
+  // ── Keyboard shortcuts ──────────────────────────────────────────
+  const editStateRef = useRef(editState);
+  editStateRef.current = editState;
+  const hasDraftRef = useRef(false);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+
+      // Ctrl+S / Cmd+S — Save immediately
+      if (e.key === "s" && !e.shiftKey) {
+        e.preventDefault();
+        const state = editStateRef.current;
+        if (state) {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          save(state).then(() => toast("Salvo"));
+        }
+        return;
+      }
+
+      // Ctrl+Shift+P / Cmd+Shift+P — Publish
+      if (e.shiftKey && (e.key === "P" || e.key === "p")) {
+        e.preventDefault();
+        if (hasDraftRef.current) {
+          handlePublish();
+        } else {
+          toast("Nenhuma alteracao para publicar");
+        }
+        return;
+      }
+
+      // Ctrl+Z / Cmd+Z — Undo
+      if (e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undoSections();
+        return;
+      }
+
+      // Ctrl+Shift+Z / Cmd+Shift+Z — Redo
+      if ((e.key === "z" || e.key === "Z") && e.shiftKey) {
+        e.preventDefault();
+        redoSections();
+        return;
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [save]);
+
   function handleSectionsChange(blocks: SectionBlock[]) {
     setSectionBlocks(blocks);
+    // Only push to history if this change did NOT come from undo/redo
+    if (!isUndoRedoRef.current) {
+      pushToHistory(blocks);
+    }
+    isUndoRedoRef.current = false;
     if (sectionsDebounceRef.current) clearTimeout(sectionsDebounceRef.current);
     sectionsDebounceRef.current = setTimeout(() => saveSections(blocks), 1500);
   }
@@ -709,6 +833,7 @@ export default function EditPagePage({
       setEditState(initial);
       setSavedSnapshot(JSON.stringify(initial));
       setSectionBlocks((updated.sections ?? []) as SectionBlock[]);
+      pushToHistory((updated.sections ?? []) as SectionBlock[]);
       setPreviewKey((k) => k + 1);
       toast.success("Versao restaurada");
       fetchVersions();
@@ -746,6 +871,7 @@ export default function EditPagePage({
   const hasSectionsDraft = page.draftSections !== null &&
     JSON.stringify(page.draftSections) !== JSON.stringify(page.sections);
   const hasDraft = page.draft !== null || hasSectionsDraft;
+  hasDraftRef.current = hasDraft;
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.frontendUrl || "";
   const previewSecret = tenant?.revalidateSecret || "";
@@ -786,6 +912,19 @@ export default function EditPagePage({
   const publishButton = (
     <div className="flex items-center gap-2">
       {saving && <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Spinner small /></span>}
+      {/* Duplicate button */}
+      <button
+        type="button"
+        onClick={handleDuplicate}
+        disabled={duplicating}
+        className="rounded-md border border-border bg-card p-1.5 text-muted-foreground shadow transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+        title="Duplicar pagina"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      </button>
       {/* Changes indicator — toggles changes column */}
       {hasDraft && (
         <button
@@ -1393,6 +1532,31 @@ export default function EditPagePage({
             </div>
           );
         })}
+      </div>
+
+      {/* ── Keyboard shortcuts hint bar ────────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-12 z-10 flex items-center gap-4 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+S</kbd>
+          <span>salvar</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+Shift+P</kbd>
+          <span>publicar</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+Z</kbd>
+          <span>desfazer</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+Shift+Z</kbd>
+          <span>refazer</span>
+        </span>
+        {lastSaved && (
+          <span className="ml-auto text-[10px] text-muted-foreground/60">
+            Salvo as {lastSaved}
+          </span>
+        )}
       </div>
     </AdminShell>
   );
