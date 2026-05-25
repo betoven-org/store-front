@@ -3,10 +3,28 @@ import { db } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
 
-const neonAuth = createNeonAuth({
-  baseUrl: process.env.NEON_AUTH_BASE_URL!,
-  cookies: {
-    secret: process.env.NEON_AUTH_COOKIE_SECRET!,
+// Lazy init to avoid crashing during build when env vars are missing
+let _neonAuth: ReturnType<typeof createNeonAuth> | null = null;
+
+function getNeonAuth() {
+  if (!_neonAuth) {
+    if (!process.env.NEON_AUTH_BASE_URL || !process.env.NEON_AUTH_COOKIE_SECRET) {
+      throw new Error("Missing NEON_AUTH_BASE_URL or NEON_AUTH_COOKIE_SECRET");
+    }
+    _neonAuth = createNeonAuth({
+      baseUrl: process.env.NEON_AUTH_BASE_URL,
+      cookies: {
+        secret: process.env.NEON_AUTH_COOKIE_SECRET,
+      },
+    });
+  }
+  return _neonAuth;
+}
+
+// Proxy that lazily initializes neonAuth
+export const neonAuth = new Proxy({} as ReturnType<typeof createNeonAuth>, {
+  get(_, prop) {
+    return (getNeonAuth() as Record<string | symbol, unknown>)[prop];
   },
 });
 
