@@ -6,17 +6,20 @@ import {
 import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { generateSlug } from "@brasa/core/slug";
+import { headers } from "next/headers";
+import { siteSettings } from "@brasa/core/schema";
 
 async function getSbConfig() {
   let url = process.env.SUPABASE_URL;
   let key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
-    // Fallback: read from first site_settings row
-    const { siteSettings } = await import("@brasa/core/schema");
+    const h = await headers();
+    const tenantId = parseInt(h.get("x-tenant-id") || "1", 10);
     const [settings] = await db
       .select({ supabaseUrl: siteSettings.supabaseUrl, supabaseServiceRoleKey: siteSettings.supabaseServiceRoleKey })
       .from(siteSettings)
+      .where(eq(siteSettings.tenantId, tenantId))
       .limit(1);
     if (settings?.supabaseUrl) url = settings.supabaseUrl;
     if (settings?.supabaseServiceRoleKey) key = settings.supabaseServiceRoleKey;
