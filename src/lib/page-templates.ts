@@ -6,20 +6,6 @@ export type PageTemplate = {
   sections: { id: string; component: string; props: Record<string, any> }[];
 };
 
-const HEADER_PROPS = {
-  showSearch: true,
-  showSocial: true,
-  showWhatsApp: true,
-  showCategories: true,
-  showRestrictedArea: true,
-};
-
-const FOOTER_PROPS = {
-  showNewsletter: true,
-  showSocial: true,
-  showPrivacy: true,
-};
-
 function tplId(templateId: string, component: string, index: number) {
   return `tpl-${templateId}-${component.toLowerCase()}-${index}`;
 }
@@ -28,12 +14,9 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
   {
     id: "blank",
     name: "Pagina em Branco",
-    description: "Uma pagina vazia com apenas Header e Footer para voce construir do zero.",
+    description: "Uma pagina vazia para voce construir do zero.",
     icon: "📄",
-    sections: [
-      { id: tplId("blank", "Header", 0), component: "Header", props: HEADER_PROPS },
-      { id: tplId("blank", "Footer", 1), component: "Footer", props: FOOTER_PROPS },
-    ],
+    sections: [],
   },
   {
     id: "landing",
@@ -41,9 +24,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: "Pagina de conversao com hero, features, depoimentos e CTA.",
     icon: "🚀",
     sections: [
-      { id: tplId("landing", "Header", 0), component: "Header", props: HEADER_PROPS },
       {
-        id: tplId("landing", "Hero", 1),
+        id: tplId("landing", "Hero", 0),
         component: "Hero",
         props: {
           title: "Transforme sua presenca digital",
@@ -56,7 +38,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("landing", "Features", 2),
+        id: tplId("landing", "Features", 1),
         component: "Features",
         props: {
           title: "Nossos Diferenciais",
@@ -70,7 +52,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("landing", "Stats", 3),
+        id: tplId("landing", "Stats", 2),
         component: "Stats",
         props: {
           title: "Nossos Numeros",
@@ -83,7 +65,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("landing", "Testimonials", 4),
+        id: tplId("landing", "Testimonials", 3),
         component: "Testimonials",
         props: {
           title: "O que nossos clientes dizem",
@@ -95,7 +77,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("landing", "CTA", 5),
+        id: tplId("landing", "CTA", 4),
         component: "CTA",
         props: {
           title: "Pronto para comecar?",
@@ -105,7 +87,6 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           variant: "primary",
         },
       },
-      { id: tplId("landing", "Footer", 6), component: "Footer", props: FOOTER_PROPS },
     ],
   },
   {
@@ -114,9 +95,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: "Pagina sobre a empresa com equipe, timeline e formulario de contato.",
     icon: "🏢",
     sections: [
-      { id: tplId("institutional", "Header", 0), component: "Header", props: HEADER_PROPS },
       {
-        id: tplId("institutional", "Hero", 1),
+        id: tplId("institutional", "Hero", 0),
         component: "Hero",
         props: {
           title: "Sobre Nos",
@@ -127,7 +107,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("institutional", "ImageText", 2),
+        id: tplId("institutional", "ImageText", 1),
         component: "ImageText",
         props: {
           title: "Nossa Missao",
@@ -138,7 +118,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("institutional", "Team", 3),
+        id: tplId("institutional", "Team", 2),
         component: "Team",
         props: {
           title: "Nossa Equipe",
@@ -151,7 +131,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("institutional", "Timeline", 4),
+        id: tplId("institutional", "Timeline", 3),
         component: "Timeline",
         props: {
           title: "Nossa Trajetoria",
@@ -164,7 +144,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("institutional", "ContactForm", 5),
+        id: tplId("institutional", "ContactForm", 4),
         component: "ContactForm",
         props: {
           title: "Fale Conosco",
@@ -173,7 +153,6 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           submitText: "Enviar mensagem",
         },
       },
-      { id: tplId("institutional", "Footer", 6), component: "Footer", props: FOOTER_PROPS },
     ],
   },
   {
@@ -182,9 +161,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: "Pagina de blog com categorias, grid de posts e newsletter.",
     icon: "📝",
     sections: [
-      { id: tplId("blog", "Header", 0), component: "Header", props: HEADER_PROPS },
       {
-        id: tplId("blog", "CategoryBar", 1),
+        id: tplId("blog", "CategoryBar", 0),
         component: "CategoryBar",
         props: {
           title: "Categorias",
@@ -193,7 +171,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("blog", "PostGrid", 2),
+        id: tplId("blog", "PostGrid", 1),
         component: "PostGrid",
         props: {
           title: "Ultimos Artigos",
@@ -206,7 +184,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("blog", "Newsletter", 3),
+        id: tplId("blog", "Newsletter", 2),
         component: "Newsletter",
         props: {
           title: "Receba nossos conteudos",
@@ -215,7 +193,6 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           buttonText: "Inscrever-se",
         },
       },
-      { id: tplId("blog", "Footer", 4), component: "Footer", props: FOOTER_PROPS },
     ],
   },
   {
@@ -224,9 +201,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: "Vitrine de produtos com destaque e botao de WhatsApp.",
     icon: "🛍️",
     sections: [
-      { id: tplId("products", "Header", 0), component: "Header", props: HEADER_PROPS },
       {
-        id: tplId("products", "ProductShowcase", 1),
+        id: tplId("products", "ProductShowcase", 0),
         component: "ProductShowcase",
         props: {
           title: "Nossos Produtos",
@@ -238,7 +214,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("products", "WhatsAppCTA", 2),
+        id: tplId("products", "WhatsAppCTA", 1),
         component: "WhatsAppCTA",
         props: {
           title: "Ficou com duvida?",
@@ -248,7 +224,6 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           buttonText: "Chamar no WhatsApp",
         },
       },
-      { id: tplId("products", "Footer", 3), component: "Footer", props: FOOTER_PROPS },
     ],
   },
   {
@@ -257,9 +232,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: "Pagina de perguntas frequentes com hero compacto e CTA.",
     icon: "❓",
     sections: [
-      { id: tplId("faq", "Header", 0), component: "Header", props: HEADER_PROPS },
       {
-        id: tplId("faq", "Hero", 1),
+        id: tplId("faq", "Hero", 0),
         component: "Hero",
         props: {
           title: "Perguntas Frequentes",
@@ -269,7 +243,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("faq", "FAQ", 2),
+        id: tplId("faq", "FAQ", 1),
         component: "FAQ",
         props: {
           title: "",
@@ -283,7 +257,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("faq", "CTA", 3),
+        id: tplId("faq", "CTA", 2),
         component: "CTA",
         props: {
           title: "Ainda com duvidas?",
@@ -293,7 +267,6 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           variant: "secondary",
         },
       },
-      { id: tplId("faq", "Footer", 4), component: "Footer", props: FOOTER_PROPS },
     ],
   },
   {
@@ -302,9 +275,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: "Pagina de contato com formulario e mapa.",
     icon: "📬",
     sections: [
-      { id: tplId("contact", "Header", 0), component: "Header", props: HEADER_PROPS },
       {
-        id: tplId("contact", "Hero", 1),
+        id: tplId("contact", "Hero", 0),
         component: "Hero",
         props: {
           title: "Entre em Contato",
@@ -314,7 +286,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("contact", "ContactForm", 2),
+        id: tplId("contact", "ContactForm", 1),
         component: "ContactForm",
         props: {
           title: "Envie sua mensagem",
@@ -324,7 +296,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         },
       },
       {
-        id: tplId("contact", "Map", 3),
+        id: tplId("contact", "Map", 2),
         component: "Map",
         props: {
           title: "Onde estamos",
@@ -337,7 +309,6 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           email: "",
         },
       },
-      { id: tplId("contact", "Footer", 4), component: "Footer", props: FOOTER_PROPS },
     ],
   },
 ];

@@ -45,6 +45,7 @@ export const tenants = pgTable("tenants", {
   revalidateSecret: text("revalidate_secret"),
   manifest: jsonb("manifest"),
   draftManifest: jsonb("draft_manifest"),
+  globalSections: jsonb("global_sections"),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });

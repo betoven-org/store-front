@@ -4,14 +4,13 @@ import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-function BrandGlyph({ size = 24 }: { size?: number }) {
+function BrandLogo({ height = 24 }: { height?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ flexShrink: 0 }}>
-      <rect x="0" y="0" width="32" height="32" rx="7" fill="oklch(0.20 0.012 45)" />
-      <rect x="7" y="4" width="5" height="24" rx="2" fill="oklch(0.96 0.020 65)" />
-      <circle cx="17" cy="20" r="7.5" fill="oklch(0.96 0.020 65)" />
-      <circle cx="17" cy="20" r="4.1" fill="oklch(0.20 0.012 45)" />
-    </svg>
+    <img
+      src="/brasa-logo.png"
+      alt="brasa"
+      style={{ height, width: "auto", flexShrink: 0 }}
+    />
   );
 }
 
@@ -50,10 +49,7 @@ export default function LoginPage() {
       <div className="flex flex-col px-8 py-10 lg:px-14">
         {/* Wordmark */}
         <div className="flex items-center gap-2">
-          <BrandGlyph size={28} />
-          <span className="font-display text-[15px] font-medium tracking-tight text-foreground">
-            brasa<span className="text-brand">.</span>
-          </span>
+          <BrandLogo height={32} />
         </div>
 
         <div className="flex flex-1 flex-col justify-center max-w-[380px]">

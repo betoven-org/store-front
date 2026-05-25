@@ -44,6 +44,7 @@ const navGroups: NavGroup[] = [
     label: "Storefront",
     items: [
       { href: "/admin/paginas", label: "Paginas", icon: <Layout className="size-[15px]" /> },
+      { href: "/admin/global-sections", label: "Sections Globais", icon: <Layers className="size-[15px]" /> },
     ],
   },
   {
@@ -65,14 +66,13 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-function BrandGlyph({ size = 24 }: { size?: number }) {
+function BrandLogo({ height = 24 }: { height?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ flexShrink: 0 }}>
-      <rect x="0" y="0" width="32" height="32" rx="7" fill="oklch(0.20 0.012 45)" />
-      <rect x="7" y="4" width="5" height="24" rx="2" fill="oklch(0.96 0.020 65)" />
-      <circle cx="17" cy="20" r="7.5" fill="oklch(0.96 0.020 65)" />
-      <circle cx="17" cy="20" r="4.1" fill="oklch(0.20 0.012 45)" />
-    </svg>
+    <img
+      src="/brasa-logo.png"
+      alt="brasa"
+      style={{ height, width: "auto", flexShrink: 0 }}
+    />
   );
 }
 
@@ -133,15 +133,12 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
         <div className={`flex items-center border-b border-sidebar-border ${collapsed ? "lg:justify-center lg:px-3 h-[52px]" : "justify-between px-3.5 h-[52px]"} px-3.5`}>
           {collapsed ? (
             <button onClick={onToggleCollapse} className="hidden lg:flex" title="Expandir">
-              <BrandGlyph size={28} />
+              <BrandLogo height={22} />
             </button>
           ) : (
             <>
               <Link href="/admin" className="flex items-center gap-2">
-                <BrandGlyph size={26} />
-                <span className="font-display text-[15px] font-medium tracking-tight">
-                  brasa<span className="text-brand">.</span>
-                </span>
+                <BrandLogo height={26} />
               </Link>
               <button
                 onClick={onToggleCollapse}
