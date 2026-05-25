@@ -621,7 +621,6 @@ export default function EditPagePage({
   const frontendBase = tenant?.frontendUrl || "";
   const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
-  // Preview:
   // Preview: always show the real frontend site
   // With draft → pass ?preview=draft&pageId=X so frontend fetches draft data
   // Without draft → load published page normally
