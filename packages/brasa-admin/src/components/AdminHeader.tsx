@@ -146,6 +146,9 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
         </Link>
       )}
 
+      {/* Dev environment button */}
+      <DevEnvButton />
+
       {/* Quick actions */}
       <div className="flex items-center gap-0.5">
         <IconBtn
@@ -221,6 +224,80 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
         </div>
       )}
     </header>
+  );
+}
+
+function DevEnvButton() {
+  const [open, setOpen] = useState(false);
+  const [envs, setEnvs] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  function handleOpen() {
+    setOpen(true);
+    if (!envs) {
+      fetch("/api/admin/dev-envs")
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => { if (data?.envs) setEnvs(data.envs); })
+        .catch(() => {});
+    }
+  }
+
+  function handleCopy() {
+    if (!envs) return;
+    navigator.clipboard.writeText(envs);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={handleOpen}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 h-7 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        dev
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-[calc(100%+8px)] w-[380px] bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-120 z-50">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <div>
+              <h4 className="text-[13px] font-semibold text-foreground">Ambiente de Desenvolvimento</h4>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Cole no <code className="bg-accent px-1 rounded">.env</code> do frontend</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={!envs}
+              className="inline-flex items-center gap-1 rounded-md bg-foreground text-background text-[11px] font-medium h-7 px-2.5 hover:brightness-[0.97] disabled:opacity-40 transition-all"
+            >
+              {copied ? "Copiado!" : "Copiar"}
+            </button>
+          </div>
+          <div className="p-3 max-h-[280px] overflow-y-auto">
+            {envs ? (
+              <pre className="text-[10.5px] font-mono text-muted-foreground whitespace-pre-wrap leading-relaxed select-all">{envs}</pre>
+            ) : (
+              <p className="text-[11px] text-muted-foreground text-center py-4">Carregando...</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
