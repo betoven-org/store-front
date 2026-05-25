@@ -175,7 +175,7 @@ export default function LoginPage() {
 
         <div className="flex justify-between relative z-10">
           <span className="font-mono text-[11px] tracking-[0.1em] uppercase opacity-60">
-            cms · cloud · multitenant
+            site · blog · cloud 
           </span>
         </div>
 
@@ -186,7 +186,7 @@ export default function LoginPage() {
               Gerencie conteúdo,<br />construa páginas,<br />publique em segundos.
             </h2>
             <p className="mt-4 text-sm opacity-60 max-w-[320px] mx-auto leading-relaxed">
-              Um CMS cloud projetado para equipes que precisam de velocidade e controle. Multitenant, API-first, sem limites.
+              Um CMS cloud projetado para equipes que precisam de velocidade e controle. API-first, sem limites.
             </p>
           </div>
         </div>

@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { AdminShell, FormField, ImageUpload, PageBuilder } from "@brasa/admin";
-import manifest from "@/manifest.json";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 
 type EditState = {
@@ -319,11 +318,16 @@ export default function EditPagePage({
   const { id } = React.use(params);
 
   // Fetch tenant directly — context may not propagate due to bundle duplication in monorepo
-  const [tenant, setTenantLocal] = useState<{ frontendUrl: string | null } | null>(null);
+  const [tenant, setTenantLocal] = useState<{ frontendUrl: string | null; revalidateSecret: string | null } | null>(null);
+  const [manifest, setManifest] = useState<BrasaManifest | null>(null);
   useEffect(() => {
     fetch("/api/admin/tenant-info")
       .then((r) => (r.ok ? r.json() : null))
       .then(setTenantLocal)
+      .catch(() => {});
+    fetch("/api/admin/manifest")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setManifest(data as BrasaManifest))
       .catch(() => {});
   }, []);
 
@@ -615,17 +619,24 @@ export default function EditPagePage({
   const hasDraft = page.draft !== null || hasSectionsDraft;
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.frontendUrl || "";
+  const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
   // Preview priority:
-  // 1. Frontend URL configured → load page on client site (with draft hint)
-  // 2. No frontend URL but has content → internal preview API
-  // 3. No frontend URL and no content → empty state
+  // 1. Draft + frontend URL + secret → frontend preview route (pixel-perfect draft)
+  // 2. Draft + no frontend → internal preview fallback
+  // 3. No draft + frontend URL → published page on client site
+  // 4. No frontend URL + has content → internal preview API
+  // 5. Nothing → empty state
   const hasContent = !!(page.content || page.draft);
-  const previewUrl = frontendBase
-    ? `${frontendBase}${pagePath}`
-    : hasContent || hasSections
-      ? `/api/admin/pages/${id}/preview${hasSections ? "?sections=draft" : ""}`
-      : "";
+  const previewUrl = hasDraft && frontendBase && previewSecret
+    ? `${frontendBase}/api/cms-preview?path=${encodeURIComponent(pagePath)}&secret=${encodeURIComponent(previewSecret)}`
+    : hasDraft
+      ? `/api/admin/pages/${id}/preview?sections=draft`
+      : frontendBase
+        ? `${frontendBase}${pagePath}`
+        : hasContent || hasSections
+          ? `/api/admin/pages/${id}/preview${hasSections ? "?sections=draft" : ""}`
+          : "";
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
@@ -682,11 +693,15 @@ export default function EditPagePage({
                 </div>
               </div>
               {/* Section builder */}
-              <PageBuilder
-                manifest={manifest as unknown as BrasaManifest}
-                value={sectionBlocks}
-                onChange={handleSectionsChange}
-              />
+              {manifest ? (
+                <PageBuilder
+                  manifest={manifest}
+                  value={sectionBlocks}
+                  onChange={handleSectionsChange}
+                />
+              ) : (
+                <div className="p-4 text-center text-sm text-muted-foreground">Carregando sections...</div>
+              )}
             </div>
           </div>
         )}
