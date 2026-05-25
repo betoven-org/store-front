@@ -211,12 +211,6 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
                 </div>
               </div>
               <div className="p-1">
-                <MenuButton icon={UserCog} label="Meu perfil" />
-                <MenuButton icon={Settings} label="Configuracoes" href="/admin/identidade" />
-                <MenuButton icon={CreditCard} label="Plano e cobranca" href="/admin/assinatura" />
-                <div className="my-1 h-px bg-border" />
-                <MenuButton icon={HelpCircle} label="Ajuda e suporte" />
-                <div className="my-1 h-px bg-border" />
                 <MenuButton icon={LogOut} label="Sair" danger onClick={() => signOut({ callbackUrl: "/admin/login" })} />
               </div>
             </div>
