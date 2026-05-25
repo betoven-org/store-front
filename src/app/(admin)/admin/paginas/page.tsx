@@ -400,7 +400,7 @@ export default function PaginasPage() {
               <tr>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Titulo</th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Slug</th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="w-28 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Atualizado</th>
                 <th className="w-10 px-4 py-3" />
               </tr>
