@@ -48,8 +48,8 @@ export default function LoginPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Left: form */}
       <div className="flex flex-col px-10 py-10 lg:px-16 bg-[#fafafa]">
-        <div className="flex items-center gap-2">
-          <BrandLogo height={32} />
+        <div className="flex items-center gap-2 -ml-6">
+          <BrandLogo height={112} />
         </div>
 
         <div className="flex flex-1 flex-col justify-center max-w-[420px] w-full">
@@ -217,7 +217,7 @@ export default function LoginPage() {
         {/* Center content */}
         <div className="flex flex-1 items-center justify-center relative z-10">
           <div className="text-center flex flex-col items-center">
-            <BrandLogo height={72} />
+            {/* <BrandLogo height={72} /> */}
             <h2 className="text-[32px] font-bold mt-8 tracking-tight leading-[1.25]">
               Gerencie{" "}
               <span style={{ color: "#F97316" }}>conteúdo,</span>

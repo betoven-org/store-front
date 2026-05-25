@@ -423,4 +423,30 @@ export const requestMetrics = pgTable("request_metrics", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+// -- Page Versions ------------------------------------------------------------
+
+export const pageVersions = pgTable("page_versions", {
+  id: serial("id").primaryKey(),
+  pageId: integer("page_id").notNull().references(() => pages.id, { onDelete: "cascade" }),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  version: integer("version").notNull(),
+  title: varchar("title", { length: 500 }),
+  metaTitle: varchar("meta_title", { length: 500 }),
+  metaDescription: text("meta_description"),
+  ogTitle: varchar("og_title", { length: 500 }),
+  ogDescription: text("og_description"),
+  ogImageUrl: text("og_image_url"),
+  content: text("content"),
+  sections: jsonb("sections"),
+  publishedBy: varchar("published_by", { length: 255 }),
+  publishedAt: timestamp("published_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const pageVersionsRelations = relations(pageVersions, ({ one }) => ({
+  page: one(pages, {
+    fields: [pageVersions.pageId],
+    references: [pages.id],
+  }),
+}));
+
 export const tenantsRelations = relations(tenants, () => ({}));

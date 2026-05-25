@@ -32,7 +32,16 @@ type Page = {
   updatedAt: string;
 };
 
-type ColumnKey = "sections" | "preview" | "seo" | "changes";
+type PageVersion = {
+  id: number;
+  version: number;
+  title: string | null;
+  publishedBy: string | null;
+  publishedAt: string;
+  sectionCount: number;
+};
+
+type ColumnKey = "sections" | "preview" | "seo" | "changes" | "history";
 
 function slugToPath(slug: string) {
   return slug === "home" ? "/" : `/${slug}`;
@@ -104,11 +113,22 @@ function IconSections() {
   );
 }
 
+function IconHistory() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M12 7v5l4 2" />
+    </svg>
+  );
+}
+
 const COLUMNS: { key: ColumnKey; label: string; icon: React.ReactNode }[] = [
   { key: "sections", label: "Sections", icon: <IconSections /> },
   { key: "preview", label: "Preview", icon: <IconPreview /> },
   { key: "seo", label: "Page SEO", icon: <IconSeo /> },
   { key: "changes", label: "Alteracoes", icon: <IconChanges /> },
+  { key: "history", label: "Historico", icon: <IconHistory /> },
 ];
 
 /* ── Content tabs ───────────────────────────────────────────────────── */
@@ -344,6 +364,9 @@ export default function EditPagePage({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [versions, setVersions] = useState<PageVersion[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+  const [rollingBack, setRollingBack] = useState(false);
   const [sectionBlocks, setSectionBlocks] = useState<SectionBlock[]>([]);
   const [savingSections, setSavingSections] = useState(false);
   const [inlineEdit, setInlineEdit] = useState(false);
@@ -587,6 +610,59 @@ export default function EditPagePage({
       toast.error(err instanceof Error ? err.message : "Erro ao publicar");
     } finally {
       setPublishing(false);
+    }
+  }
+
+  const fetchVersions = useCallback(async () => {
+    setLoadingVersions(true);
+    try {
+      const res = await fetch(`/api/admin/pages/${id}/versions`);
+      if (res.ok) {
+        const data = await res.json();
+        setVersions(data.docs ?? []);
+      }
+    } catch {
+      toast.error("Erro ao carregar historico");
+    } finally {
+      setLoadingVersions(false);
+    }
+  }, [id]);
+
+  // Fetch versions when history column opens
+  useEffect(() => {
+    if (openColumns.has("history")) {
+      fetchVersions();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openColumns.has("history")]);
+
+  async function handleRollback(versionId: number) {
+    if (!confirm("Restaurar esta versao? A pagina atual sera substituida.")) return;
+    setRollingBack(true);
+    try {
+      const res = await fetch(`/api/admin/pages/${id}/versions/${versionId}`, { method: "POST" });
+      if (!res.ok) throw new Error("Erro ao restaurar");
+      const updated: Page = await res.json();
+      setPage(updated);
+      const initial: EditState = {
+        title: updated.title,
+        metaTitle: updated.metaTitle,
+        metaDescription: updated.metaDescription,
+        ogTitle: updated.ogTitle,
+        ogDescription: updated.ogDescription,
+        ogImageUrl: updated.ogImageUrl,
+        content: updated.content,
+      };
+      setEditState(initial);
+      setSavedSnapshot(JSON.stringify(initial));
+      setSectionBlocks((updated.sections ?? []) as SectionBlock[]);
+      setPreviewKey((k) => k + 1);
+      toast.success("Versao restaurada");
+      fetchVersions();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao restaurar");
+    } finally {
+      setRollingBack(false);
     }
   }
 
@@ -1016,6 +1092,79 @@ export default function EditPagePage({
                   >
                     {publishing ? "Publicando..." : `Publicar ${draftCount} alterac${draftCount !== 1 ? "oes" : "ao"}`}
                   </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── History column ─────────────────────────────────────── */}
+        {openColumns.has("history") && (
+          <div className="flex flex-col border border-border bg-card rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
+            <ColumnHeader title="Historico de versoes" onClose={() => toggleColumn("history")} />
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingVersions ? (
+                <div className="flex items-center justify-center py-12">
+                  <Spinner small />
+                  <span className="ml-2 text-xs text-muted-foreground">Carregando...</span>
+                </div>
+              ) : versions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <IconHistory />
+                  <p className="mt-3 text-sm font-medium text-muted-foreground">Nenhuma versao encontrada</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Publique a pagina para criar a primeira versao.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {versions.map((v, idx) => (
+                    <div
+                      key={v.id}
+                      className={`rounded-lg border p-3 transition-colors ${
+                        idx === 0
+                          ? "border-primary/30 bg-primary/5"
+                          : "border-border hover:border-border hover:bg-accent/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded bg-accent px-1 text-[10px] font-bold text-muted-foreground">
+                            v{v.version}
+                          </span>
+                          {idx === 0 && (
+                            <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
+                              Atual
+                            </span>
+                          )}
+                        </div>
+                        {idx !== 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRollback(v.id)}
+                            disabled={rollingBack}
+                            className="rounded px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+                          >
+                            Restaurar
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-1.5 text-xs font-medium text-foreground truncate">
+                        {v.title || "(sem titulo)"}
+                      </p>
+                      <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
+                        <span>
+                          {new Date(v.publishedAt).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {v.publishedBy && <span>{v.publishedBy}</span>}
+                        <span>{v.sectionCount} section{v.sectionCount !== 1 ? "s" : ""}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
-import { pages } from "@brasa/core/schema";
-import { and, eq } from "drizzle-orm";
+import { pages, pageVersions } from "@brasa/core/schema";
+import { and, eq, count } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 export async function POST(
@@ -49,6 +49,39 @@ export async function POST(
   if (page.draftSections) {
     updateData.sections = page.draftSections;
   }
+
+  // Save version before publishing
+  const [versionCount] = await db
+    .select({ value: count() })
+    .from(pageVersions)
+    .where(eq(pageVersions.pageId, numId));
+
+  const nextVersion = (versionCount?.value ?? 0) + 1;
+
+  // The version captures the NEW published state (what will be live after this publish)
+  const versionTitle = (updateData.title as string) ?? page.title;
+  const versionMetaTitle = (updateData.metaTitle as string) ?? page.metaTitle;
+  const versionMetaDescription = (updateData.metaDescription as string) ?? page.metaDescription;
+  const versionOgTitle = (updateData.ogTitle as string) ?? page.ogTitle;
+  const versionOgDescription = (updateData.ogDescription as string) ?? page.ogDescription;
+  const versionOgImageUrl = (updateData.ogImageUrl as string) ?? page.ogImageUrl;
+  const versionContent = (updateData.content as string) ?? page.content;
+  const versionSections = updateData.sections ?? page.sections;
+
+  await db.insert(pageVersions).values({
+    pageId: numId,
+    tenantId,
+    version: nextVersion,
+    title: versionTitle,
+    metaTitle: versionMetaTitle,
+    metaDescription: versionMetaDescription,
+    ogTitle: versionOgTitle,
+    ogDescription: versionOgDescription,
+    ogImageUrl: versionOgImageUrl,
+    content: versionContent,
+    sections: versionSections,
+    publishedBy: session.user.name || session.user.email || "Desconhecido",
+  });
 
   await db.update(pages).set(updateData).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId)));
 
