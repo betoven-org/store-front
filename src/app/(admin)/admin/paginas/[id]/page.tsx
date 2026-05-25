@@ -1066,7 +1066,7 @@ export default function EditPagePage({
 
   return (
     <AdminShell title={`${page.title}`} headerExtra={publishButton}>
-      <div className="-mx-2 -mt-2 lg:-mx-4 lg:-mt-4 flex gap-1 pr-12" style={{ minHeight: "calc(100vh - 5.5rem)" }}>
+      <div className="-mx-2 -mt-2 lg:-mx-4 lg:-mt-4 flex gap-1 pr-12 pb-9" style={{ minHeight: "calc(100vh - 5.5rem)" }}>
         {/* ── Sections column (includes page properties) ─────────── */}
         {openColumns.has("sections") && (
           <div className="flex flex-col border border-border bg-card rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
@@ -1535,7 +1535,7 @@ export default function EditPagePage({
       </div>
 
       {/* ── Keyboard shortcuts hint bar ────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 right-12 z-10 flex items-center gap-4 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-[11px] text-muted-foreground">
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center gap-4 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <kbd className="rounded border border-border bg-accent px-1 py-0.5 text-[10px] font-mono">Ctrl+S</kbd>
           <span>salvar</span>
