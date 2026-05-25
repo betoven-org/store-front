@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@brasa/core/db";
 import {
-  categories, authors, posts, tags, media, products, subscribers,
+  categories, authors, posts, tags, media, products, productCategories, subscribers,
 } from "@brasa/core/schema";
 import { and, eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
@@ -81,6 +81,11 @@ export async function POST(request: NextRequest) {
       case "article_tags":
         await handleArticleTag(type, record, old_record, tenantId);
         revalidateTag("posts");
+        break;
+
+      case "product_categories":
+        await handleProductCategory(type, record, old_record, tenantId);
+        revalidateTag("product-categories");
         break;
 
       case "newsletter_subscribers":
@@ -316,6 +321,55 @@ async function handleArticleTag(
     if (!existingTags.some((t) => t.tag === tagName)) {
       await db.insert(tags).values({ postId: post.id, tag: tagName, tenantId });
     }
+  }
+}
+
+// ── ProductCategory handler ─────────────────────────────────────────────────
+
+async function handleProductCategory(
+  type: string,
+  record: Record<string, unknown> | null,
+  old_record: Record<string, unknown> | null,
+  tenantId: number,
+) {
+  if (type === "DELETE") {
+    const slug = old_record?.slug as string;
+    if (!slug) return;
+    await db.delete(productCategories).where(and(eq(productCategories.slug, slug), eq(productCategories.tenantId, tenantId)));
+    return;
+  }
+
+  if (!record) return;
+  const slug = record.slug as string;
+  const now = new Date().toISOString();
+
+  let imageId: number | null = null;
+  if (record.image_url) {
+    imageId = await getOrCreateMedia(
+      record.image_url as string,
+      (record.name as string) || "Categoria",
+      tenantId,
+    );
+  }
+
+  const data = {
+    name: record.name as string,
+    description: (record.description as string) || null,
+    sortOrder: (record.sort_order as number) || 0,
+    imageId,
+    updatedAt: now,
+  };
+
+  const [existing] = await db.select({ id: productCategories.id }).from(productCategories).where(and(eq(productCategories.slug, slug), eq(productCategories.tenantId, tenantId))).limit(1);
+  if (existing) {
+    await db.update(productCategories).set(data).where(and(eq(productCategories.id, existing.id), eq(productCategories.tenantId, tenantId)));
+  } else {
+    await db.insert(productCategories).values({
+      ...data,
+      slug,
+      tenantId,
+      createdAt: (record.created_at as string) || now,
+    });
   }
 }
 
