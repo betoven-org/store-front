@@ -1,114 +1,139 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withApiKey } from "@/lib/api-key";
 import { db } from "@brasa/core/db";
-import { posts, categories, authors, media, requestMetrics } from "@brasa/core/schema";
-import { eq, desc, and, sql, inArray, gte } from "drizzle-orm";
+import { posts, categories, authors, media, tags } from "@brasa/core/schema";
+import { eq, desc, and, ilike, or, sql, count } from "drizzle-orm";
 
-const baseSelect = {
-  id: posts.id,
-  title: posts.title,
-  slug: posts.slug,
-  excerpt: posts.excerpt,
-  coverUrl: posts.coverUrl,
-  heroImageUrl: media.url,
-  categoryName: categories.name,
-  categorySlug: categories.slug,
-  authorName: authors.name,
-  publishedAt: posts.publishedAt,
-  readingTimeMinutes: posts.readingTimeMinutes,
-};
+function mapMedia(m: any) {
+  if (!m) return null;
+  return {
+    id: m.id,
+    url: m.url,
+    alt: m.alt,
+    sizes: {
+      thumbnail: { url: m.thumbnailUrl },
+      card: { url: m.cardUrl },
+      hero: { url: m.heroUrl },
+    },
+  };
+}
 
-function baseFrom() {
-  return db
-    .select(baseSelect)
-    .from(posts)
-    .leftJoin(media, eq(posts.heroImageId, media.id))
-    .leftJoin(categories, eq(posts.categoryId, categories.id))
-    .leftJoin(authors, eq(posts.authorId, authors.id))
-    .$dynamic();
+function mapPost(row: any) {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    excerpt: row.excerpt,
+    coverUrl: row.coverUrl,
+    publishedAt: row.publishedAt,
+    status: row.status,
+    featured: row.featured,
+    readingTimeMinutes: row.readingTimeMinutes,
+    category: row.category
+      ? { id: row.category.id, name: row.category.name, slug: row.category.slug }
+      : null,
+    author: row.author
+      ? {
+          id: row.author.id,
+          name: row.author.name,
+          slug: row.author.slug,
+          bio: row.author.bio,
+          avatar: row.author.avatar ? { url: row.author.avatar.url } : null,
+        }
+      : null,
+    heroImage: mapMedia(row.heroImage),
+    tags: (row.tags ?? []).map((t: any) => ({ tag: t.tag })),
+  };
 }
 
 export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   const { searchParams } = req.nextUrl;
-  const mode = searchParams.get("mode") || "recent";
+
   const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") || "10")));
-  const offset = Math.max(0, Number(searchParams.get("offset") || "0"));
+  const page = Math.max(1, Number(searchParams.get("page") || "1"));
+  const offset = (page - 1) * limit;
 
-  const statusFilter = draft ? undefined : eq(posts.status, "published");
-  const published = and(statusFilter, eq(posts.tenantId, tenantId));
+  const categorySlug = searchParams.get("category");
+  const authorId = searchParams.get("author");
+  const featured = searchParams.get("featured");
+  const search = searchParams.get("search");
 
-  if (mode === "recent") {
-    const docs = await baseFrom()
-      .where(published)
-      .orderBy(desc(posts.publishedAt))
-      .limit(limit)
-      .offset(offset);
-    return NextResponse.json({ docs });
+  // Build conditions
+  const conditions: any[] = [eq(posts.tenantId, tenantId)];
+
+  if (!draft) {
+    conditions.push(eq(posts.status, "published"));
   }
 
-  if (mode === "editor-picks") {
-    const docs = await baseFrom()
-      .where(and(published, eq(posts.featured, true)))
-      .orderBy(desc(posts.publishedAt))
-      .limit(limit)
-      .offset(offset);
-    return NextResponse.json({ docs });
+  if (featured === "true") {
+    conditions.push(eq(posts.featured, true));
   }
 
-  if (mode === "trending" || mode === "popular") {
-    const conditions = [
-      eq(requestMetrics.tenantId, tenantId),
-      eq(requestMetrics.isBot, false),
-      sql`${requestMetrics.path} NOT LIKE '/admin%'`,
-      sql`${requestMetrics.path} NOT LIKE '/api%'`,
-      sql`${requestMetrics.path} NOT LIKE '%/p'`,
-      sql`${requestMetrics.path} != '/'`,
-    ];
+  if (authorId) {
+    conditions.push(eq(posts.authorId, Number(authorId)));
+  }
 
-    if (mode === "trending") {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-      conditions.push(gte(requestMetrics.createdAt, sevenDaysAgo));
+  if (categorySlug) {
+    // Subquery to find category id by slug
+    const categoryRow = await db.query.categories.findFirst({
+      where: and(eq(categories.tenantId, tenantId), eq(categories.slug, categorySlug)),
+    });
+    if (categoryRow) {
+      conditions.push(eq(posts.categoryId, categoryRow.id));
+    } else {
+      // No matching category — return empty
+      return NextResponse.json({
+        docs: [],
+        totalDocs: 0,
+        totalPages: 0,
+        page,
+        limit,
+        hasNextPage: false,
+        hasPrevPage: false,
+      });
     }
-
-    const topPaths = await db
-      .select({
-        slug: sql<string>`replace(${requestMetrics.path}, '/', '')`,
-        views: sql<number>`count(*)::int`,
-      })
-      .from(requestMetrics)
-      .where(and(...conditions))
-      .groupBy(requestMetrics.path)
-      .orderBy(sql`count(*) desc`)
-      .limit(limit * 2);
-
-    if (topPaths.length === 0) {
-      const docs = await baseFrom()
-        .where(published)
-        .orderBy(desc(posts.publishedAt))
-        .limit(limit);
-      return NextResponse.json({ docs });
-    }
-
-    const slugs = topPaths.map((p) => p.slug);
-    const viewsMap = Object.fromEntries(topPaths.map((p) => [p.slug, p.views]));
-
-    const result = await baseFrom()
-      .where(and(published, inArray(posts.slug, slugs)))
-      .limit(limit);
-
-    const docs = result
-      .map((p) => ({ ...p, views: viewsMap[p.slug] || 0 }))
-      .sort((a, b) => b.views - a.views)
-      .slice(0, limit);
-
-    return NextResponse.json({ docs });
   }
 
-  // Default: recent
-  const docs = await baseFrom()
-    .where(published)
-    .orderBy(desc(posts.publishedAt))
-    .limit(limit)
-    .offset(offset);
-  return NextResponse.json({ docs });
+  if (search) {
+    conditions.push(
+      or(ilike(posts.title, `%${search}%`), ilike(posts.excerpt, `%${search}%`)),
+    );
+  }
+
+  const whereClause = and(...conditions);
+
+  // Count total
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(posts)
+    .where(whereClause);
+
+  const totalDocs = Number(total);
+  const totalPages = Math.ceil(totalDocs / limit);
+
+  // Fetch posts with relations
+  const rows = await db.query.posts.findMany({
+    where: whereClause,
+    with: {
+      category: true,
+      author: { with: { avatar: true } },
+      heroImage: true,
+      tags: true,
+    },
+    orderBy: [desc(posts.publishedAt)],
+    limit,
+    offset,
+  });
+
+  const docs = rows.map(mapPost);
+
+  return NextResponse.json({
+    docs,
+    totalDocs,
+    totalPages,
+    page,
+    limit,
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+  });
 });

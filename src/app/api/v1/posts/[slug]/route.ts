@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withApiKey } from "@/lib/api-key";
 import { db } from "@brasa/core/db";
-import { posts, media } from "@brasa/core/schema";
+import { posts } from "@brasa/core/schema";
 import { eq, and } from "drizzle-orm";
 
 function mapMedia(m: any) {
@@ -42,23 +42,25 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
     excerpt: row.excerpt,
     content: row.content,
     coverUrl: row.coverUrl,
+    publishedAt: row.publishedAt,
+    status: row.status,
+    featured: row.featured,
+    readingTimeMinutes: row.readingTimeMinutes,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    // SEO fields
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
-    focusKeyword: row.focusKeyword,
     ogTitle: row.ogTitle,
     ogDescription: row.ogDescription,
     ogImageUrl: row.ogImageUrl,
-    schemaType: row.schemaType,
     canonicalUrl: row.canonicalUrl,
-    wordCount: row.wordCount,
-    readingTimeMinutes: row.readingTimeMinutes,
     noindex: row.noindex,
     nofollow: row.nofollow,
-    featured: row.featured,
-    publishedAt: row.publishedAt,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    category: row.category,
+    // Relations
+    category: row.category
+      ? { id: row.category.id, name: row.category.name, slug: row.category.slug }
+      : null,
     author: row.author
       ? {
           id: row.author.id,
@@ -69,6 +71,6 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
         }
       : null,
     heroImage: mapMedia(row.heroImage),
-    tags: (row.tags ?? []).map((t) => ({ tag: t.tag })),
+    tags: (row.tags ?? []).map((t: any) => ({ tag: t.tag })),
   });
 });

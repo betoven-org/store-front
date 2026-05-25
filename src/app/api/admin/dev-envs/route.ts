@@ -31,20 +31,16 @@ export async function GET() {
   }
 
   const cmsUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://cms.brasa.tech";
-  const dbUri = process.env.DATABASE_URI || "";
 
   const envs = [
     `# Brasa CMS — Ambiente de desenvolvimento`,
     `# Projeto: ${tenant.slug}`,
     `# Gerado em: ${new Date().toISOString()}`,
     ``,
-    `# Conexao com o CMS`,
+    `# Conexao com o CMS (tudo vem via API — sem acesso direto ao banco)`,
     `CMS_URL=${cmsUrl}`,
     `CMS_API_KEY=${tenant.apiKey || ""}`,
     `CMS_PREVIEW_SECRET=${tenant.revalidateSecret || ""}`,
-    ``,
-    `# Banco de dados (mesmo do CMS)`,
-    `DATABASE_URI=${dbUri}`,
     ``,
     `# Frontend local`,
     `NEXT_PUBLIC_SITE_URL=http://localhost:3001`,
