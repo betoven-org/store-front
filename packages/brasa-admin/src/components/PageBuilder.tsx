@@ -396,7 +396,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
     <>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 lg:grid-cols-[300px_1fr]">
         {/* ── Left panel: block list ─────────────────────────────────────── */}
-        <aside className="flex flex-col border-r border-border bg-background">
+        <aside className="flex flex-col border-r border-border bg-transparent">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Secoes
