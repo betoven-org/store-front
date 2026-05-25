@@ -11,6 +11,7 @@ export { default as Drawer } from "./Drawer";
 export { default as DeleteConfirm } from "./DeleteConfirm";
 export { default as BulkBar } from "./BulkBar";
 export { default as Spinner } from "./Spinner";
+export { default as BrasaLoader, BrasaPageLoader } from "./BrasaLoader";
 export { default as FormField } from "./FormField";
 export { default as ImageUpload } from "./ImageUpload";
 export { default as RichTextEditor } from "./RichTextEditor";
