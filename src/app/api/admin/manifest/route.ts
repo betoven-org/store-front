@@ -6,8 +6,9 @@ import { eq } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 /**
- * GET /api/admin/manifest — Returns the manifest for the current tenant.
- * Used by the page builder to know which sections are available.
+ * GET /api/admin/manifest — Returns the manifest for the page builder.
+ * Uses draft_manifest (includes dev sections) with fallback to manifest (prod).
+ * This way the page builder always shows the latest sections (including unreleased).
  */
 export async function GET() {
   const session = await auth();
@@ -17,20 +18,23 @@ export async function GET() {
 
   const tenantId = await getTenantId();
   const [tenant] = await db
-    .select({ manifest: tenants.manifest })
+    .select({ manifest: tenants.manifest, draftManifest: tenants.draftManifest })
     .from(tenants)
     .where(eq(tenants.id, tenantId))
     .limit(1);
 
-  if (!tenant?.manifest) {
-    // Fallback: return static manifest if no dynamic one is stored
-    try {
-      const staticManifest = await import("@/manifest.json");
-      return NextResponse.json(staticManifest.default || staticManifest);
-    } catch {
-      return NextResponse.json({ sections: [] });
-    }
+  // Priority: draftManifest > manifest > static fallback
+  const data = tenant?.draftManifest || tenant?.manifest;
+
+  if (data) {
+    return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
   }
 
-  return NextResponse.json(tenant.manifest);
+  // Fallback: static manifest.json
+  try {
+    const staticManifest = await import("@/manifest.json");
+    return NextResponse.json(staticManifest.default || staticManifest);
+  } catch {
+    return NextResponse.json({ sections: [] });
+  }
 }

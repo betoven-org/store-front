@@ -4,9 +4,10 @@ import { tenants } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
 
 /**
- * PUT /api/v1/dev-url — Sets the frontend_url for preview in dev mode.
- * Called by the frontend's dev-connect script to point the CMS preview
- * to the developer's localhost.
+ * PUT /api/v1/dev-url — Register a dev preview URL.
+ * This does NOT modify the production frontend_url.
+ * It stores the dev URL in the draft_manifest metadata so the admin
+ * can offer a "dev preview" option without affecting production.
  *
  * Body: { devUrl: "http://localhost:3001" }
  * Requires: x-api-key header
@@ -18,7 +19,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const [tenant] = await db
-    .select({ id: tenants.id })
+    .select({ id: tenants.id, draftManifest: tenants.draftManifest })
     .from(tenants)
     .where(eq(tenants.apiKey, apiKey))
     .limit(1);
@@ -34,13 +35,14 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "devUrl is required" }, { status: 400 });
   }
 
+  // Store devUrl inside draft_manifest metadata (doesn't touch frontend_url)
+  const currentDraft = (tenant.draftManifest as Record<string, any>) || { sections: [] };
+  const updated = { ...currentDraft, devUrl: devUrl.replace(/\/+$/, "") };
+
   await db
     .update(tenants)
-    .set({
-      frontendUrl: devUrl.replace(/\/+$/, ""),
-      updatedAt: new Date().toISOString(),
-    })
+    .set({ draftManifest: updated, updatedAt: new Date().toISOString() })
     .where(eq(tenants.id, tenant.id));
 
-  return NextResponse.json({ ok: true, frontendUrl: devUrl });
+  return NextResponse.json({ ok: true, devUrl });
 }

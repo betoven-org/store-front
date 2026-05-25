@@ -6,10 +6,14 @@ import { eq } from "drizzle-orm";
 /**
  * POST /api/v1/manifest — Upload manifest for a tenant.
  * Requires x-api-key header.
- * Body: the full manifest JSON (same format as manifest.json)
  *
- * This endpoint is called by the frontend on dev (watch mode)
- * and on deploy (CI/CD) to sync available sections with the CMS.
+ * Query params:
+ *   ?env=dev   → saves to draft_manifest (dev mode, doesn't affect production)
+ *   ?env=prod  → promotes to manifest (production, used by page builder)
+ *
+ * Default: env=dev (safe by default)
+ *
+ * Body: the full manifest JSON (same format as manifest.json)
  */
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key");
@@ -36,23 +40,45 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await db
-    .update(tenants)
-    .set({
-      manifest: body,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(eq(tenants.id, tenant.id));
+  const env = req.nextUrl.searchParams.get("env") || "dev";
+
+  if (env === "prod") {
+    // Promote: update both manifest and draft_manifest
+    await db
+      .update(tenants)
+      .set({
+        manifest: body,
+        draftManifest: body,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(tenants.id, tenant.id));
+  } else {
+    // Dev: only update draft_manifest — production untouched
+    await db
+      .update(tenants)
+      .set({
+        draftManifest: body,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(tenants.id, tenant.id));
+  }
 
   return NextResponse.json({
     ok: true,
+    env,
     sections: body.sections.length,
   });
 }
 
 /**
- * GET /api/v1/manifest — Fetch current manifest for a tenant.
+ * GET /api/v1/manifest — Fetch manifest for a tenant.
  * Requires x-api-key header.
+ *
+ * Query params:
+ *   ?env=dev  → returns draft_manifest (includes unreleased sections)
+ *   ?env=prod → returns manifest (production only)
+ *
+ * Default: env=prod
  */
 export async function GET(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key");
@@ -61,7 +87,7 @@ export async function GET(req: NextRequest) {
   }
 
   const [tenant] = await db
-    .select({ manifest: tenants.manifest })
+    .select({ manifest: tenants.manifest, draftManifest: tenants.draftManifest })
     .from(tenants)
     .where(eq(tenants.apiKey, apiKey))
     .limit(1);
@@ -70,11 +96,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
   }
 
-  if (!tenant.manifest) {
-    return NextResponse.json({ sections: [] });
-  }
+  const env = req.nextUrl.searchParams.get("env") || "prod";
+  const data = env === "dev"
+    ? (tenant.draftManifest || tenant.manifest || { sections: [] })
+    : (tenant.manifest || { sections: [] });
 
-  return NextResponse.json(tenant.manifest, {
-    headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300" },
+  return NextResponse.json(data, {
+    headers: { "Cache-Control": env === "dev" ? "no-store" : "s-maxage=60, stale-while-revalidate=300" },
   });
 }

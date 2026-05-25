@@ -44,6 +44,7 @@ export const tenants = pgTable("tenants", {
   frontendUrl: text("frontend_url"),
   revalidateSecret: text("revalidate_secret"),
   manifest: jsonb("manifest"),
+  draftManifest: jsonb("draft_manifest"),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
