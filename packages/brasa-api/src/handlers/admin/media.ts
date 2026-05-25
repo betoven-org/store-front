@@ -12,7 +12,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
-    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") || "20")));
+    const limit = Math.min(
+      100,
+      Math.max(1, Number(searchParams.get("limit") || "20"))
+    );
     const offset = (page - 1) * limit;
     const search = searchParams.get("search")?.trim() || "";
     const type = searchParams.get("type") || "";
@@ -25,8 +28,8 @@ export async function GET(request: NextRequest) {
       conditions.push(
         or(
           ilike(media.filename, `%${search}%`),
-          ilike(media.alt, `%${search}%`),
-        )!,
+          ilike(media.alt, `%${search}%`)
+        )!
       );
     }
 
@@ -38,7 +41,8 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(media.mimeType, "application/pdf"));
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const whereClause =
+      conditions.length > 0 ? and(...conditions) : undefined;
 
     // Build ORDER BY
     let orderBy;
@@ -77,7 +81,7 @@ export async function GET(request: NextRequest) {
     console.error("Media list error:", error);
     return NextResponse.json(
       { error: "Erro ao listar media" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

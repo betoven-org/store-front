@@ -31,10 +31,11 @@ type MediaItem = {
   filename: string;
   alt?: string;
   url: string;
-  filesize?: number;
+  size?: number;
   width?: number;
   height?: number;
   mimeType?: string;
+  createdAt?: string;
 };
 
 type ApiResponse = {
@@ -84,6 +85,9 @@ export default function MidiasPage() {
   const [deleteBulk, setDeleteBulk] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editAlt, setEditAlt] = useState("");
+  const [editFilename, setEditFilename] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>(null);
@@ -181,7 +185,35 @@ export default function MidiasPage() {
 
   const openSheet = (item: MediaItem) => {
     setSheetItem(item);
+    setEditAlt(item.alt || "");
+    setEditFilename(item.filename);
     setSheetOpen(true);
+  };
+
+  const handleSaveMetadata = async () => {
+    if (!sheetItem) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/media/${sheetItem.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alt: editAlt, filename: editFilename }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setError(json.error || "Erro ao salvar.");
+        return;
+      }
+      const updated = await res.json();
+      setSheetItem(updated);
+      setData((prev) =>
+        prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteSingle = async () => {
@@ -244,7 +276,7 @@ export default function MidiasPage() {
     });
   };
 
-  const totalSize = data.reduce((sum, m) => sum + (m.filesize ?? 0), 0);
+  const totalSize = data.reduce((sum, m) => sum + (m\.size ?? 0), 0);
 
   return (
     <AdminShell title="Midias">
@@ -480,7 +512,7 @@ export default function MidiasPage() {
                     </p>
                     <div className="mt-0.5 flex items-center justify-between">
                       <span className="text-xs text-muted-foreground tabular-nums">
-                        {formatFileSize(item.filesize)}
+                        {formatFileSize(item\.size)}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {mimeLabel(item.mimeType)}
@@ -601,7 +633,7 @@ export default function MidiasPage() {
                         {mimeLabel(item.mimeType)}
                       </td>
                       <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
-                        {formatFileSize(item.filesize)}
+                        {formatFileSize(item\.size)}
                       </td>
                       <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
                         {item.width && item.height
@@ -666,15 +698,42 @@ export default function MidiasPage() {
                 />
               </div>
 
-              <dl className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
-                <div className="flex items-center gap-2 px-3 py-2.5">
-                  <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
-                    Arquivo
-                  </dt>
-                  <dd className="truncate text-foreground">
-                    {sheetItem.filename}
-                  </dd>
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    Nome do arquivo
+                  </label>
+                  <input
+                    type="text"
+                    value={editFilename}
+                    onChange={(e) => setEditFilename(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
+                  />
                 </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    Alt text
+                  </label>
+                  <input
+                    type="text"
+                    value={editAlt}
+                    onChange={(e) => setEditAlt(e.target.value)}
+                    placeholder="Descreva a imagem para acessibilidade"
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  disabled={saving || (editAlt === (sheetItem.alt || "") && editFilename === sheetItem.filename)}
+                  onClick={handleSaveMetadata}
+                >
+                  {saving ? "Salvando..." : "Salvar alteracoes"}
+                </Button>
+              </div>
+
+              <dl className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
                 {sheetItem.mimeType && (
                   <div className="flex items-center gap-2 px-3 py-2.5">
                     <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
@@ -688,7 +747,7 @@ export default function MidiasPage() {
                     Tamanho
                   </dt>
                   <dd className="text-foreground">
-                    {formatFileSize(sheetItem.filesize)}
+                    {formatFileSize(sheetItem.size)}
                   </dd>
                 </div>
                 {sheetItem.width && sheetItem.height && (
@@ -701,12 +760,14 @@ export default function MidiasPage() {
                     </dd>
                   </div>
                 )}
-                {sheetItem.alt && (
+                {sheetItem.createdAt && (
                   <div className="flex items-center gap-2 px-3 py-2.5">
                     <dt className="w-24 shrink-0 text-xs font-medium text-muted-foreground">
-                      Alt text
+                      Enviado em
                     </dt>
-                    <dd className="text-foreground">{sheetItem.alt}</dd>
+                    <dd className="text-foreground">
+                      {new Date(sheetItem.createdAt).toLocaleDateString("pt-BR")}
+                    </dd>
                   </div>
                 )}
               </dl>

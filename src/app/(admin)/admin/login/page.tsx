@@ -14,27 +14,6 @@ function BrandLogo({ height = 24 }: { height?: number }) {
   );
 }
 
-function BrandGlyph({ size = 72 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M20 10 L20 110 Q20 115 25 115 L55 115 Q80 115 80 90 Q80 72 62 68 Q75 64 75 50 Q75 30 55 30 L35 30 L35 10 Q35 5 30 5 L25 5 Q20 5 20 10Z"
-        fill="currentColor"
-        opacity="0.9"
-      />
-      <path
-        d="M35 45 L55 45 Q60 45 60 52 Q60 60 55 60 L35 60Z"
-        fill="oklch(0.22 0.06 35)"
-      />
-      <path
-        d="M35 75 L58 75 Q65 75 65 85 Q65 100 58 100 L35 100Z"
-        fill="oklch(0.22 0.06 35)"
-      />
-      <circle cx="72" cy="28" r="12" fill="#F97316" />
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -70,7 +49,7 @@ export default function LoginPage() {
       {/* Left: form */}
       <div className="flex flex-col px-10 py-10 lg:px-16 bg-[#fafafa]">
         <div className="flex items-center gap-2">
-          <BrandLogo height={28} />
+          <BrandLogo height={32} />
         </div>
 
         <div className="flex flex-1 flex-col justify-center max-w-[420px] w-full">
@@ -238,7 +217,7 @@ export default function LoginPage() {
         {/* Center content */}
         <div className="flex flex-1 items-center justify-center relative z-10">
           <div className="text-center flex flex-col items-center">
-            <BrandGlyph size={100} />
+            <BrandLogo height={72} />
             <h2 className="text-[32px] font-bold mt-8 tracking-tight leading-[1.25]">
               Gerencie{" "}
               <span style={{ color: "#F97316" }}>conteúdo,</span>
