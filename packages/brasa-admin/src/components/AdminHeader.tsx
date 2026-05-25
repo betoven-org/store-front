@@ -160,7 +160,7 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
             }
           }}
         />
-        <IconBtn icon={HelpCircle} title="Ajuda" />
+        <IconBtn icon={HelpCircle} title="Ajuda" onClick={() => window.location.href = "/admin/ajuda"} />
         <IconBtn icon={Bell} title="Notificacoes" badge={3} />
       </div>
 
