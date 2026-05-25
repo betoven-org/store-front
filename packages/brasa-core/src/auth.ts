@@ -1,86 +1,62 @@
-import NextAuth, { type DefaultSession } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
+import { createNeonAuth } from "@neondatabase/auth/next/server";
 import { db } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
 
-declare module "next-auth" {
-  interface User {
-    role: "admin" | "editor" | "author" | "viewer";
-  }
-
-  interface Session {
-    user: {
-      id: string;
-      role: "admin" | "editor" | "author" | "viewer";
-    } & DefaultSession["user"];
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: "admin" | "editor" | "author" | "viewer";
-  }
-}
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    Credentials({
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Senha", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const email = credentials.email as string;
-        const password = credentials.password as string;
-
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
-
-        if (!user) {
-          return null;
-        }
-
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-
-        if (!isValid) {
-          return null;
-        }
-
-        return {
-          id: String(user.id),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id as string;
-        token.role = user.role;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      session.user.id = token.id;
-      session.user.role = token.role;
-      return session;
-    },
+const neonAuth = createNeonAuth({
+  baseUrl: process.env.NEON_AUTH_BASE_URL!,
+  cookies: {
+    secret: process.env.NEON_AUTH_COOKIE_SECRET!,
   },
-  pages: {
-    signIn: "/admin/login",
-  },
-  session: { strategy: "jwt" },
 });
+
+export type UserRole = "admin" | "editor" | "author" | "viewer";
+
+export type AuthSession = {
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    role: UserRole;
+    neonAuthId: string;
+  };
+} | null;
+
+/**
+ * Drop-in replacement for the old NextAuth `auth()`.
+ * Gets the Neon Auth session and enriches with the user's role from our DB.
+ */
+export async function auth(): Promise<AuthSession> {
+  try {
+    const { data: session } = await neonAuth.getSession();
+
+    if (!session?.user?.email) {
+      return null;
+    }
+
+    const [dbUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, session.user.email))
+      .limit(1);
+
+    if (!dbUser) {
+      return null;
+    }
+
+    return {
+      user: {
+        id: String(dbUser.id),
+        name: dbUser.name,
+        email: dbUser.email,
+        role: dbUser.role as UserRole,
+        neonAuthId: session.user.id,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Re-export neonAuth for handler and middleware
+export { neonAuth };

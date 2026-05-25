@@ -32,6 +32,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@eslint/eslintrc": "^3.3.5",
     "@hookform/resolvers": "^5.4.0",
+    "@neondatabase/auth": "0.4.1-beta",
+    "@neondatabase/auth-ui": "0.2.0-beta",
     "@neondatabase/serverless": "^1.1.0",
     "@supabase/supabase-js": "^2.106.1",
     "@tailwindcss/typography": "^0.5.19",

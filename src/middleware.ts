@@ -1,5 +1,5 @@
-import { auth } from "@brasa/core/auth";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { neonAuth } from "@brasa/core/auth";
 
 const INGEST_SECRET = process.env.METRICS_INGEST_SECRET || "metrics-internal-key";
 const TENANT_HEADER = "x-tenant-id";
@@ -17,7 +17,6 @@ const CACHE_TTL = 5 * 60 * 1000;
 async function resolveTenantId(host: string, origin: string): Promise<number> {
   const hostname = host.split(":")[0];
 
-  // Check cache
   const cached = tenantCache.get(hostname);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
     return cached.id;
@@ -38,17 +37,16 @@ async function resolveTenantId(host: string, origin: string): Promise<number> {
   return 1;
 }
 
-export default auth(async (req) => {
+export default async function middleware(req: NextRequest) {
   const start = Date.now();
   const { pathname } = req.nextUrl;
   const ua = req.headers.get("user-agent") || "";
 
-  // Bloquear bots maliciosos
+  // Block bad bots
   if (BLOCK_BOTS.test(ua)) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  // Bloquear requests sem user-agent (quase sempre bots)
   if (!ua && !pathname.startsWith("/api/")) {
     return new Response("Forbidden", { status: 403 });
   }
@@ -63,19 +61,34 @@ export default auth(async (req) => {
     return NextResponse.next();
   }
 
+  // Let Neon Auth API routes pass through
+  if (pathname.startsWith("/api/auth/")) {
+    return NextResponse.next();
+  }
+
   // Resolve tenant
   const host = req.headers.get("host") || "localhost";
   const tenantId = await resolveTenantId(host, req.nextUrl.origin);
 
   const isLoginPage = pathname === "/admin/login";
+  const isRecoverPage = pathname === "/admin/recuperar-senha" || pathname === "/admin/redefinir-senha";
   const isPaymentPage = pathname === "/admin/pagamento-pendente";
   const isAdminRoute = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
-  const isAuthenticated = !!req.auth;
 
-  // Rotas publicas — nunca bloquear
+  // Check auth via Neon Auth session
+  let isAuthenticated = false;
+  try {
+    const { data: session } = await neonAuth.getSession();
+    isAuthenticated = !!session?.user;
+  } catch {
+    // Not authenticated
+  }
+
+  // Public routes
   if (
     isLoginPage ||
+    isRecoverPage ||
     isPaymentPage ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/cron") ||
@@ -84,7 +97,7 @@ export default auth(async (req) => {
     return trackAndReturn(injectTenant(tenantId, req), req, start, tenantId);
   }
 
-  // Admin nao autenticado — redirecionar para login
+  // Admin not authenticated → redirect to login
   if (isAdminRoute && !isAuthenticated) {
     return trackAndReturn(
       Response.redirect(new URL("/admin/login", req.nextUrl.origin)),
@@ -94,7 +107,7 @@ export default auth(async (req) => {
     );
   }
 
-  // Login autenticado — redirecionar para admin
+  // Login when authenticated → redirect to admin
   if (isLoginPage && isAuthenticated) {
     return trackAndReturn(
       Response.redirect(new URL("/admin", req.nextUrl.origin)),
@@ -104,7 +117,7 @@ export default auth(async (req) => {
     );
   }
 
-  // Rotas admin autenticadas — verificar assinatura
+  // Admin authenticated → check subscription
   if ((isAdminRoute || isAdminApi) && isAuthenticated) {
     try {
       const statusRes = await fetch(
@@ -129,10 +142,9 @@ export default auth(async (req) => {
   }
 
   return trackAndReturn(injectTenant(tenantId, req), req, start, tenantId);
-});
+}
 
 function injectTenant(tenantId: number, req: { headers: Headers }): NextResponse {
-  // Clone request headers and add tenant ID
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set(TENANT_HEADER, String(tenantId));
   const res = NextResponse.next({
@@ -144,7 +156,7 @@ function injectTenant(tenantId: number, req: { headers: Headers }): NextResponse
 
 function trackAndReturn(
   response: Response,
-  req: Parameters<Parameters<typeof auth>[0]>[0],
+  req: NextRequest,
   start: number,
   tenantId: number,
 ) {

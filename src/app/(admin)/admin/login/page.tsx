@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { authClient } from "@/lib/auth/client";
 
 function BrandLogo({ height = 24 }: { height?: number }) {
   return (
@@ -27,21 +28,19 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      await authClient.signIn.email({
+        email,
+        password,
+      });
 
-    setLoading(false);
-
-    if (result?.error) {
+      router.push("/admin");
+      router.refresh();
+    } catch {
       setError("Credenciais inválidas");
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/admin");
-    router.refresh();
   }
 
   return (
@@ -127,9 +126,9 @@ export default function LoginPage() {
                 </button>
                 <span className="text-[13px] text-[#555]">Lembrar de mim</span>
               </label>
-              <button type="button" className="text-[13px] text-[#F97316] font-medium hover:underline">
+              <Link href="/admin/recuperar-senha" className="text-[13px] text-[#F97316] font-medium hover:underline">
                 Esqueceu sua senha?
-              </button>
+              </Link>
             </div>
 
             {error && (
@@ -181,21 +180,18 @@ export default function LoginPage() {
           color: "white",
         }}
       >
-        {/* Ember glow top-right */}
         <div className="absolute pointer-events-none" style={{
           right: "-10%", top: "-10%",
           width: 700, height: 700, borderRadius: "50%",
           background: "radial-gradient(circle, oklch(0.60 0.22 45 / 0.45) 0%, oklch(0.45 0.18 35 / 0.15) 40%, transparent 65%)",
           filter: "blur(30px)",
         }} />
-        {/* Ember glow bottom-left */}
         <div className="absolute pointer-events-none" style={{
           left: "-15%", bottom: "-20%",
           width: 600, height: 600, borderRadius: "50%",
           background: "radial-gradient(circle, oklch(0.50 0.16 30 / 0.30) 0%, transparent 55%)",
           filter: "blur(50px)",
         }} />
-        {/* Subtle bottom-right glow */}
         <div className="absolute pointer-events-none" style={{
           right: "5%", bottom: "10%",
           width: 400, height: 400, borderRadius: "50%",
@@ -203,7 +199,6 @@ export default function LoginPage() {
           filter: "blur(40px)",
         }} />
 
-        {/* Nav links */}
         <div className="flex justify-center relative z-10">
           <div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.15em] uppercase opacity-70">
             <span>site</span>
@@ -214,10 +209,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Center content */}
         <div className="flex flex-1 items-center justify-center relative z-10">
           <div className="text-center flex flex-col items-center">
-            {/* <BrandLogo height={72} /> */}
             <h2 className="text-[32px] font-bold mt-8 tracking-tight leading-[1.25]">
               Gerencie{" "}
               <span style={{ color: "#F97316" }}>conteúdo,</span>
@@ -234,7 +227,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex justify-between items-end relative z-10 font-mono text-[11px] opacity-40">
           <span>brasa.tech</span>
           <span>{new Date().getFullYear()}</span>

@@ -358,6 +358,7 @@ export default function HistoricoPage({
       {/* Breadcrumb + back */}
       <div className="mb-6">
         <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/admin/paginas" className="hover:text-foreground transition-colors">
             Paginas
           </a>

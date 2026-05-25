@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
+import { AuthProviderWrapper } from "./AuthProviderWrapper";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +30,10 @@ export default function AdminRootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="bg-background font-sans text-foreground">
-        <SessionProvider>
+        <AuthProviderWrapper>
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster position="bottom-right" richColors closeButton />
-        </SessionProvider>
+        </AuthProviderWrapper>
       </body>
     </html>
   );
