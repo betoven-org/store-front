@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AdminShell } from "@brasa/admin";
+import { AdminShell , BrasaPageLoader } from "@brasa/admin";
 
 type TrashPage = {
   id: number;
@@ -90,10 +90,7 @@ export default function LixeiraPage() {
   if (loading) {
     return (
       <AdminShell title="Lixeira">
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
-        </div>
+        <BrasaPageLoader />
       </AdminShell>
     );
   }

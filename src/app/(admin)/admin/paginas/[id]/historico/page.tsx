@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminShell } from "@brasa/admin";
+import { AdminShell , BrasaPageLoader } from "@brasa/admin";
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -320,10 +320,7 @@ export default function HistoricoPage({
   if (loading) {
     return (
       <AdminShell title="Historico" headerExtra={null}>
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
-        </div>
+        <BrasaPageLoader />
       </AdminShell>
     );
   }

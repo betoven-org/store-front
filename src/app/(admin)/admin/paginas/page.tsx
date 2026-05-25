@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { AdminShell } from "@brasa/admin";
+import { AdminShell , BrasaPageLoader } from "@brasa/admin";
 import { createPageSchema } from "@brasa/core/validations";
 import { z as z3 } from "zod/v3";
 import type { z } from "zod";
@@ -241,10 +241,7 @@ export default function PaginasPage() {
   if (loading) {
     return (
       <AdminShell title="Paginas">
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
-        </div>
+        <BrasaPageLoader />
       </AdminShell>
     );
   }

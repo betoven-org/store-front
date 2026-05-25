@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { diffWords } from "diff";
-import { AdminShell } from "@brasa/admin";
+import { AdminShell , BrasaPageLoader } from "@brasa/admin";
 
 type EditState = {
   title: string;
@@ -233,10 +233,7 @@ export default function PublicarPage() {
   if (loading) {
     return (
       <AdminShell title="Publicar">
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
-        </div>
+        <BrasaPageLoader />
       </AdminShell>
     );
   }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, PageBuilder } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, PageBuilder , BrasaPageLoader } from "@brasa/admin";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 
 type EditState = {
@@ -847,10 +847,7 @@ export default function EditPagePage({
   if (loading) {
     return (
       <AdminShell title="Editar pagina" headerExtra={null}>
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
-        </div>
+        <BrasaPageLoader />
       </AdminShell>
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AdminShell } from "@brasa/admin";
+import { AdminShell , BrasaPageLoader } from "@brasa/admin";
 
 type Guide = {
   id: number;
@@ -32,9 +32,7 @@ export default function AjudaPage() {
   return (
     <AdminShell title="Ajuda">
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
-        </div>
+        <BrasaPageLoader />
       ) : guides.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-8 text-center">
           <p className="text-sm text-muted-foreground">Nenhum guia disponivel</p>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { AdminShell, FormField, ImageUpload, DeleteConfirm } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, DeleteConfirm , BrasaPageLoader } from "@brasa/admin";
 
 export default function EditarAutorPage() {
   const router = useRouter();
@@ -96,19 +96,7 @@ export default function EditarAutorPage() {
   if (loading) {
     return (
       <AdminShell title="Editar Autor">
-        <div className="flex items-center justify-center py-12">
-          <svg
-            className="h-8 w-8 animate-spin text-primary"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          <span className="ml-3 text-sm text-muted-foreground">Carregando...</span>
-        </div>
+        <BrasaPageLoader />
       </AdminShell>
     );
   }
