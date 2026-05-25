@@ -32,7 +32,7 @@ export default function RecoverPasswordPage() {
     setLoading(true);
 
     try {
-      await authClient.forgetPassword.emailOtp({ email });
+      await authClient.emailOtp.sendVerificationOtp({ email, type: "forget-password" });
       setStep("code");
     } catch {
       setError("Erro ao enviar código. Verifique o email e tente novamente.");
@@ -58,10 +58,10 @@ export default function RecoverPasswordPage() {
     setLoading(true);
 
     try {
-      await authClient.resetPassword.emailOtp({
+      await authClient.emailOtp.resetPassword({
         email,
         otp,
-        newPassword,
+        password: newPassword,
       });
       setSuccess(true);
     } catch {
