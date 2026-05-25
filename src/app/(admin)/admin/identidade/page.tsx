@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, useTenant, useTenantRefetch } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, useTenant, useTenantRefetch , BrasaPageLoader } from "@brasa/admin";
 import { useSettings } from "@/hooks/useSettings";
+
+const SOCIAL_NETWORKS = [
+  { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/sua-pagina" },
+  { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/seu-perfil" },
+  { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/@seu-canal" },
+  { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@seu-perfil" },
+  { key: "twitter", label: "X (Twitter)", placeholder: "https://x.com/seu-perfil" },
+  { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/company/sua-empresa" },
+  { key: "pinterest", label: "Pinterest", placeholder: "https://pinterest.com/seu-perfil" },
+  { key: "threads", label: "Threads", placeholder: "https://threads.net/@seu-perfil" },
+] as const;
+
+type SocialKey = (typeof SOCIAL_NETWORKS)[number]["key"];
 
 export default function IdentidadePage() {
   const {
@@ -23,10 +36,34 @@ export default function IdentidadePage() {
   const [frontendUrl, setFrontendUrl] = useState("");
   const [tenantSaving, setTenantSaving] = useState(false);
   const [tenantLoaded, setTenantLoaded] = useState(false);
+  const [visibleNetworks, setVisibleNetworks] = useState<SocialKey[]>([]);
+  const [socialsLoaded, setSocialsLoaded] = useState(false);
 
   if (tenant && !tenantLoaded) {
     setFrontendUrl(tenant.frontendUrl || "");
     setTenantLoaded(true);
+  }
+
+  // Init visible networks from settings
+  if (!socialsLoaded && !loading) {
+    const dbFields: SocialKey[] = ["facebook", "instagram", "youtube"];
+    const active = dbFields.filter((k) => {
+      const val = settings[k as keyof typeof settings];
+      return val && String(val).trim() !== "";
+    });
+    setVisibleNetworks(active);
+    setSocialsLoaded(true);
+  }
+
+  const availableToAdd = SOCIAL_NETWORKS.filter((n) => !visibleNetworks.includes(n.key));
+
+  function addNetwork(key: SocialKey) {
+    setVisibleNetworks((prev) => [...prev, key]);
+  }
+
+  function removeNetwork(key: SocialKey) {
+    setVisibleNetworks((prev) => prev.filter((k) => k !== key));
+    handleChange({ target: { name: key, value: "" } } as React.ChangeEvent<HTMLInputElement>);
   }
 
   async function handleSaveAll() {
@@ -166,6 +203,64 @@ export default function IdentidadePage() {
                   Conectado: <a href={tenant.frontendUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{tenant.frontendUrl}</a>
                 </span>
               </div>
+            )}
+          </div>
+        </section>
+
+        {/* Redes Sociais */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-background px-5 py-3">
+            <h3 className="text-[13px] font-semibold text-foreground">Redes Sociais</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Links das redes sociais exibidos no site</p>
+          </div>
+          <div className="p-5 space-y-3">
+            {visibleNetworks.map((key) => {
+              const network = SOCIAL_NETWORKS.find((n) => n.key === key)!;
+              return (
+                <div key={key} className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <FormField
+                      label={network.label}
+                      name={key}
+                      value={(settings[key as keyof typeof settings] as string) ?? ""}
+                      onChange={handleChange}
+                      placeholder={network.placeholder}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeNetwork(key)}
+                    className="mb-0.5 flex h-[34px] w-[34px] items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                    title={`Remover ${network.label}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+
+            {availableToAdd.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {availableToAdd.map((network) => (
+                  <button
+                    key={network.key}
+                    type="button"
+                    onClick={() => addNetwork(network.key)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14"/><path d="M12 5v14"/>
+                    </svg>
+                    {network.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {visibleNetworks.length === 0 && availableToAdd.length > 0 && (
+              <p className="text-[12px] text-muted-foreground">Clique em uma rede acima para adicionar.</p>
             )}
           </div>
         </section>
