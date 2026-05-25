@@ -44,3 +44,4 @@ next-env.d.ts
 /public/media
 src/payload-types.ts
 .env*.local
+.claude/

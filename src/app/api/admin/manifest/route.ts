@@ -4,11 +4,12 @@ import { db } from "@brasa/core/db";
 import { tenants } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
+import staticManifest from "@/manifest.json";
 
 /**
  * GET /api/admin/manifest — Returns the manifest for the page builder.
- * Uses draft_manifest (includes dev sections) with fallback to manifest (prod).
- * This way the page builder always shows the latest sections (including unreleased).
+ * Uses draft_manifest (includes dev sections) with fallback to manifest (prod),
+ * then fallback to static manifest.json bundled in the app.
  */
 export async function GET() {
   const session = await auth();
@@ -24,17 +25,7 @@ export async function GET() {
     .limit(1);
 
   // Priority: draftManifest > manifest > static fallback
-  const data = tenant?.draftManifest || tenant?.manifest;
+  const data = tenant?.draftManifest || tenant?.manifest || staticManifest;
 
-  if (data) {
-    return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
-  }
-
-  // Fallback: static manifest.json
-  try {
-    const staticManifest = await import("@/manifest.json");
-    return NextResponse.json(staticManifest.default || staticManifest);
-  } catch {
-    return NextResponse.json({ sections: [] });
-  }
+  return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
 }
