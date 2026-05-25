@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { authClient } from "@/lib/auth/client";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -79,7 +79,9 @@ function IconBtn({ icon: Icon, title, badge, onClick }: {
 
 export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHeaderProps) {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { data: sessionData, isPending } = authClient.useSession();
+  const status = isPending ? "loading" : sessionData ? "authenticated" : "unauthenticated";
+  const session = sessionData ? { user: sessionData.user } : null;
   const tenant = useTenant();
   const crumbs = getBreadcrumbs(pathname);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -210,7 +212,7 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
                 </div>
               </div>
               <div className="p-1">
-                <MenuButton icon={LogOut} label="Sair" danger onClick={() => signOut({ callbackUrl: "/admin/login" })} />
+                <MenuButton icon={LogOut} label="Sair" danger onClick={async () => { await authClient.signOut(); window.location.href = "/admin/login"; }} />
               </div>
             </div>
           )}

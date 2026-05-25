@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SessionProvider } from "next-auth/react";
 import Sidebar from "./Sidebar";
 import AdminHeader from "./AdminHeader";
 import { TenantProvider } from "./TenantProvider";
@@ -58,10 +57,8 @@ function ShellInner({ title, children, headerExtra }: AdminShellProps) {
 
 export default function AdminShell({ title, children, headerExtra }: AdminShellProps) {
   return (
-    <SessionProvider>
-      <TenantProvider>
-        <ShellInner title={title} headerExtra={headerExtra}>{children}</ShellInner>
-      </TenantProvider>
-    </SessionProvider>
+    <TenantProvider>
+      <ShellInner title={title} headerExtra={headerExtra}>{children}</ShellInner>
+    </TenantProvider>
   );
 }
