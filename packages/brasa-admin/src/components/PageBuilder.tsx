@@ -33,7 +33,7 @@ type PageBuilderProps = {
 
 function IconTrash() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
       <path d="M10 11v6M14 11v6" />
@@ -44,7 +44,7 @@ function IconTrash() {
 
 function IconPlus() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 5v14M5 12h14" />
     </svg>
   );
@@ -52,7 +52,7 @@ function IconPlus() {
 
 function IconGrip() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="9" cy="5" r="1" fill="currentColor" stroke="none" />
       <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" />
       <circle cx="9" cy="19" r="1" fill="currentColor" stroke="none" />
@@ -213,7 +213,7 @@ function BlockItem({
 }: BlockItemProps) {
   return (
     <div
-      className={`group flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors ${
+      className={`group flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
         isDragging
           ? "opacity-50"
           : isSelected
@@ -243,7 +243,7 @@ function BlockItem({
 
       {/* title */}
       <span
-        className={`min-w-0 flex-1 truncate text-sm font-medium ${
+        className={`min-w-0 flex-1 truncate text-[13px] font-medium ${
           isSelected ? "text-primary" : "text-foreground"
         }`}
       >
@@ -394,115 +394,111 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
 
   return (
     <>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 lg:grid-cols-[300px_1fr]">
-        {/* ── Left panel: block list ─────────────────────────────────────── */}
-        <aside className="flex flex-col border-r border-border bg-transparent">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Secoes
-            </h2>
-            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              {value.length}
-            </span>
-          </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-0">
+        {/* ── Section list ────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between border-b border-border px-3 py-2">
+          <h2 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Secoes
+          </h2>
+          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {value.length}
+          </span>
+        </div>
 
-          <div className="flex-1 overflow-y-auto">
-            {value.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                Nenhuma secao adicionada.
-              </p>
-            ) : (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={value.map((b) => b.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <ul className="space-y-1.5 p-3" role="list">
-                    {value.map((block) => {
-                      const schema = schemaMap.get(block.component);
-                      return (
-                        <SortableItem
-                          key={block.id}
-                          id={block.id}
-                          title={schema?.title ?? block.component}
-                          isSelected={selectedId === block.id}
-                          onSelect={() => setSelectedId(block.id)}
-                          onDelete={() => deleteBlock(block.id)}
-                        />
-                      );
-                    })}
-                  </ul>
-                </SortableContext>
-
-                <DragOverlay>
-                  {activeBlock && (
-                    <div className="rounded-lg shadow-lg ring-2 ring-ring">
-                      <BlockItem
-                        title={activeSchema?.title ?? activeBlock.component}
-                        isSelected={false}
-                        onSelect={() => {}}
-                        onDelete={() => {}}
-                      />
-                    </div>
-                  )}
-                </DragOverlay>
-              </DndContext>
-            )}
-          </div>
-
-          {/* Add section button */}
-          <div className="border-t border-border p-3">
-            <button
-              type="button"
-              onClick={() => setShowPicker(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-            >
-              <IconPlus />
-              Adicionar secao
-            </button>
-          </div>
-        </aside>
-
-        {/* ── Right panel: section editor ───────────────────────────────── */}
-        <main className="flex flex-col overflow-y-auto">
-          {selectedBlock && selectedSchema ? (
-            <div className="flex flex-col gap-0">
-              {/* Editor header */}
-              <div className="border-b border-border bg-card px-6 py-4">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {selectedSchema.title}
-                </h2>
-                {selectedSchema.description && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {selectedSchema.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Editor form */}
-              <div className="px-6 py-5">
-                <SectionEditor
-                  schema={selectedSchema.props}
-                  values={selectedBlock.props}
-                  onChange={updateProps}
-                />
-              </div>
-            </div>
+        <div className="overflow-y-auto">
+          {value.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+              Nenhuma secao adicionada.
+            </p>
           ) : (
-            <div className="flex flex-1 items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                {value.length === 0
-                  ? "Adicione uma secao para comecar."
-                  : "Selecione uma secao para editar."}
-              </p>
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={value.map((b) => b.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-1 p-2" role="list">
+                  {value.map((block) => {
+                    const schema = schemaMap.get(block.component);
+                    return (
+                      <SortableItem
+                        key={block.id}
+                        id={block.id}
+                        title={schema?.title ?? block.component}
+                        isSelected={selectedId === block.id}
+                        onSelect={() => setSelectedId(block.id)}
+                        onDelete={() => deleteBlock(block.id)}
+                      />
+                    );
+                  })}
+                </ul>
+              </SortableContext>
+
+              <DragOverlay>
+                {activeBlock && (
+                  <div className="rounded-lg shadow-lg ring-2 ring-ring">
+                    <BlockItem
+                      title={activeSchema?.title ?? activeBlock.component}
+                      isSelected={false}
+                      onSelect={() => {}}
+                      onDelete={() => {}}
+                    />
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
           )}
-        </main>
+        </div>
+
+        {/* Add section button */}
+        <div className="border-t border-border p-2">
+          <button
+            type="button"
+            onClick={() => setShowPicker(true)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            <IconPlus />
+            Adicionar secao
+          </button>
+        </div>
+
+        {/* ── Section editor (below the list) ─────────────────────────── */}
+        {selectedBlock && selectedSchema ? (
+          <div className="flex flex-col gap-0 border-t border-border">
+            {/* Editor header */}
+            <div className="border-b border-border bg-card px-4 py-3">
+              <h2 className="text-[13px] font-semibold text-foreground">
+                {selectedSchema.title}
+              </h2>
+              {selectedSchema.description && (
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {selectedSchema.description}
+                </p>
+              )}
+            </div>
+
+            {/* Editor form */}
+            <div className="overflow-y-auto px-4 py-3">
+              <SectionEditor
+                schema={selectedSchema.props}
+                values={selectedBlock.props}
+                onChange={updateProps}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center border-t border-border py-6">
+            <p className="text-xs text-muted-foreground">
+              {value.length === 0
+                ? "Adicione uma secao para comecar."
+                : "Selecione uma secao para editar."}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Section picker modal */}

@@ -45,9 +45,9 @@ export type SectionEditorProps = {
 // ---------------------------------------------------------------------------
 
 const inputCls =
-  "w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring";
+  "w-full rounded-md border border-border bg-card px-2.5 py-1.5 text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring";
 
-const labelCls = "block text-sm font-medium text-foreground";
+const labelCls = "block text-[12px] font-semibold text-foreground";
 
 // ---------------------------------------------------------------------------
 // Utility — build an empty item value from an items schema
@@ -154,7 +154,7 @@ function FieldLabel({
 // ---------------------------------------------------------------------------
 
 function FieldWrapper({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-1.5">{children}</div>;
+  return <div className="space-y-1">{children}</div>;
 }
 
 // ---------------------------------------------------------------------------
@@ -386,7 +386,7 @@ function BooleanField({ fieldKey, schema, value, onChange }: FieldRendererProps)
 
   return (
     <FieldWrapper>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2">
         <div>
           <label htmlFor={id} className={`${labelCls} cursor-pointer`}>
             {schema.title ?? fieldKey}
@@ -416,14 +416,14 @@ function ObjectField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRend
   };
 
   return (
-    <fieldset className="rounded-md border border-border bg-background px-4 pb-4 pt-3">
-      <legend className="px-1 text-sm font-medium text-foreground">
+    <fieldset className="rounded-md border border-border bg-background px-3 pb-3 pt-2">
+      <legend className="px-1 text-[12px] font-semibold text-foreground">
         {schema.title ?? fieldKey}
       </legend>
       {schema.description && (
-        <p className="mb-3 text-xs text-muted-foreground">{schema.description}</p>
+        <p className="mb-2 text-xs text-muted-foreground">{schema.description}</p>
       )}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {Object.entries(schema.properties).map(([key, fieldSchema]) => {
           if (fieldSchema.format === "hidden") return null;
           return (
@@ -468,11 +468,11 @@ function ArrayField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRende
         required={schema.required}
         description={schema.description}
       />
-      <div className="space-y-3">
+      <div className="space-y-2">
         {arrVal.map((item, index) => (
           <div
             key={index}
-            className="relative border-l-2 border-primary/20 pl-4"
+            className="relative border-l-2 border-primary/20 pl-3"
           >
             <button
               type="button"
@@ -592,13 +592,13 @@ function GroupSection({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between rounded-t-md bg-background px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        className="flex w-full items-center justify-between rounded-t-md bg-background px-3 py-2 text-left text-[13px] font-medium text-foreground transition-colors hover:bg-accent"
         aria-expanded={open}
       >
         {title}
         <SvgChevron open={open} />
       </button>
-      {open && <div className="space-y-4 px-4 pb-4 pt-3">{children}</div>}
+      {open && <div className="space-y-3 px-3 pb-3 pt-2">{children}</div>}
     </div>
   );
 }
@@ -626,7 +626,7 @@ export default function SectionEditor({
     // Single flat list — no group headers
     const entries = groups.get("__ungrouped__") ?? [];
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {entries.map(([key, field]) => (
           <FieldRenderer
             key={key}
@@ -647,7 +647,7 @@ export default function SectionEditor({
         const isUngrouped = groupName === "__ungrouped__";
 
         const fields = (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {entries.map(([key, field]) => (
               <FieldRenderer
                 key={key}
