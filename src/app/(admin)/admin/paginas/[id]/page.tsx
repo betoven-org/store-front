@@ -621,13 +621,18 @@ export default function EditPagePage({
   const frontendBase = tenant?.frontendUrl || "";
   const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
-  // Preview: frontend URL → load page directly, fallback to internal preview
+  // Preview:
+  // - Draft exists → internal preview (renders draft sections server-side)
+  // - No draft + frontend URL → published page on frontend
+  // - No draft + no frontend → internal preview fallback
   const hasContent = !!(page.content || page.draft);
-  const previewUrl = frontendBase
-    ? `${frontendBase}${pagePath}`
-    : hasContent || hasSections
-      ? `/api/admin/pages/${id}/preview?sections=draft`
-      : "";
+  const previewUrl = hasDraft
+    ? `/api/admin/pages/${id}/preview?sections=draft`
+    : frontendBase
+      ? `${frontendBase}${pagePath}`
+      : hasContent || hasSections
+        ? `/api/admin/pages/${id}/preview`
+        : "";
   const isBusy = saving || publishing;
 
   // Draft count: number of fields changed vs published
