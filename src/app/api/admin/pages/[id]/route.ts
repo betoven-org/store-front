@@ -78,6 +78,17 @@ export async function PATCH(
       return NextResponse.json(updated);
     }
 
+    // If only scheduledAt is being saved
+    if (body.scheduledAt !== undefined && Object.keys(body).length === 1) {
+      const scheduledAt = body.scheduledAt === null ? null : body.scheduledAt;
+      const [updated] = await db
+        .update(pages)
+        .set({ scheduledAt, updatedAt: new Date().toISOString() })
+        .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
+        .returning();
+      return NextResponse.json(updated);
+    }
+
     const parsed = parseBody(updatePageSchema, body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
 

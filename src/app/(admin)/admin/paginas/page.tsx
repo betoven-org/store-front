@@ -23,6 +23,7 @@ type Page = {
   slug: string;
   title: string;
   draft: unknown;
+  scheduledAt: string | null;
   updatedAt: string;
 };
 
@@ -361,17 +362,31 @@ export default function PaginasPage() {
                     <code className="rounded bg-accent px-1.5 py-0.5 text-xs">{page.slug}</code>
                   </td>
                   <td className="px-4 py-3">
-                    {page.draft ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-warning/20">
-                        <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-                        Rascunho
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success ring-1 ring-success/20">
-                        <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                        Publicado
-                      </span>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {page.draft ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-warning/20">
+                          <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                          Rascunho
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success ring-1 ring-success/20">
+                          <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                          Publicado
+                        </span>
+                      )}
+                      {page.scheduledAt && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-semibold text-primary ring-1 ring-primary/20">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
+                          {new Date(page.scheduledAt).toLocaleString("pt-BR", {
+                            day: "2-digit", month: "2-digit",
+                            hour: "2-digit", minute: "2-digit",
+                          })}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {new Date(page.updatedAt).toLocaleDateString("pt-BR", {
