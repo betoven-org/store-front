@@ -11,7 +11,7 @@ import { headers } from "next/headers";
 export async function GET() {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
     const result = await db.query.siteSettings.findFirst({
@@ -30,7 +30,7 @@ export async function GET() {
   } catch (error) {
     console.error("Settings get error:", error);
     return NextResponse.json(
-      { error: "Erro ao buscar configuracoes" },
+      { error: "Erro ao buscar configurações" },
       { status: 500 },
     );
   }
@@ -39,7 +39,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
     const body = await request.json();
@@ -90,7 +90,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error("Settings update error:", error);
     return NextResponse.json(
-      { error: "Erro ao atualizar configuracoes" },
+      { error: "Erro ao atualizar configurações" },
       { status: 500 },
     );
   }

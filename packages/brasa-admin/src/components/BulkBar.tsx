@@ -44,7 +44,7 @@ export default function BulkBar({ count, actions, onClear, loading = false }: Bu
         onClick={onClear}
         className="ml-auto text-muted-foreground"
       >
-        Limpar selecao
+        Limpar seleção
       </Button>
     </div>
   );

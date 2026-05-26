@@ -168,7 +168,7 @@ export default function CategoriasPage() {
                   Slug
                 </TableHead>
                 <TableHead className="px-4 text-right text-xs font-semibold uppercase tracking-wider">
-                  Acoes
+                  Ações
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -177,8 +177,10 @@ export default function CategoriasPage() {
                 <TableRow
                   key={cat.id}
                   data-state={selected.has(cat.id) ? "selected" : undefined}
+                  className="cursor-pointer"
+                  onClick={() => setDrawerId(cat.id)}
                 >
-                  <TableCell className="w-10 px-4">
+                  <TableCell className="w-10 px-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={selected.has(cat.id)}
                       onCheckedChange={() => toggleOne(cat.id)}
@@ -195,7 +197,7 @@ export default function CategoriasPage() {
                     </button>
                   </TableCell>
                   <TableCell className="px-4 text-muted-foreground">{cat.slug}</TableCell>
-                  <TableCell className="px-4 text-right">
+                  <TableCell className="px-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
@@ -241,7 +243,7 @@ export default function CategoriasPage() {
                   disabled={currentPage >= totalPages}
                   onClick={() => fetchCategories(currentPage + 1)}
                 >
-                  Proximo
+                  Próximo
                 </Button>
               </div>
             </div>

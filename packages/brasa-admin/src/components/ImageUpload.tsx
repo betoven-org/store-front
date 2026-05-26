@@ -121,7 +121,7 @@ export default function ImageUpload({ value, onChange, previewUrl }: Props) {
           type="button"
           onClick={() => setLibraryOpen(true)}
           className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input px-4 py-8 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary hover:bg-primary/5"
-          aria-label="Abrir biblioteca de midias"
+          aria-label="Abrir biblioteca de mídias"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="2" />

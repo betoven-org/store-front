@@ -172,7 +172,7 @@ const groups: Group[] = [
     items: [
       { key: "footer", label: "Footer" },
       { key: "newsletter", label: "Newsletter" },
-      { key: "paginas", label: "Paginas" },
+      { key: "paginas", label: "Páginas" },
     ],
   },
   {
@@ -186,7 +186,7 @@ const groups: Group[] = [
   },
   {
     id: "integracoes",
-    label: "Integracoes",
+    label: "Integrações",
     icon: <IconIntegrations />,
     items: [{ key: "supabase", label: "Supabase" }],
   },

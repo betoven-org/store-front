@@ -16,7 +16,7 @@ const schema = z.object({
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
   const parsed = parseBody(schema, body);

@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ docs, totalDocs, totalPages, page });
   } catch (error) {
     console.error("[GET /api/admin/users]", error);
-    return NextResponse.json({ error: "Erro ao listar usuarios" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao listar usuários" }, { status: 500 });
   }
 }
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (existing) {
-      return NextResponse.json({ error: "Ja existe um usuario com esse email" }, { status: 409 });
+      return NextResponse.json({ error: "Já existe um usuário com esse email" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -87,6 +87,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error("[POST /api/admin/users]", error);
-    return NextResponse.json({ error: "Erro ao criar usuario" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao criar usuário" }, { status: 500 });
   }
 }

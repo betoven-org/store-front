@@ -107,9 +107,9 @@ export default function UserDrawer({ userId, onClose, onSaved }: Props) {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (res.status === 409) {
-          setErrors({ email: "Ja existe um usuario com esse email" });
+          setErrors({ email: "Já existe um usuário com esse email" });
         } else {
-          setErrors({ form: data.error || (isNew ? "Erro ao criar usuario" : "Erro ao atualizar usuario") });
+          setErrors({ form: data.error || (isNew ? "Erro ao criar usuário" : "Erro ao atualizar usuário") });
         }
         return;
       }
@@ -123,7 +123,7 @@ export default function UserDrawer({ userId, onClose, onSaved }: Props) {
     }
   };
 
-  const title = isNew ? "Novo Usuario" : "Editar Usuario";
+  const title = isNew ? "Novo Usuário" : "Editar Usuário";
 
   return (
     <Drawer open={open} onClose={onClose} title={title} maxWidth="max-w-md">
@@ -193,7 +193,7 @@ export default function UserDrawer({ userId, onClose, onSaved }: Props) {
             </Button>
             <Button type="submit" disabled={saving}>
               {saving && <Spinner className="h-4 w-4" />}
-              {saving ? "Salvando..." : isNew ? "Criar Usuario" : "Salvar"}
+              {saving ? "Salvando..." : isNew ? "Criar Usuário" : "Salvar"}
             </Button>
           </div>
         </form>

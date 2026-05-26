@@ -103,6 +103,7 @@ export default function DomainsView() {
           value={newDomain}
           onChange={(e) => setNewDomain(e.target.value)}
           placeholder="meusite.com.br"
+          aria-label="Novo domínio"
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           style={{
             flex: 1, padding: "10px 14px", border: "1px solid var(--border)", borderRadius: 6,

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const { searchParams } = req.nextUrl;
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const body = await req.json();
     const parsed = parseBody(createProductSchema, body);

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import AdminHeader from "./AdminHeader";
-import { TenantProvider } from "./TenantProvider";
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
 
@@ -16,6 +15,10 @@ type AdminShellProps = {
 function ShellInner({ title, children, headerExtra }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    document.title = `${title} · Brasa CMS`;
+  }, [title]);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -49,16 +52,15 @@ function ShellInner({ title, children, headerExtra }: AdminShellProps) {
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
           extra={headerExtra}
         />
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-4 lg:p-6">
+          <h1 className="sr-only">{title}</h1>
+          {children}
+        </main>
       </div>
     </div>
   );
 }
 
 export default function AdminShell({ title, children, headerExtra }: AdminShellProps) {
-  return (
-    <TenantProvider>
-      <ShellInner title={title} headerExtra={headerExtra}>{children}</ShellInner>
-    </TenantProvider>
-  );
+  return <ShellInner title={title} headerExtra={headerExtra}>{children}</ShellInner>;
 }

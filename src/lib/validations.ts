@@ -25,7 +25,7 @@ export function parseBody<T>(schema: z.ZodType<T>, data: unknown) {
 // ── Posts ────────────────────────────────────────────────────────────────────────
 
 const baseInsertPost = createInsertSchema(posts, {
-  title: z.string().min(1, "Titulo e obrigatorio"),
+  title: z.string().min(1, "Título é obrigatório"),
   excerpt: z.string().min(1, "Excerpt e obrigatorio"),
   content: z.unknown().refine((v) => v != null, "Conteudo e obrigatorio"),
 });
@@ -172,7 +172,7 @@ export const updateUserSchema = createUserSchema.partial();
 // ── Pages ───────────────────────────────────────────────────────────────────────
 
 export const createPageSchema = createInsertSchema(pages, {
-  title: z.string().min(1, "Titulo e obrigatorio"),
+  title: z.string().min(1, "Título é obrigatório"),
   slug: z.string().min(1, "Slug e obrigatorio"),
 }).pick({ title: true, slug: true });
 

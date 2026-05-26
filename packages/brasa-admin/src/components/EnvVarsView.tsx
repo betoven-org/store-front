@@ -279,6 +279,7 @@ export default function EnvVarsView() {
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         autoFocus
+                        aria-label="Editar valor da variável"
                         style={{
                           width: "100%",
                           padding: "6px 10px",
@@ -370,7 +371,7 @@ export default function EnvVarsView() {
       )}
 
       <p style={{ marginTop: 16, fontSize: 12, color: "#9ca3af" }}>
-        Variaveis protegidas nao podem ser editadas por aqui. Alteracoes entram em vigor no proximo deploy.
+        Variáveis protegidas não podem ser editadas por aqui. Alterações entram em vigor no próximo deploy.
       </p>
     </div>
   );

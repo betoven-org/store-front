@@ -38,7 +38,7 @@ type Change = {
 };
 
 const FIELD_LABELS: Record<string, string> = {
-  title: "Titulo",
+  title: "Título",
   metaTitle: "Meta Title",
   metaDescription: "Meta Description",
   ogTitle: "OG Title",
@@ -118,7 +118,7 @@ export default function PublicarPage() {
   useEffect(() => {
     fetch("/api/admin/pages/pending")
       .then((res) => {
-        if (!res.ok) throw new Error("Erro ao carregar alteracoes pendentes");
+        if (!res.ok) throw new Error("Erro ao carregar alterações pendentes");
         return res.json();
       })
       .then((data) => {
@@ -260,13 +260,13 @@ export default function PublicarPage() {
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           <h2 className="mt-4 text-lg font-semibold text-foreground">Nada para publicar</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Todas as alteracoes ja foram publicadas.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Todas as alterações já foram publicadas.</p>
           <button
             type="button"
             onClick={() => router.push("/admin/paginas")}
             className="mt-6 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow transition-colors hover:bg-background"
           >
-            Voltar para Paginas
+            Voltar para Páginas
           </button>
         </div>
       </AdminShell>
@@ -290,9 +290,9 @@ export default function PublicarPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-foreground">Descartar alteracoes</h3>
+                <h3 className="text-base font-semibold text-foreground">Descartar alterações</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Tem certeza que deseja descartar as alteracoes de {selected.size} pagina{selected.size !== 1 ? "s" : ""}? Os rascunhos serao apagados e as paginas voltarao ao estado publicado. Esta acao nao pode ser desfeita.
+                  Tem certeza que deseja descartar as alterações de {selected.size} página{selected.size !== 1 ? "s" : ""}? Os rascunhos serão apagados e as páginas voltarão ao estado publicado. Esta ação não pode ser desfeita.
                 </p>
               </div>
             </div>
@@ -322,11 +322,12 @@ export default function PublicarPage() {
           {/* Description */}
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-foreground">Resumo</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Descricao (opcional)</p>
+            <p className="mt-1 text-xs text-muted-foreground">Descrição (opcional)</p>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={`Publicar ${selected.size} alterac${selected.size !== 1 ? "oes" : "ao"} em producao`}
+              aria-label="Descrição da publicação"
               rows={4}
               className="mt-3 w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
@@ -445,7 +446,7 @@ export default function PublicarPage() {
                           onClick={(e) => { e.stopPropagation(); handleDiscardOne(page.id); }}
                           disabled={discardingOne === page.id}
                           className="rounded p-1 text-muted-foreground transition-colors hover:bg-danger-bg hover:text-destructive disabled:opacity-50"
-                          title="Descartar alteracoes"
+                          title="Descartar alterações"
                         >
                           {discardingOne === page.id ? (
                             <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">

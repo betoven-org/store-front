@@ -77,7 +77,7 @@ export default function DataTable<T extends { id: number; status?: string }>({
                 ))}
                 {(editUrl || onDelete) && (
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Acoes
+                    Ações
                   </th>
                 )}
               </tr>
@@ -180,11 +180,11 @@ export default function DataTable<T extends { id: number; status?: string }>({
                   href={`${baseUrl}${separator}page=${currentPage + 1}`}
                   className="rounded border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-background"
                 >
-                  Proximo
+                  Próximo
                 </Link>
               ) : (
                 <span className="cursor-not-allowed rounded border border-border bg-accent px-3 py-1.5 text-sm font-medium text-muted-foreground">
-                  Proximo
+                  Próximo
                 </span>
               )}
             </div>

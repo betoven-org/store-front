@@ -146,7 +146,8 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
             <input
               type="search"
               autoFocus
-              placeholder="Buscar secoes..."
+              placeholder="Buscar seções..."
+              aria-label="Buscar seções"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
@@ -398,7 +399,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
         {/* ── Section list ────────────────────────────────────────────── */}
         <div className="flex items-center justify-between border-b border-border px-3 py-2">
           <h2 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Secoes
+            Seções
           </h2>
           <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
             {value.length}
@@ -462,7 +463,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
             className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
           >
             <IconPlus />
-            Adicionar secao
+            Adicionar seção
           </button>
         </div>
 

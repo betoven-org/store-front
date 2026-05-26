@@ -135,7 +135,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           active={editor.isActive("heading", { level: 2 })}
-          title="Titulo H2"
+          title="Título H2"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 12h8" />
@@ -149,7 +149,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           active={editor.isActive("heading", { level: 3 })}
-          title="Titulo H3"
+          title="Título H3"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 12h8" />
@@ -164,7 +164,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
           active={editor.isActive("heading", { level: 4 })}
-          title="Titulo H4"
+          title="Título H4"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 12h8" />

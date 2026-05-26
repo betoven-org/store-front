@@ -11,7 +11,7 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const { id } = await params;
   const numId = parseInt(id, 10);

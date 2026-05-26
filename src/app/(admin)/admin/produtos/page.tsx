@@ -65,6 +65,9 @@ export default function ProductsListPage() {
   // Drawer
   const [drawerProductId, setDrawerProductId] = useState<number | null>(null);
 
+  // Kebab menu
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
   // Single delete
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
@@ -243,6 +246,7 @@ export default function ProductsListPage() {
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") clearSearch(); }}
               placeholder="Buscar produtos..."
+              aria-label="Buscar produtos"
               className="w-full rounded-md border bg-card py-2 pl-10 pr-9 text-sm shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             {search && (
@@ -371,7 +375,7 @@ export default function ProductsListPage() {
 
             {/* Data */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Periodo</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Período</label>
               <div className="relative" ref={datePickerRef}>
                 <button
                   type="button"
@@ -516,7 +520,7 @@ export default function ProductsListPage() {
                     Data
                   </TableHead>
                   <TableHead className="px-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Acoes
+                    Ações
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -524,9 +528,10 @@ export default function ProductsListPage() {
                 {data.map((product) => (
                   <TableRow
                     key={product.id}
-                    className={selected.has(product.id) ? "bg-primary/[0.03]" : ""}
+                    className={`cursor-pointer ${selected.has(product.id) ? "bg-primary/[0.03]" : ""}`}
+                    onClick={() => setDrawerProductId(product.id)}
                   >
-                    <TableCell className="w-10 px-4">
+                    <TableCell className="w-10 px-4" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selected.has(product.id)}
@@ -570,7 +575,7 @@ export default function ProductsListPage() {
                       </button>
                     </TableCell>
                     <TableCell className="px-4 text-muted-foreground">
-                      {product.categoryName || "---"}
+                      {product.categoryName || "Sem categoria"}
                     </TableCell>
                     <TableCell className="px-4">
                       <StatusBadge status={product.status} />
@@ -578,18 +583,18 @@ export default function ProductsListPage() {
                     <TableCell className="px-4 text-muted-foreground">
                       {formatDate(product.createdAt)}
                     </TableCell>
-                    <TableCell className="px-4 text-right">
-                      <Popover>
+                    <TableCell className="px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <Popover open={openMenuId === product.id} onOpenChange={(open) => setOpenMenuId(open ? product.id : null)}>
                         <PopoverTrigger
                           className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                          aria-label="Acoes"
+                          aria-label="Ações"
                         >
                           <MoreVertical className="size-4" aria-hidden="true" />
                         </PopoverTrigger>
                         <PopoverContent align="end" className="w-40 p-1">
                           <button
                             type="button"
-                            onClick={() => setDrawerProductId(product.id)}
+                            onClick={() => { setOpenMenuId(null); setDrawerProductId(product.id); }}
                             className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-muted"
                           >
                             <Pencil className="size-3.5" aria-hidden="true" />
@@ -599,6 +604,7 @@ export default function ProductsListPage() {
                             href={`/${product.slug}/p`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => setOpenMenuId(null)}
                             className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-muted"
                           >
                             <ExternalLink className="size-3.5" aria-hidden="true" />
@@ -606,7 +612,7 @@ export default function ProductsListPage() {
                           </a>
                           <button
                             type="button"
-                            onClick={() => setDeleteId(product.id)}
+                            onClick={() => { setOpenMenuId(null); setDeleteId(product.id); }}
                             className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
                           >
                             <Trash2 className="size-3.5" aria-hidden="true" />
@@ -638,11 +644,11 @@ export default function ProductsListPage() {
                   )}
                   {hasNext ? (
                     <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`${baseUrl}${separator}page=${currentPage + 1}`} />}>
-                      Proximo
+                      Próximo
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" disabled>
-                      Proximo
+                      Próximo
                     </Button>
                   )}
                 </div>
@@ -793,11 +799,11 @@ function DatePickerDropdown({
 
       {/* Month nav */}
       <div className="mb-2 flex items-center justify-between">
-        <button type="button" onClick={prevMonth} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground">
+        <button type="button" onClick={prevMonth} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground" aria-label="Mês anterior">
           <ChevronLeft className="size-4" aria-hidden="true" />
         </button>
         <span className="text-sm font-medium capitalize text-foreground">{monthName}</span>
-        <button type="button" onClick={nextMonth} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground">
+        <button type="button" onClick={nextMonth} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground" aria-label="Próximo mês">
           <ChevronRightIcon className="size-4" aria-hidden="true" />
         </button>
       </div>

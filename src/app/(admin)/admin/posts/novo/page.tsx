@@ -67,7 +67,7 @@ export default function NewPostPage() {
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!title.trim()) newErrors.title = "Titulo e obrigatorio";
+    if (!title.trim()) newErrors.title = "Título é obrigatório";
     if (!excerpt.trim()) newErrors.excerpt = "Excerpt e obrigatorio";
     if (!categoryId) newErrors.categoryId = "Categoria e obrigatoria";
     if (!authorId) newErrors.authorId = "Autor e obrigatorio";
@@ -158,19 +158,19 @@ export default function NewPostPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-4 text-base font-semibold text-foreground">
-            Informacoes basicas
+            Informações básicas
           </h2>
 
           <div className="space-y-4">
             <FormField
-              label="Titulo"
+              label="Título"
               name="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               error={errors.title}
               required
-              placeholder="Titulo do post"
+              placeholder="Título do post"
             />
 
             <FormField
@@ -182,7 +182,7 @@ export default function NewPostPage() {
               error={errors.excerpt}
               required
               placeholder="Resumo do post"
-              description="Breve descricao exibida nos cards e resultados de busca"
+              description="Breve descrição exibida nos cards e resultados de busca"
             />
 
             <div className="grid gap-4 sm:grid-cols-2">

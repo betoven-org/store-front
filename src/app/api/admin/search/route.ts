@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { posts, categories, authors, products } from "@brasa/core/schema";
-import { and, like, desc, eq } from "drizzle-orm";
+import { and, ilike, desc, eq } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   const q = req.nextUrl.searchParams.get("q")?.trim();
   if (!q || q.length < 2) {
     return NextResponse.json({ results: [] });
@@ -22,25 +22,25 @@ export async function GET(req: NextRequest) {
       db
         .select({ id: posts.id, title: posts.title, slug: posts.slug, status: posts.status })
         .from(posts)
-        .where(and(like(posts.title, pattern), eq(posts.tenantId, tenantId)))
+        .where(and(ilike(posts.title, pattern), eq(posts.tenantId, tenantId)))
         .orderBy(desc(posts.createdAt))
         .limit(5),
       db
         .select({ id: categories.id, name: categories.name, slug: categories.slug })
         .from(categories)
-        .where(and(like(categories.name, pattern), eq(categories.tenantId, tenantId)))
+        .where(and(ilike(categories.name, pattern), eq(categories.tenantId, tenantId)))
         .orderBy(desc(categories.createdAt))
         .limit(5),
       db
         .select({ id: authors.id, name: authors.name, slug: authors.slug })
         .from(authors)
-        .where(and(like(authors.name, pattern), eq(authors.tenantId, tenantId)))
+        .where(and(ilike(authors.name, pattern), eq(authors.tenantId, tenantId)))
         .orderBy(desc(authors.createdAt))
         .limit(5),
       db
         .select({ id: products.id, name: products.name, slug: products.slug })
         .from(products)
-        .where(and(like(products.name, pattern), eq(products.tenantId, tenantId)))
+        .where(and(ilike(products.name, pattern), eq(products.tenantId, tenantId)))
         .orderBy(desc(products.createdAt))
         .limit(5),
     ]);

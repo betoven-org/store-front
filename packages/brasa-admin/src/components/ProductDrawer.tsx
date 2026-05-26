@@ -237,7 +237,7 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
             <div className="space-y-5">
               <FormField label="Nome" name="name" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} required placeholder="Nome do produto" />
 
-              <FormField label="Descricao" name="description" type="textarea" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descricao curta do produto" />
+              <FormField label="Descrição" name="description" type="textarea" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição curta do produto" />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField label="Categoria" name="categoryId" type="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} options={categories} placeholder="Selecione a categoria" />
@@ -267,8 +267,8 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <input type="text" value={benefit.title} onChange={(e) => updateBenefit(index, "title", e.target.value)} placeholder="Titulo" className="w-full rounded-md border bg-card px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30" />
-                        <input type="text" value={benefit.subtitle} onChange={(e) => updateBenefit(index, "subtitle", e.target.value)} placeholder="Subtitulo" className="w-full rounded-md border bg-card px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30" />
+                        <input type="text" value={benefit.title} onChange={(e) => updateBenefit(index, "title", e.target.value)} placeholder="Título" aria-label={`Título do benefício ${index + 1}`} className="w-full rounded-md border bg-card px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30" />
+                        <input type="text" value={benefit.subtitle} onChange={(e) => updateBenefit(index, "subtitle", e.target.value)} placeholder="Subtítulo" aria-label={`Subtítulo do benefício ${index + 1}`} className="w-full rounded-md border bg-card px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30" />
                       </div>
                     </div>
                   ))}
@@ -285,7 +285,7 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
                 <div className="space-y-2">
                   {differentials.map((diff, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <input type="text" value={diff} onChange={(e) => updateDifferential(index, e.target.value)} placeholder={`Diferencial ${index + 1}`} className="flex-1 rounded-md border bg-card px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30" />
+                      <input type="text" value={diff} onChange={(e) => updateDifferential(index, e.target.value)} placeholder={`Diferencial ${index + 1}`} aria-label={`Diferencial ${index + 1}`} className="flex-1 rounded-md border bg-card px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30" />
                       {differentials.length > 1 && (
                         <button type="button" onClick={() => removeDifferential(index)} className="shrink-0 text-muted-foreground transition-colors hover:text-destructive" aria-label={`Remover diferencial ${index + 1}`}>
                           <X className="size-4" aria-hidden="true" />
@@ -304,8 +304,8 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
               <div className="rounded-md border bg-muted/20 p-4">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">SEO</p>
                 <div className="space-y-4">
-                  <FormField label="Titulo da pagina" name="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Titulo que aparece na aba do navegador e no Google" description={`${seoTitle.length}/70 caracteres`} />
-                  <FormField label="Meta descricao" name="seoDescription" type="textarea" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="Descricao que aparece nos resultados do Google" description={`${seoDescription.length}/160 caracteres`} />
+                  <FormField label="Título da página" name="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Título que aparece na aba do navegador e no Google" description={`${seoTitle.length}/70 caracteres`} />
+                  <FormField label="Meta descrição" name="seoDescription" type="textarea" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="Descrição que aparece nos resultados do Google" description={`${seoDescription.length}/160 caracteres`} />
                 </div>
               </div>
 
@@ -336,6 +336,7 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
                       onChange={(e) => setContentHtml(e.target.value)}
                       rows={16}
                       className="w-full rounded-md border bg-card px-3 py-2 font-mono text-xs shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                      aria-label="Conteúdo HTML do produto"
                       placeholder="<h2>Conteudo HTML do produto</h2>"
                     />
                     {contentHtml && (

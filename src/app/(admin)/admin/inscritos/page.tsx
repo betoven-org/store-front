@@ -182,6 +182,7 @@ export default function InscritosPage() {
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar por nome ou email..."
+            aria-label="Buscar por nome ou email"
             className="w-full rounded-md border border-border bg-card py-2 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground shadow transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 sm:w-72"
           />
         </div>

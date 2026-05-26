@@ -66,19 +66,19 @@ const COUNTRY_NAMES: Record<string, string> = {
   PT: "Portugal",
   AR: "Argentina",
   DE: "Alemanha",
-  FR: "Franca",
+  FR: "França",
   ES: "Espanha",
   GB: "Reino Unido",
-  MX: "Mexico",
-  CO: "Colombia",
+  MX: "México",
+  CO: "Colômbia",
   CL: "Chile",
   UY: "Uruguai",
   PY: "Paraguai",
-  JP: "Japao",
+  JP: "Japão",
   CN: "China",
   IN: "India",
   CA: "Canada",
-  IT: "Italia",
+  IT: "Itália",
   NL: "Holanda",
   AU: "Australia",
 };
@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
       {error ? (
         <div className="rounded-xl border border-border bg-card p-8 text-center">
           <p className="text-sm font-medium text-muted-foreground">
-            Erro ao carregar metricas
+            Erro ao carregar métricas
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Verifique se a tabela request_metrics existe no banco.
@@ -235,7 +235,9 @@ export default function AnalyticsPage() {
               },
               {
                 label: "Bandwidth",
-                value: formatBytes(Number(data.overview.totalBandwidth)),
+                value: Number(data.overview.totalBandwidth) > 0
+                  ? formatBytes(Number(data.overview.totalBandwidth))
+                  : "N/A",
                 icon: ICONS.bandwidth,
               },
             ].map((card) => (
@@ -257,55 +259,61 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Timeline chart */}
-          {data.timeline.length > 0 && (
-            <div className="rounded-xl border border-border bg-card p-5">
-              <h3 className="mb-4 text-sm font-semibold text-foreground">
-                Requests por Dia
-              </h3>
-              <div className="flex h-48 items-end gap-[2px]">
-                {data.timeline.map((point, i) => {
-                  const pct = (point.requests / maxRequests) * 100;
-                  return (
-                    <div
-                      key={i}
-                      className="group relative flex-1"
-                      title={`${point.date}: ${point.requests} requests`}
-                    >
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h3 className="mb-4 text-sm font-semibold text-foreground">
+              Requests por Dia
+            </h3>
+            {data.timeline.length > 0 ? (
+              <>
+                <div className="flex h-48 items-end gap-[2px]">
+                  {data.timeline.map((point, i) => {
+                    const pct = (point.requests / maxRequests) * 100;
+                    return (
                       <div
-                        className="w-full rounded-t bg-primary/70 transition-colors group-hover:bg-primary"
-                        style={{ height: `${Math.max(pct, 2)}%` }}
-                      />
-                      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-xs text-white shadow group-hover:block">
-                        <span className="font-medium">
-                          {point.requests.toLocaleString("pt-BR")} req
-                        </span>
-                        <br />
-                        <span className="text-muted-foreground">
-                          {point.avgLatency}ms avg
-                        </span>
-                        {point.errors > 0 && (
-                          <>
-                            <br />
-                            <span className="text-destructive/50">
-                              {point.errors} erros
-                            </span>
-                          </>
-                        )}
-                        <br />
-                        <span className="text-muted-foreground">{point.date}</span>
+                        key={i}
+                        className="group relative flex-1"
+                        title={`${point.date}: ${point.requests} requests`}
+                      >
+                        <div
+                          className="w-full rounded-t bg-foreground/70 transition-colors group-hover:bg-foreground"
+                          style={{ height: `${Math.max(pct, 2)}%` }}
+                        />
+                        <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-xs text-background shadow group-hover:block">
+                          <span className="font-medium">
+                            {point.requests.toLocaleString("pt-BR")} req
+                          </span>
+                          <br />
+                          <span className="text-muted-foreground">
+                            {point.avgLatency}ms avg
+                          </span>
+                          {point.errors > 0 && (
+                            <>
+                              <br />
+                              <span className="text-red-400">
+                                {point.errors} erros
+                              </span>
+                            </>
+                          )}
+                          <br />
+                          <span className="text-muted-foreground">{point.date}</span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+                  <span>{data.timeline[0]?.date ?? ""}</span>
+                  <span>
+                    {data.timeline[data.timeline.length - 1]?.date ?? ""}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+                Sem dados no período
               </div>
-              <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-                <span>{data.timeline[0]?.date ?? ""}</span>
-                <span>
-                  {data.timeline[data.timeline.length - 1]?.date ?? ""}
-                </span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Tables: Top URLs + Top Countries + Status Codes */}
           <div className="grid gap-4 lg:grid-cols-3">
@@ -442,10 +450,10 @@ export default function AnalyticsPage() {
                 {ICONS.requests}
               </span>
               <p className="text-sm font-medium text-muted-foreground">
-                Sem dados de metricas
+                Sem dados de métricas
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Os dados aparecerao aqui conforme o site receber trafego.
+                Os dados aparecerão aqui conforme o site receber tráfego.
               </p>
             </div>
           )}

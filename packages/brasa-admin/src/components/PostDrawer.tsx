@@ -130,7 +130,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!title.trim()) newErrors.title = "Titulo e obrigatorio";
+    if (!title.trim()) newErrors.title = "Título é obrigatório";
     // excerpt is optional for Supabase-synced posts
     if (!categoryId) newErrors.categoryId = "Categoria e obrigatoria";
     if (!authorId) newErrors.authorId = "Autor e obrigatorio";
@@ -202,8 +202,8 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
             )}
 
             <div className="space-y-5">
-              <FormField label="Titulo" name="title" value={title} onChange={(e) => setTitle(e.target.value)} error={errors.title} required placeholder="Titulo do post" />
-              <FormField label="Excerpt" name="excerpt" type="textarea" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} error={errors.excerpt} required placeholder="Resumo do post" description="Breve descricao exibida nos cards e resultados de busca" />
+              <FormField label="Título" name="title" value={title} onChange={(e) => setTitle(e.target.value)} error={errors.title} required placeholder="Título do post" />
+              <FormField label="Excerpt" name="excerpt" type="textarea" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} error={errors.excerpt} required placeholder="Resumo do post" description="Breve descrição exibida nos cards e resultados de busca" />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField label="Categoria" name="categoryId" type="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} error={errors.categoryId} required options={categories} placeholder="Selecione a categoria" />
@@ -244,6 +244,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
                     onChange={(e) => setContentHtml(e.target.value)}
                     rows={16}
                     className="w-full rounded-md border bg-card px-3 py-2 font-mono text-xs shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                    aria-label="Conteúdo em Markdown"
                     placeholder="Conteudo em Markdown..."
                   />
                 ) : (

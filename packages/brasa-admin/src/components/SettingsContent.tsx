@@ -276,7 +276,7 @@ export function SettingsContent({
         <div className="space-y-6">
           <SectionHeader
             title="Identidade do Site"
-            description="Nome, descricao e imagens do seu site"
+            description="Nome, descrição e imagens do seu site"
           />
           <FormField
             label="Nome do Site"
@@ -286,12 +286,12 @@ export function SettingsContent({
             placeholder="Ex: Medicinal na Web"
           />
           <FormField
-            label="Descricao do Site"
+            label="Descrição do Site"
             name="siteDescription"
             type="textarea"
             value={settings.siteDescription}
             onChange={onSettingsChange}
-            placeholder="Uma breve descricao do seu site..."
+            placeholder="Uma breve descrição do seu site..."
           />
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-foreground">
@@ -327,7 +327,7 @@ export function SettingsContent({
         <div className="space-y-6">
           <SectionHeader
             title="Contato"
-            description="Informacoes de contato exibidas no site"
+            description="Informações de contato exibidas no site"
           />
           <FormField
             label="WhatsApp"
@@ -335,7 +335,7 @@ export function SettingsContent({
             value={settings.whatsapp}
             onChange={onSettingsChange}
             placeholder="5531999999999"
-            description="Numero com DDI + DDD, sem espacos"
+            description="Número com DDI + DDD, sem espaços"
           />
         </div>
       )}
@@ -369,17 +369,17 @@ export function SettingsContent({
         <div className="space-y-6">
           <SectionHeader
             title="Newsletter"
-            description="Configuracoes do formulario de newsletter"
+            description="Configurações do formulário de newsletter"
           />
           <FormField
-            label="Titulo"
+            label="Título"
             name="newsletterTitle"
             value={settings.newsletterTitle}
             onChange={onSettingsChange}
             placeholder="Ex: Receba nossas novidades"
           />
           <FormField
-            label="Descricao"
+            label="Descrição"
             name="newsletterDescription"
             type="textarea"
             value={settings.newsletterDescription}
@@ -392,7 +392,7 @@ export function SettingsContent({
             type="textarea"
             value={settings.newsletterConsent}
             onChange={onSettingsChange}
-            placeholder="Ex: Ao se inscrever, voce concorda com nossa politica de privacidade."
+            placeholder="Ex: Ao se inscrever, você concorda com nossa política de privacidade."
           />
         </div>
       )}
@@ -400,22 +400,23 @@ export function SettingsContent({
       {activeSection === "paginas" && (
         <div className="space-y-6">
           <SectionHeader
-            title="Paginas Estaticas"
-            description="Conteudo de paginas gerenciadas pelo CMS"
+            title="Páginas Estáticas"
+            description="Conteúdo de páginas gerenciadas pelo CMS"
           />
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Politica de Privacidade
+              Política de Privacidade
             </label>
             <p className="mb-3 text-xs text-muted-foreground">
-              Cole o conteudo HTML da sua politica de privacidade. Ele sera exibido na pagina /politica-de-privacidade.
+              Cole o conteúdo HTML da sua política de privacidade. Ele será exibido na página /politica-de-privacidade.
             </p>
             <textarea
               name="privacyPolicy"
               value={settings.privacyPolicy}
               onChange={onSettingsChange}
               rows={20}
-              placeholder="<h2>Politica de Privacidade</h2><p>Seu conteudo aqui...</p>"
+              placeholder="<h2>Política de Privacidade</h2><p>Seu conteúdo aqui...</p>"
+              aria-label="Política de Privacidade"
               className="w-full rounded-md border bg-card px-3 py-2 font-mono text-xs shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
             />
             {settings.privacyPolicy && (
@@ -440,14 +441,14 @@ export function SettingsContent({
             description="Tags de SEO para motores de busca"
           />
           <FormField
-            label="Titulo SEO"
+            label="Título SEO"
             name="seoTitle"
             value={settings.seoTitle}
             onChange={onSettingsChange}
-            placeholder="Titulo que aparece nos motores de busca"
+            placeholder="Título que aparece nos motores de busca"
           />
           <FormField
-            label="Descricao SEO"
+            label="Descrição SEO"
             name="seoDescription"
             type="textarea"
             value={settings.seoDescription}
@@ -481,6 +482,7 @@ export function SettingsContent({
               onChange={onSettingsChange}
               rows={12}
               placeholder={"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\n\nSitemap: https://seusite.com/sitemap.xml"}
+              aria-label="Conteúdo do robots.txt"
               className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
             <p className="text-xs text-muted-foreground">
@@ -540,7 +542,7 @@ export function SettingsContent({
 
           <div className="border-t border-border pt-6">
             <h3 className="mb-4 text-sm font-semibold text-foreground">
-              Acoes de Sincronizacao
+              Ações de Sincronização
             </h3>
             <div className="flex flex-wrap gap-3">
               <button

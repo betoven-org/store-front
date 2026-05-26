@@ -129,7 +129,7 @@ const COLUMNS: { key: ColumnKey; label: string; icon: React.ReactNode }[] = [
   { key: "sections", label: "Sections", icon: <IconSections /> },
   { key: "preview", label: "Preview", icon: <IconPreview /> },
   { key: "seo", label: "Page SEO", icon: <IconSeo /> },
-  { key: "changes", label: "Alteracoes", icon: <IconChanges /> },
+  { key: "changes", label: "Alterações", icon: <IconChanges /> },
   { key: "history", label: "Historico", icon: <IconHistory /> },
 ];
 
@@ -293,7 +293,7 @@ function colWidth(count: number) {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  title: "Titulo",
+  title: "Título",
   metaTitle: "Meta Title",
   metaDescription: "Meta Description",
   ogTitle: "OG Title",
@@ -537,7 +537,7 @@ export default function EditPagePage({
 
         case "brasa:media-request": {
           // For now, open the sections panel — MediaLibrary integration can be added later
-          toast("Selecione uma imagem no painel de secoes");
+          toast("Selecione uma imagem no painel de seções");
           setOpenColumns((prev) => {
             const next = new Set(prev);
             next.add("sections");
@@ -761,7 +761,7 @@ export default function EditPagePage({
         day: "2-digit", month: "2-digit", year: "numeric",
         hour: "2-digit", minute: "2-digit",
       });
-      toast.success(`Publicacao agendada para ${dateStr}`);
+      toast.success(`Publicação agendada para ${dateStr}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao agendar");
     } finally {
@@ -880,8 +880,8 @@ export default function EditPagePage({
   const hasContent = !!(page.content || page.draft);
   const previewBase = frontendBase
     ? hasDraft
-      ? `${frontendBase}${pagePath}?preview=draft&pageId=${id}`
-      : `${frontendBase}${pagePath}`
+      ? `/api/admin/pages/${id}/preview-proxy?slug=${encodeURIComponent(pagePath)}&preview=draft`
+      : `/api/admin/pages/${id}/preview-proxy?slug=${encodeURIComponent(pagePath)}`
     : hasContent || hasSections
       ? `/api/admin/pages/${id}/preview?sections=draft`
       : "";
@@ -986,7 +986,7 @@ export default function EditPagePage({
           }}
           disabled={isBusy || !hasDraft}
           className="rounded-md border border-border bg-card p-1.5 text-muted-foreground shadow transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-          title="Agendar publicacao"
+          title="Agendar publicação"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -999,7 +999,7 @@ export default function EditPagePage({
         {/* Schedule popover */}
         {showScheduler && (
           <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-lg border border-border bg-card p-4 shadow-xl">
-            <p className="text-xs font-semibold text-foreground mb-3">Agendar publicacao</p>
+            <p className="text-xs font-semibold text-foreground mb-3">Agendar publicação</p>
             <input
               type="datetime-local"
               value={scheduledAt ? toDatetimeLocal(scheduledAt) : ""}
@@ -1008,6 +1008,7 @@ export default function EditPagePage({
                 setScheduledAt(val ? new Date(val).toISOString() : null);
               }}
               min={toDatetimeLocal(new Date().toISOString())}
+              aria-label="Data e hora do agendamento"
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
             {scheduledAt && (
@@ -1071,7 +1072,7 @@ export default function EditPagePage({
             <div className="flex-1 overflow-y-auto">
               {/* Page properties */}
               <div className="border-b border-border p-4 space-y-3">
-                <FormField label="Titulo" name="title" value={editState.title} onChange={handleChange} required />
+                <FormField label="Título" name="title" value={editState.title} onChange={handleChange} required />
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -1142,7 +1143,7 @@ export default function EditPagePage({
                 <button
                   type="button"
                   onClick={toggleInlineEdit}
-                  title={inlineEdit ? "Desativar edicao inline" : "Edicao inline"}
+                  title={inlineEdit ? "Desativar edição inline" : "Edição inline"}
                   aria-pressed={inlineEdit}
                   className={`rounded p-1 transition-colors ${
                     inlineEdit
@@ -1202,7 +1203,7 @@ export default function EditPagePage({
                     </p>
                     {tenant && !tenant.frontendUrl && (
                       <p className="mt-1 text-xs text-muted-foreground/60">
-                        Defina o frontend_url no painel de configuracoes do tenant.
+                        Defina o frontend_url no painel de configurações do tenant.
                       </p>
                     )}
                   </div>
@@ -1222,26 +1223,26 @@ export default function EditPagePage({
                 <div className="rounded-md border border-border bg-background p-3">
                   <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Google</p>
                   <p className="text-sm font-medium text-[#1a0dab] leading-tight truncate">
-                    {editState.metaTitle || editState.title || "Titulo"}
+                    {editState.metaTitle || editState.title || "Título"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-success font-mono truncate">
                     {typeof window !== "undefined" ? window.location.origin : ""}{slugToPath(page.slug)}
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
-                    {editState.metaDescription || "Sem descricao"}
+                    {editState.metaDescription || "Sem descrição"}
                   </p>
                 </div>
 
-                <FormField label="Meta Title" name="metaTitle" value={editState.metaTitle ?? ""} onChange={handleChange} placeholder="Titulo no Google" description={`${(editState.metaTitle ?? "").length}/60`} />
-                <FormField label="Meta Description" name="metaDescription" type="textarea" value={editState.metaDescription ?? ""} onChange={handleChange} placeholder="Descricao no Google" description={`${(editState.metaDescription ?? "").length}/160`} />
+                <FormField label="Meta Title" name="metaTitle" value={editState.metaTitle ?? ""} onChange={handleChange} placeholder="Título no Google" description={`${(editState.metaTitle ?? "").length}/60`} />
+                <FormField label="Meta Description" name="metaDescription" type="textarea" value={editState.metaDescription ?? ""} onChange={handleChange} placeholder="Descrição no Google" description={`${(editState.metaDescription ?? "").length}/160`} />
 
                 <div className="flex items-center gap-3 pt-1">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Open Graph</span>
                   <div className="flex-1 border-t border-border" />
                 </div>
 
-                <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Titulo redes sociais" />
-                <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descricao redes sociais" />
+                <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Título redes sociais" />
+                <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descrição redes sociais" />
 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-foreground">OG Image</label>
@@ -1268,7 +1269,7 @@ export default function EditPagePage({
         {/* ── Changes column ────────────────────────────────────── */}
         {openColumns.has("changes") && (
           <div className="flex flex-col border border-border bg-card rounded-t-lg" style={{ width: colWidth(openColumns.size) }}>
-            <ColumnHeader title={`Alteracoes${draftCount > 0 ? ` (${draftCount})` : ""}`} onClose={() => toggleColumn("changes")} />
+            <ColumnHeader title={`Alterações${draftCount > 0 ? ` (${draftCount})` : ""}`} onClose={() => toggleColumn("changes")} />
             <div className="flex-1 overflow-y-auto p-5">
               {!hasDraft ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -1277,12 +1278,12 @@ export default function EditPagePage({
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                   <p className="mt-3 text-sm font-medium text-muted-foreground">Nenhuma alteracao pendente</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Todas as alteracoes foram publicadas.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Todas as alterações foram publicadas.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <p className="text-xs text-muted-foreground">
-                    {draftCount} campo{draftCount !== 1 ? "s" : ""} alterado{draftCount !== 1 ? "s" : ""} desde a ultima publicacao.
+                    {draftCount} campo{draftCount !== 1 ? "s" : ""} alterado{draftCount !== 1 ? "s" : ""} desde a última publicação.
                   </p>
 
                   {getChanges(page).map((change) => (
@@ -1463,7 +1464,7 @@ export default function EditPagePage({
                         )}
                       </div>
                       <p className="mt-1.5 text-xs font-medium text-foreground truncate">
-                        {v.title || "(sem titulo)"}
+                        {v.title || "(sem título)"}
                       </p>
                       <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
                         <span>

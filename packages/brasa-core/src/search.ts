@@ -1,7 +1,7 @@
 import { sql, SQL } from "drizzle-orm";
 
 /**
- * Constroi uma tsquery a partir do input do usuario.
+ * Constroi uma tsquery a partir do input do usuário.
  * - Divide por espacos, aplica unaccent e stemming portugues
  * - Usa & (AND) entre os termos e :* (prefix match) no ultimo termo
  * - Fallback para similarity (pg_trgm) se FTS nao encontrar nada

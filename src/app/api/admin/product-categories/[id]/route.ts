@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const { id } = await ctx.params;
     const catId = Number(id);
@@ -53,7 +53,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const { id } = await ctx.params;
     const catId = Number(id);
@@ -115,7 +115,7 @@ export async function DELETE(req: NextRequest, ctx: RouteContext) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const { id } = await ctx.params;
     const catId = Number(id);

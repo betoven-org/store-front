@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const tenantId = await getTenantId();
     const { searchParams } = req.nextUrl;
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const tenantId = await getTenantId();
     const body = await req.json();

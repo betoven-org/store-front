@@ -8,7 +8,7 @@ import { getTenantId } from "@/lib/tenant";
 export async function GET() {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const tenantId = await getTenantId();
   const [tenant] = await db
@@ -34,7 +34,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const tenantId = await getTenantId();
   const body = await request.json();

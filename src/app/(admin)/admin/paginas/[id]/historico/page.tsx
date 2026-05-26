@@ -74,7 +74,7 @@ function diffText(oldText: string, newText: string): TextDiffLine[] {
 type MetaDiffEntry = { key: string; label: string; old: string; new: string };
 
 const META_FIELDS: { key: string; label: string }[] = [
-  { key: "title", label: "Titulo" },
+  { key: "title", label: "Título" },
   { key: "metaTitle", label: "Meta Title" },
   { key: "metaDescription", label: "Meta Description" },
   { key: "ogTitle", label: "OG Title" },
@@ -357,7 +357,7 @@ export default function HistoricoPage({
         <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/admin/paginas" className="hover:text-foreground transition-colors">
-            Paginas
+            Páginas
           </a>
           <span>/</span>
           <a
@@ -472,7 +472,7 @@ export default function HistoricoPage({
                       </div>
 
                       <p className="mt-1.5 text-xs font-medium text-foreground truncate pl-6">
-                        {v.title || "(sem titulo)"}
+                        {v.title || "(sem título)"}
                       </p>
                       <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground pl-6">
                         <span>
@@ -534,7 +534,7 @@ export default function HistoricoPage({
                   v{singleSelected.version}
                 </span>
                 <span className="text-sm font-semibold text-foreground">
-                  {singleSelected.title || "(sem titulo)"}
+                  {singleSelected.title || "(sem título)"}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {new Date(singleSelected.publishedAt).toLocaleDateString("pt-BR", {
@@ -696,7 +696,7 @@ export default function HistoricoPage({
                         return (
                           <div key={d.id} className="px-5 py-2.5 flex items-center gap-2 opacity-40">
                             <span className="text-xs text-muted-foreground font-mono">{d.component}</span>
-                            <span className="text-[10px] text-muted-foreground">(sem alteracoes)</span>
+                            <span className="text-[10px] text-muted-foreground">(sem alterações)</span>
                           </div>
                         );
                       }

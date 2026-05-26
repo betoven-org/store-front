@@ -11,7 +11,7 @@
  *   @default     — Valor padrao
  *   @hide        — Nao mostrar no editor
  *   @options     — Opcoes separadas por virgula (gera select)
- *   @group       — Agrupa campos em abas/secoes no editor
+ *   @group       — Agrupa campos em abas/seções no editor
  */
 
 // ── Field Schema ─────────────────────────────────────────────────────────────

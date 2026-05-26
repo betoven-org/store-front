@@ -102,7 +102,7 @@ export default function MidiasPage() {
         if (typeFilter) params.set("type", typeFilter);
         if (sortBy) params.set("sort", sortBy);
         const res = await fetch(`/api/admin/media?${params}`);
-        if (!res.ok) throw new Error("Erro ao carregar midias.");
+        if (!res.ok) throw new Error("Erro ao carregar mídias.");
         const json: ApiResponse = await res.json();
         setData(json.docs);
         setTotalPages(json.totalPages);
@@ -262,7 +262,7 @@ export default function MidiasPage() {
       fetchMedia(currentPage);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Erro ao excluir midias."
+        err instanceof Error ? err.message : "Erro ao excluir mídias."
       );
     } finally {
       setDeleting(false);
@@ -279,7 +279,7 @@ export default function MidiasPage() {
   const totalSize = data.reduce((sum, m) => sum + (m.size ?? 0), 0);
 
   return (
-    <AdminShell title="Midias">
+    <AdminShell title="Mídias">
       {/* Subheader */}
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
@@ -310,6 +310,7 @@ export default function MidiasPage() {
           <input
             type="text"
             placeholder="Buscar arquivos..."
+            aria-label="Buscar arquivos"
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
@@ -320,6 +321,7 @@ export default function MidiasPage() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
+          aria-label="Filtrar por tipo"
           className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
         >
           <option value="">Todos os tipos</option>
@@ -332,6 +334,7 @@ export default function MidiasPage() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
+          aria-label="Ordenar por"
           className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
         >
           <option value="recent">Mais recentes</option>
@@ -565,7 +568,7 @@ export default function MidiasPage() {
                   disabled={currentPage >= totalPages}
                   onClick={() => fetchMedia(currentPage + 1)}
                 >
-                  Proximo
+                  Próximo
                   <ChevronRight className="size-4" />
                 </Button>
               </div>
@@ -668,7 +671,7 @@ export default function MidiasPage() {
                   disabled={currentPage >= totalPages}
                   onClick={() => fetchMedia(currentPage + 1)}
                 >
-                  Proximo
+                  Próximo
                   <ChevronRight className="size-4" />
                 </Button>
               </div>
@@ -708,6 +711,7 @@ export default function MidiasPage() {
                     type="text"
                     value={editFilename}
                     onChange={(e) => setEditFilename(e.target.value)}
+                    aria-label="Nome do arquivo"
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
                   />
                 </div>
@@ -720,6 +724,7 @@ export default function MidiasPage() {
                     value={editAlt}
                     onChange={(e) => setEditAlt(e.target.value)}
                     placeholder="Descreva a imagem para acessibilidade"
+                    aria-label="Alt text"
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
                   />
                 </div>
@@ -730,7 +735,7 @@ export default function MidiasPage() {
                   disabled={saving || (editAlt === (sheetItem.alt || "") && editFilename === sheetItem.filename)}
                   onClick={handleSaveMetadata}
                 >
-                  {saving ? "Salvando..." : "Salvar alteracoes"}
+                  {saving ? "Salvando..." : "Salvar alterações"}
                 </Button>
               </div>
 
@@ -826,8 +831,8 @@ export default function MidiasPage() {
         open={deleteBulk}
         onClose={() => setDeleteBulk(false)}
         onConfirm={handleDeleteBulk}
-        title={`Excluir ${selectedIds.size} ${selectedIds.size === 1 ? "midia" : "midias"}?`}
-        description="Esta acao nao pode ser desfeita. Todas as midias selecionadas serao permanentemente removidas."
+        title={`Excluir ${selectedIds.size} ${selectedIds.size === 1 ? "mídia" : "mídias"}?`}
+        description="Esta ação não pode ser desfeita. Todas as mídias selecionadas serão permanentemente removidas."
       />
     </AdminShell>
   );

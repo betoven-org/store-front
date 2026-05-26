@@ -35,12 +35,12 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
       .limit(1);
 
     if (!user)
-      return NextResponse.json({ error: "Usuario nao encontrado" }, { status: 404 });
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
     return NextResponse.json(user);
   } catch (error) {
     console.error("[GET /api/admin/users/:id]", error);
-    return NextResponse.json({ error: "Erro ao buscar usuario" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao buscar usuário" }, { status: 500 });
   }
 }
 
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 
     const [existing] = await db.select().from(users).where(and(eq(users.id, userId), eq(users.tenantId, tenantId))).limit(1);
     if (!existing)
-      return NextResponse.json({ error: "Usuario nao encontrado" }, { status: 404 });
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
     const body = await req.json();
     const parsed = parseBody(updateUserSchema, body);
@@ -86,7 +86,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
           .from(users)
           .where(and(eq(users.role, "admin"), eq(users.tenantId, tenantId)));
         if (adminCount.total <= 1) {
-          return NextResponse.json({ error: "Nao e possivel remover o ultimo admin" }, { status: 400 });
+          return NextResponse.json({ error: "Não é possível remover o último admin" }, { status: 400 });
         }
       }
       updateData.role = parsed.data.role;
@@ -107,7 +107,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     return NextResponse.json(updated);
   } catch (error) {
     console.error("[PATCH /api/admin/users/:id]", error);
-    return NextResponse.json({ error: "Erro ao atualizar usuario" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao atualizar usuário" }, { status: 500 });
   }
 }
 
@@ -125,13 +125,13 @@ export async function DELETE(req: NextRequest, ctx: RouteContext) {
 
     // Can't delete yourself
     if (String(userId) === session.user.id) {
-      return NextResponse.json({ error: "Nao e possivel excluir o proprio usuario" }, { status: 400 });
+      return NextResponse.json({ error: "Não é possível excluir o próprio usuário" }, { status: 400 });
     }
 
     // Can't delete last admin
     const [user] = await db.select({ role: users.role }).from(users).where(and(eq(users.id, userId), eq(users.tenantId, tenantId))).limit(1);
     if (!user)
-      return NextResponse.json({ error: "Usuario nao encontrado" }, { status: 404 });
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
     if (user.role === "admin") {
       const [adminCount] = await db
@@ -139,7 +139,7 @@ export async function DELETE(req: NextRequest, ctx: RouteContext) {
         .from(users)
         .where(and(eq(users.role, "admin"), eq(users.tenantId, tenantId)));
       if (adminCount.total <= 1) {
-        return NextResponse.json({ error: "Nao e possivel excluir o ultimo admin" }, { status: 400 });
+        return NextResponse.json({ error: "Não é possível excluir o último admin" }, { status: 400 });
       }
     }
 
@@ -148,6 +148,6 @@ export async function DELETE(req: NextRequest, ctx: RouteContext) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[DELETE /api/admin/users/:id]", error);
-    return NextResponse.json({ error: "Erro ao excluir usuario" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao excluir usuário" }, { status: 500 });
   }
 }

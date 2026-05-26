@@ -88,7 +88,7 @@ export default function UsuariosPage() {
         setError("Voce nao tem permissao para acessar esta pagina.");
         return;
       }
-      if (!res.ok) throw new Error("Erro ao carregar usuarios.");
+      if (!res.ok) throw new Error("Erro ao carregar usuários.");
       const json: ApiResponse = await res.json();
       setData(json.docs);
       setTotalPages(json.totalPages);
@@ -111,12 +111,12 @@ export default function UsuariosPage() {
       const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        setError(json.error || "Erro ao excluir usuario.");
+        setError(json.error || "Erro ao excluir usuário.");
         return;
       }
       fetchUsers(currentPage);
     } catch {
-      setError("Erro ao excluir usuario.");
+      setError("Erro ao excluir usuário.");
     } finally {
       setDeleteLoading(false);
       setDeleteId(null);
@@ -142,12 +142,12 @@ export default function UsuariosPage() {
   };
 
   return (
-    <AdminShell title="Usuarios">
+    <AdminShell title="Usuários">
       <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Gerencie os usuarios com acesso ao painel.</p>
+        <p className="text-sm text-muted-foreground">Gerencie os usuários com acesso ao painel.</p>
         <Button onClick={() => setDrawerId(-1)}>
           <Plus />
-          Novo Usuario
+          Novo Usuário
         </Button>
       </div>
 
@@ -171,7 +171,7 @@ export default function UsuariosPage() {
       ) : data.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">
           <Users className="mx-auto mb-4 size-12 text-muted-foreground/40" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">Nenhum usuario encontrado.</p>
+          <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border bg-card">
@@ -200,7 +200,7 @@ export default function UsuariosPage() {
                   Data
                 </TableHead>
                 <TableHead className="px-4 text-right text-xs font-semibold uppercase tracking-wider">
-                  Acoes
+                  Ações
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -282,7 +282,7 @@ export default function UsuariosPage() {
                   disabled={currentPage >= totalPages}
                   onClick={() => fetchUsers(currentPage + 1)}
                 >
-                  Proximo
+                  Próximo
                 </Button>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function UsuariosPage() {
         open={deleteId !== null}
         onClose={() => setDeleteId(null)}
         onConfirm={() => { if (deleteId !== null) handleDelete(deleteId); }}
-        title="Excluir usuario?"
+        title="Excluir usuário?"
         description={
           deleteTarget
             ? `Voce esta prestes a excluir "${deleteTarget.name}" (${deleteTarget.email}). Esta acao nao pode ser desfeita.`

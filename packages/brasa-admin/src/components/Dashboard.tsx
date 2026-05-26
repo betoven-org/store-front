@@ -298,7 +298,7 @@ export default function Dashboard() {
 
           {/* Panels */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
-            <RankedList title="Paginas" items={analytics.pages} max={10} />
+            <RankedList title="Páginas" items={analytics.pages} max={10} />
             <RankedList title="Paises" items={analytics.countries} />
             <RankedList title="Referrers" items={analytics.referrers} />
             <RankedList title="Dispositivos" items={analytics.deviceTypes} />

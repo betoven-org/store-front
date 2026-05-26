@@ -154,9 +154,16 @@ export default function AssinaturaSection() {
 
   if (!subscription) {
     return (
-      <div className="py-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Nenhuma assinatura encontrada.
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
+          <CreditCardIcon />
+        </div>
+        <h3 className="text-base font-semibold text-foreground">
+          Nenhuma assinatura ativa
+        </h3>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          Configure a integracao com o Stripe para gerenciar assinaturas e
+          cobrar seus clientes de forma recorrente.
         </p>
       </div>
     );
@@ -204,7 +211,7 @@ export default function AssinaturaSection() {
           <p className="text-sm font-medium text-foreground">R$ 450,00/mes</p>
         </div>
 
-        {/* Periodo de carencia */}
+        {/* Período de carência */}
         <div className="rounded-lg border border-border bg-background p-4">
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Carencia

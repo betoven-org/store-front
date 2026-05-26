@@ -30,7 +30,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/posts", label: "Posts", icon: <Newspaper className="size-[15px]" /> },
       { href: "/admin/categorias", label: "Categorias", icon: <Tag className="size-[15px]" /> },
       { href: "/admin/autores", label: "Autores", icon: <Users className="size-[15px]" /> },
-      { href: "/admin/midias", label: "Midias", icon: <Image className="size-[15px]" /> },
+      { href: "/admin/midias", label: "Mídias", icon: <Image className="size-[15px]" /> },
     ],
   },
   {
@@ -43,25 +43,25 @@ const navGroups: NavGroup[] = [
   {
     label: "Storefront",
     items: [
-      { href: "/admin/paginas", label: "Paginas", icon: <Layout className="size-[15px]" /> },
+      { href: "/admin/paginas", label: "Páginas", icon: <Layout className="size-[15px]" /> },
       { href: "/admin/global-sections", label: "Sections Globais", icon: <Layers className="size-[15px]" /> },
       { href: "/admin/lixeira", label: "Lixeira", icon: <Trash2 className="size-[15px]" /> },
     ],
   },
   {
-    label: "Configuracoes",
+    label: "Configurações",
     items: [
       { href: "/admin/identidade", label: "Identidade", icon: <Sparkles className="size-[15px]" /> },
       { href: "/admin/robots", label: "Robots", icon: <Bot className="size-[15px]" /> },
       { href: "/admin/analytics", label: "Analytics", icon: <BarChart3 className="size-[15px]" /> },
-      { href: "/admin/usuarios", label: "Usuarios", icon: <UserCog className="size-[15px]" /> },
+      { href: "/admin/usuarios", label: "Usuários", icon: <UserCog className="size-[15px]" /> },
     ],
   },
   {
-    label: "Integracoes",
+    label: "Integrações",
     items: [
       { href: "/admin/supabase", label: "Supabase", icon: <Database className="size-[15px]" /> },
-      { href: "/admin/assinatura", label: "Stripe", icon: <CreditCard className="size-[15px]" /> },
+      { href: "/admin/assinatura", label: "Assinaturas", icon: <CreditCard className="size-[15px]" /> },
     ],
   },
 ];

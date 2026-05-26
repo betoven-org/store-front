@@ -141,13 +141,13 @@ export default function ProductCategoryDrawer({ categoryId, onClose, onSaved }: 
               </div>
 
               <FormField
-                label="Descricao"
+                label="Descrição"
                 name="description"
                 type="textarea"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 error={errors.description}
-                placeholder="Descricao da categoria (opcional)"
+                placeholder="Descrição da categoria (opcional)"
               />
 
               <FormField

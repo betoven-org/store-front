@@ -100,7 +100,7 @@ export default function GlobalSectionsPage() {
           <div>
             <h1 className="text-xl font-semibold text-foreground">Sections Globais</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Configure o Header e Footer que aparecem em todas as paginas automaticamente.
+              Configure o Header e Footer que aparecem em todas as páginas automaticamente.
             </p>
           </div>
           <button
@@ -128,7 +128,7 @@ export default function GlobalSectionsPage() {
           <div className="border-b border-border px-5 py-4">
             <h2 className="text-base font-medium text-foreground">Header</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Configuracoes do cabecalho global do site.
+              Configurações do cabeçalho global do site.
             </p>
           </div>
           <div className="px-5 py-4">
@@ -140,7 +140,7 @@ export default function GlobalSectionsPage() {
               />
             ) : (
               <p className="text-sm text-muted-foreground">
-                Section &quot;Header&quot; nao encontrada no manifest. Registre o frontend para habilitar a edicao.
+                Section &quot;Header&quot; não encontrada no manifest. Registre o frontend para habilitar a edição.
               </p>
             )}
           </div>
@@ -151,7 +151,7 @@ export default function GlobalSectionsPage() {
           <div className="border-b border-border px-5 py-4">
             <h2 className="text-base font-medium text-foreground">Footer</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Configuracoes do rodape global do site.
+              Configurações do rodapé global do site.
             </p>
           </div>
           <div className="px-5 py-4">
@@ -163,7 +163,7 @@ export default function GlobalSectionsPage() {
               />
             ) : (
               <p className="text-sm text-muted-foreground">
-                Section &quot;Footer&quot; nao encontrada no manifest. Registre o frontend para habilitar a edicao.
+                Section &quot;Footer&quot; não encontrada no manifest. Registre o frontend para habilitar a edição.
               </p>
             )}
           </div>

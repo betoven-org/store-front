@@ -75,7 +75,7 @@ export function useSettings() {
         const res = await fetch("/api/admin/settings");
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data?.error ?? "Erro ao carregar configuracoes");
+          throw new Error(data?.error ?? "Erro ao carregar configurações");
         }
         const data: Settings | null = await res.json();
         if (data) {
@@ -119,7 +119,7 @@ export function useSettings() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? "Erro ao salvar configuracoes");
+        throw new Error(data?.error ?? "Erro ao salvar configurações");
       }
       const updated: Settings = await res.json();
       setSettings(updated);

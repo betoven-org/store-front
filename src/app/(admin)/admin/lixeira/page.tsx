@@ -100,7 +100,7 @@ export default function LixeiraPage() {
       <div className="mb-6">
         <h1 className="text-lg font-semibold text-foreground">Lixeira</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paginas na lixeira serao excluidas permanentemente apos 30 dias.
+          Páginas na lixeira serão excluídas permanentemente após 30 dias.
         </p>
       </div>
 
@@ -118,10 +118,10 @@ export default function LixeiraPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border bg-background">
               <tr>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Titulo</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Título</th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Slug</th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Excluido em</th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Acoes</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

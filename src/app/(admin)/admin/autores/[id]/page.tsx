@@ -193,7 +193,7 @@ export default function EditarAutorPage() {
             disabled={saving || !name.trim()}
             className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
           >
-            {saving ? "Salvando..." : "Salvar Alteracoes"}
+            {saving ? "Salvando..." : "Salvar Alterações"}
           </button>
           <Link
             href="/admin/autores"

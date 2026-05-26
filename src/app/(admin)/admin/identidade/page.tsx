@@ -79,7 +79,7 @@ export default function IdentidadePage() {
         if (res.ok) refetchTenant();
       } catch {}
     }
-    toast.success("Configuracoes salvas");
+    toast.success("Configurações salvas");
   }
 
   if (loading) {
@@ -97,7 +97,7 @@ export default function IdentidadePage() {
       disabled={saving}
       className="inline-flex items-center gap-1.5 rounded-md bg-foreground text-background text-[12px] font-medium h-7 px-3 transition-all hover:brightness-[0.97] disabled:opacity-50"
     >
-      {saving ? "Salvando..." : "Salvar alteracoes"}
+      {saving ? "Salvando..." : "Salvar alterações"}
     </button>
   );
 
@@ -109,7 +109,7 @@ export default function IdentidadePage() {
         <section className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="border-b border-border bg-background px-5 py-3">
             <h3 className="text-[13px] font-semibold text-foreground">Marca</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Nome e descricao que aparecem no site</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Nome e descrição que aparecem no site</p>
           </div>
           <div className="p-5 space-y-4">
             <FormField
@@ -120,12 +120,12 @@ export default function IdentidadePage() {
               placeholder="Ex: Medicinal na Web"
             />
             <FormField
-              label="Descricao"
+              label="Descrição"
               name="siteDescription"
               type="textarea"
               value={settings.siteDescription}
               onChange={handleChange}
-              placeholder="Uma breve descricao do seu site..."
+              placeholder="Uma breve descrição do seu site..."
             />
           </div>
         </section>
@@ -274,13 +274,13 @@ export default function IdentidadePage() {
             <div className="rounded-md border border-border bg-background p-4">
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Google</p>
               <p className="text-[14px] font-medium text-[#1a0dab] leading-tight truncate">
-                {settings.seoTitle || settings.siteName || "Titulo do site"}
+                {settings.seoTitle || settings.siteName || "Título do site"}
               </p>
               <p className="mt-0.5 text-[11px] text-emerald-700 font-mono truncate">
                 {frontendUrl || "https://meusite.com"}
               </p>
               <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
-                {settings.seoDescription || settings.siteDescription || "Descricao do site..."}
+                {settings.seoDescription || settings.siteDescription || "Descrição do site..."}
               </p>
             </div>
           </div>

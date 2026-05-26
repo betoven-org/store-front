@@ -28,17 +28,22 @@ const VALID_GROUP_BY = [
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const token = process.env.ANALYTICS_TOKEN || process.env.VERCEL_API_TOKEN;
   const projectId = process.env.ANALYTICS_PROJECT_ID;
   const teamId = process.env.ANALYTICS_TEAM_ID;
 
   if (!token || !projectId) {
-    return NextResponse.json(
-      { error: "ANALYTICS_TOKEN and ANALYTICS_PROJECT_ID are required" },
-      { status: 500 },
-    );
+    const { searchParams: sp } = new URL(req.url);
+    const t = sp.get("type") || "timeseries";
+    if (t === "overview") {
+      return NextResponse.json({
+        totalViews: 0, uniqueVisitors: 0, bounceRate: 0,
+        topPage: "--", topCountry: "--", configured: false,
+      });
+    }
+    return NextResponse.json([], { status: 200 });
   }
 
   const { searchParams } = new URL(req.url);

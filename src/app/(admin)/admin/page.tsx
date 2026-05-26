@@ -47,6 +47,7 @@ type AnalyticsOverview = {
   totalViews: number;
   uniqueVisitors: number;
   bounceRate: number;
+  configured?: boolean;
 };
 
 type TimeseriesPoint = { date: string; views: number };
@@ -117,11 +118,19 @@ function ActivityIcon({ type, status }: { type: string; status: string }) {
 
 /* ── SVG Chart (pure, no libs) ──────────────────────────────────────────────── */
 
-function TrafficChart({ data }: { data: TimeseriesPoint[] }) {
+function TrafficChart({ data, configured = true }: { data: TimeseriesPoint[]; configured?: boolean }) {
+  if (!configured) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+        <span>Analytics não configurado</span>
+        <span className="text-xs">Defina ANALYTICS_TOKEN e ANALYTICS_PROJECT_ID</span>
+      </div>
+    );
+  }
   if (data.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        Sem dados de trafego no periodo
+        Sem dados de tráfego no período
       </div>
     );
   }
@@ -338,7 +347,7 @@ export default function DashboardPage() {
             <StatCard
               label="Posts publicados"
               value={String(postCount)}
-              subtitle={postCount > 0 ? "no periodo" : undefined}
+              subtitle={postCount > 0 ? "no período" : undefined}
               icon={
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -367,7 +376,7 @@ export default function DashboardPage() {
                 analytics?.totalViews ?? data.performance.current.totalRequests,
                 data.performance.previous.totalRequests,
               )}
-              subtitle="vs. periodo anterior"
+              subtitle="vs. período anterior"
               icon={
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -376,7 +385,7 @@ export default function DashboardPage() {
               }
             />
             <StatCard
-              label="Latencia p50"
+              label="Latência p50"
               value={`${data.performance.current.p50Latency}ms`}
               change={(() => {
                 const diff = data.performance.current.avgLatency - data.performance.previous.avgLatency;
@@ -397,7 +406,7 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-border bg-card lg:col-span-3">
               <div className="flex items-center justify-between border-b border-border px-5 py-4">
                 <div>
-                  <h2 className="text-sm font-semibold text-foreground">Trafego do site</h2>
+                  <h2 className="text-sm font-semibold text-foreground">Tráfego do site</h2>
                   <p className="text-xs text-muted-foreground">
                     Pageviews · {period === 1 ? "24 horas" : `${period} dias`}
                   </p>
@@ -410,7 +419,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="p-5">
-                <TrafficChart data={timeseries} />
+                <TrafficChart data={timeseries} configured={analytics?.configured !== false} />
               </div>
             </div>
 
@@ -418,7 +427,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between border-b border-border px-5 py-4">
                 <div>
                   <h2 className="text-sm font-semibold text-foreground">Atividade recente</h2>
-                  <p className="text-xs text-muted-foreground">Ultimas alteracoes</p>
+                  <p className="text-xs text-muted-foreground">Últimas alterações</p>
                 </div>
                 {data.recentChanges.length > 0 && (
                   <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-xs font-semibold text-foreground">
@@ -513,7 +522,7 @@ export default function DashboardPage() {
                 <div className="space-y-5">
                   <div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-sm text-foreground">Latencia p50</span>
+                      <span className="text-sm text-foreground">Latência p50</span>
                       <span className="text-sm font-bold text-foreground tabular-nums">
                         {data.performance.current.p50Latency}<span className="text-xs font-normal text-muted-foreground">ms</span>
                       </span>
@@ -522,7 +531,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-sm text-foreground">Latencia p95</span>
+                      <span className="text-sm text-foreground">Latência p95</span>
                       <span className="text-sm font-bold text-foreground tabular-nums">
                         {data.performance.current.p95Latency}<span className="text-xs font-normal text-muted-foreground">ms</span>
                       </span>
@@ -531,7 +540,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-sm text-foreground">Latencia p99</span>
+                      <span className="text-sm text-foreground">Latência p99</span>
                       <span className="text-sm font-bold text-foreground tabular-nums">
                         {data.performance.current.p99Latency}<span className="text-xs font-normal text-muted-foreground">ms</span>
                       </span>

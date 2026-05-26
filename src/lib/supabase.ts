@@ -26,7 +26,7 @@ export async function getSupabaseAdmin() {
 
   if (!url || !key) {
     throw new Error(
-      "SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sao obrigatorios. Configure nas env vars ou em Configuracoes > Supabase."
+      "SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios. Configure nas env vars ou em Configurações > Supabase."
     );
   }
 

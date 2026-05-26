@@ -12,7 +12,7 @@ import type { z } from "zod";
 
 // Re-define for zod/v3 compat with zodResolver
 const createPageSchemaV3 = z3.object({
-  title: z3.string().min(1, "Titulo e obrigatorio"),
+  title: z3.string().min(1, "Título é obrigatório"),
   slug: z3.string().min(1, "Slug e obrigatorio"),
 });
 
@@ -65,7 +65,7 @@ function RowMenu({ pageId, slug, title, onDuplicate, onDeleted }: { pageId: numb
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen((p) => !p); }}
         className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-muted-foreground"
-        aria-label="Acoes"
+        aria-label="Ações"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <circle cx="12" cy="5" r="1.5" />
@@ -173,7 +173,7 @@ export default function PaginasPage() {
   useEffect(() => {
     fetch("/api/admin/pages")
       .then((res) => {
-        if (!res.ok) throw new Error("Erro ao carregar paginas");
+        if (!res.ok) throw new Error("Erro ao carregar páginas");
         return res.json();
       })
       .then((data) => setPages(data.docs ?? []))
@@ -240,18 +240,18 @@ export default function PaginasPage() {
 
   if (loading) {
     return (
-      <AdminShell title="Paginas">
+      <AdminShell title="Páginas">
         <BrasaPageLoader />
       </AdminShell>
     );
   }
 
   return (
-    <AdminShell title="Paginas">
+    <AdminShell title="Páginas">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-foreground">Paginas</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Gerencie as paginas estaticas do site.</p>
+          <h1 className="text-lg font-semibold text-foreground">Páginas</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Gerencie as páginas estáticas do site.</p>
         </div>
         <div className="flex items-center gap-2">
           {pendingCount > 0 && (
@@ -330,12 +330,12 @@ export default function PaginasPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <form onSubmit={form.handleSubmit(handleCreate)} className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl">
-            <h2 className="text-base font-semibold text-foreground">Nova pagina</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Defina o titulo e o slug da pagina.</p>
+            <h2 className="text-base font-semibold text-foreground">Nova página</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Defina o título e o slug da página.</p>
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Titulo</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Título</label>
                 <input
                   type="text"
                   {...form.register("title", {
@@ -398,7 +398,7 @@ export default function PaginasPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border bg-background">
               <tr>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Titulo</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Título</th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Slug</th>
                 <th className="w-28 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Atualizado</th>

@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { AuthProviderWrapper } from "./AuthProviderWrapper";
+import { TenantProvider } from "@brasa/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable} antialiased`}>
+    <html lang="pt-BR" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable} antialiased dark`} style={{ colorScheme: "dark" }}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -31,8 +32,10 @@ export default function AdminRootLayout({
       </head>
       <body className="bg-background font-sans text-foreground">
         <AuthProviderWrapper>
-          <Suspense fallback={null}>{children}</Suspense>
-          <Toaster position="bottom-right" richColors closeButton />
+          <TenantProvider>
+            <Suspense fallback={null}>{children}</Suspense>
+            <Toaster position="bottom-right" richColors closeButton />
+          </TenantProvider>
         </AuthProviderWrapper>
       </body>
     </html>

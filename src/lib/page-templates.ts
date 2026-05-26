@@ -55,7 +55,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         id: tplId("landing", "Stats", 2),
         component: "Stats",
         props: {
-          title: "Nossos Numeros",
+          title: "Nossos Números",
           stats: [
             { value: "500+", label: "Clientes atendidos" },
             { value: "98%", label: "Satisfacao" },

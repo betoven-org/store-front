@@ -6,9 +6,37 @@ import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 
 const MASTER_KEY = process.env.MASTER_API_KEY;
+const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
+const TENANT_BASE_DOMAIN = process.env.TENANT_BASE_DOMAIN || "brasa.tech";
 
 function generateKey(prefix: string, bytes = 24) {
   return `${prefix}_${randomBytes(bytes).toString("base64url")}`;
+}
+
+async function registerVercelDomain(domain: string): Promise<{ ok: boolean; error?: string }> {
+  if (!VERCEL_TOKEN || !VERCEL_PROJECT_ID) {
+    return { ok: false, error: "VERCEL_TOKEN or VERCEL_PROJECT_ID not configured" };
+  }
+
+  const res = await fetch(
+    `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: domain }),
+    },
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: { message: "Unknown error" } }));
+    return { ok: false, error: err.error?.message || `Vercel API ${res.status}` };
+  }
+
+  return { ok: true };
 }
 
 export async function POST(req: NextRequest) {
@@ -57,12 +85,17 @@ export async function POST(req: NextRequest) {
   const apiKey = generateKey("brs");
   const revalidateSecret = generateKey("rv", 16);
 
+  const subdomain = slug;
+  const tenantDomain = `${subdomain}.${TENANT_BASE_DOMAIN}`;
+
   const [tenant] = await db
     .insert(tenants)
     .values({
       name,
       slug,
       domain: domain || null,
+      subdomain,
+      frontendUrl: `https://${tenantDomain}`,
       apiKey,
       revalidateSecret,
       createdAt: new Date().toISOString(),
@@ -75,6 +108,9 @@ export async function POST(req: NextRequest) {
     tenantId: tenant.id,
     siteName: name,
   });
+
+  // Register subdomain on Vercel (non-blocking — tenant is created even if this fails)
+  const vercelResult = await registerVercelDomain(tenantDomain);
 
   // Create admin user if credentials provided
   let adminUser = null;
@@ -101,6 +137,8 @@ export async function POST(req: NextRequest) {
       slug: tenant.slug,
       apiKey,
       revalidateSecret,
+      subdomain: tenantDomain,
+      vercelDomain: vercelResult,
       adminUser,
     },
     { status: 201 },

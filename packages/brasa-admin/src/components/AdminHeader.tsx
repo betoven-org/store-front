@@ -25,14 +25,14 @@ const breadcrumbMap: Record<string, string> = {
   "/admin/categorias/novo": "Nova Categoria",
   "/admin/autores": "Autores",
   "/admin/autores/novo": "Novo Autor",
-  "/admin/midias": "Midias",
-  "/admin/paginas": "Paginas",
+  "/admin/midias": "Mídias",
+  "/admin/paginas": "Páginas",
   "/admin/produtos": "Produtos",
   "/admin/inscritos": "Inscritos",
-  "/admin/configuracoes": "Configuracoes",
+  "/admin/configuracoes": "Configurações",
   "/admin/identidade": "Identidade",
   "/admin/analytics": "Analytics",
-  "/admin/usuarios": "Usuarios",
+  "/admin/usuarios": "Usuários",
 };
 
 function getBreadcrumbs(pathname: string) {
@@ -102,16 +102,38 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
   }, [menuOpen]);
 
   const [draftCount, setDraftCount] = useState(0);
+  const [pendingPages, setPendingPages] = useState<{ id: number; title: string; slug: string }[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (status !== "authenticated") return;
     fetch("/api/admin/pages/pending")
       .then((r) => r.ok ? r.json() : { docs: [] })
-      .then((d) => setDraftCount(d.docs?.length ?? 0))
+      .then((d) => {
+        const docs = d.docs ?? [];
+        setDraftCount(docs.length);
+        setPendingPages(docs.slice(0, 10).map((p: { id: number; title: string; slug: string }) => ({
+          id: p.id,
+          title: p.title || p.slug || `Pagina #${p.id}`,
+          slug: p.slug,
+        })));
+      })
       .catch(() => {});
-  }, [status, pathname]);
+  }, [status]);
 
-  const userName = session?.user?.name || "Usuario";
+  useEffect(() => {
+    if (!notifOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [notifOpen]);
+
+  const userName = session?.user?.name || "Usuário";
   const userEmail = session?.user?.email || "";
   const initials = userName.split(" ").filter(Boolean).slice(0, 2).map(s => s[0]).join("").toUpperCase();
 
@@ -162,7 +184,60 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
           }}
         />
         <IconBtn icon={HelpCircle} title="Ajuda" onClick={() => window.location.href = "/admin/ajuda"} />
-        <IconBtn icon={Bell} title="Notificacoes" badge={3} />
+        <div className="relative" ref={notifRef}>
+          <IconBtn
+            icon={Bell}
+            title="Notificações"
+            badge={draftCount > 0 ? draftCount : undefined}
+            onClick={() => setNotifOpen((p) => !p)}
+          />
+          {notifOpen && (
+            <div className="absolute right-0 top-[calc(100%+6px)] w-[300px] bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-120 z-50">
+              <div className="px-3.5 py-2.5 border-b border-border">
+                <h4 className="text-[13px] font-semibold text-foreground">Notificacoes</h4>
+              </div>
+              <div className="max-h-[280px] overflow-y-auto">
+                {pendingPages.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    Nenhuma notificacao pendente
+                  </div>
+                ) : (
+                  <div className="p-1">
+                    {pendingPages.map((page) => (
+                      <Link
+                        key={page.id}
+                        href={`/admin/paginas/${page.id}`}
+                        onClick={() => setNotifOpen(false)}
+                        className="flex items-start gap-2.5 px-3 py-2 rounded-md text-left hover:bg-accent transition-colors"
+                      >
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-warning shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-medium text-foreground truncate">
+                            {page.title}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Rascunho pendente de publicacao
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {draftCount > 0 && (
+                <div className="border-t border-border p-1.5">
+                  <Link
+                    href="/admin/publicar"
+                    onClick={() => setNotifOpen(false)}
+                    className="flex items-center justify-center rounded-md py-1.5 text-[12px] font-medium text-primary hover:bg-accent transition-colors"
+                  >
+                    Ver todas as alteracoes
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Separator */}
@@ -262,9 +337,10 @@ function DevEnvButton() {
         type="button"
         onClick={handleOpen}
         className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 h-7 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
+        title="Dev Connect — gerar envs para o frontend"
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-        dev
+        <Upload className="size-3" />
+        Dev Connect
       </button>
 
       {open && (

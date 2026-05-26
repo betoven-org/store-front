@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     authHeader !== `Bearer ${cronSecret}` &&
     secretParam !== cronSecret
   ) {
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   const thirtyDaysAgo = sql`NOW() - INTERVAL '30 days'`;

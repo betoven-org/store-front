@@ -96,7 +96,7 @@ async function getOrCreateAuthor(name: string): Promise<number> {
 export async function POST() {
   const session = await auth();
   if (!session?.user)
-    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -286,7 +286,7 @@ export async function DELETE() {
   try {
     const session = await auth();
     if (!session?.user)
-      return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     await db.execute(sql`UPDATE site_settings SET logo_id = NULL, favicon_id = NULL`);
     await db.execute(sql`TRUNCATE TABLE tags, posts, categories, products, product_categories, authors, media RESTART IDENTITY CASCADE`);

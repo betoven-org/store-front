@@ -21,7 +21,7 @@ function getProjectId() {
 }
 
 export async function GET(req: NextRequest) {
-  if (!(await requireAuth(req))) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  if (!(await requireAuth(req))) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
     const res = await fetch(`${VERCEL_API}/v9/projects/${getProjectId()}/domains`, { headers: getHeaders() });
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAuth(req))) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  if (!(await requireAuth(req))) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
     const { domain } = await req.json();
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAuth(req))) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  if (!(await requireAuth(req))) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
     const { domain } = await req.json();

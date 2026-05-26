@@ -142,6 +142,7 @@ export default function GlobalSearch() {
           onFocus={() => { if (query.length >= 2) setShowResults(true); }}
           onKeyDown={handleKeyDown}
           placeholder="Buscar posts, categorias, autores, produtos..."
+          aria-label="Buscar posts, categorias, autores, produtos"
           className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-20 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus:border-border focus:bg-card focus:outline-none focus:ring-2 focus:ring-ring/20"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">

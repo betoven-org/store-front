@@ -157,7 +157,7 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session?.user)
-    return new NextResponse("Nao autorizado", { status: 401 });
+    return new NextResponse("Não autorizado", { status: 401 });
 
   const { id } = await params;
   const numId = parseInt(id, 10);
@@ -323,7 +323,7 @@ export async function GET(
       return new NextResponse(html, {
         headers: {
           "Content-Type": "text/html; charset=utf-8",
-          "X-Frame-Options": "SAMEORIGIN",
+
           "Cache-Control": "no-store",
         },
       });

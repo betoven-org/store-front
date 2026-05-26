@@ -165,7 +165,7 @@ export default function AutoresPage() {
                 <TableHead className="w-12 px-4" aria-label="Avatar" />
                 <TableHead className="px-4 text-xs font-semibold uppercase tracking-wider">Nome</TableHead>
                 <TableHead className="px-4 text-xs font-semibold uppercase tracking-wider">Slug</TableHead>
-                <TableHead className="px-4 text-right text-xs font-semibold uppercase tracking-wider">Acoes</TableHead>
+                <TableHead className="px-4 text-right text-xs font-semibold uppercase tracking-wider">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,8 +173,10 @@ export default function AutoresPage() {
                 <TableRow
                   key={author.id}
                   data-state={selected.has(author.id) ? "selected" : undefined}
+                  className="cursor-pointer"
+                  onClick={() => setDrawerId(author.id)}
                 >
-                  <TableCell className="w-10 px-4">
+                  <TableCell className="w-10 px-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={selected.has(author.id)}
                       onCheckedChange={() => toggleOne(author.id)}
@@ -206,7 +208,7 @@ export default function AutoresPage() {
                     </button>
                   </TableCell>
                   <TableCell className="px-4 text-muted-foreground">{author.slug}</TableCell>
-                  <TableCell className="px-4 text-right">
+                  <TableCell className="px-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
@@ -242,7 +244,7 @@ export default function AutoresPage() {
                   Anterior
                 </Button>
                 <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => fetchAuthors(currentPage + 1)}>
-                  Proximo
+                  Próximo
                 </Button>
               </div>
             </div>
