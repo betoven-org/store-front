@@ -88,7 +88,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = parseBody(createPostSchema, body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
-    const { title, excerpt, content, categoryId, authorId, heroImageId, coverUrl, status, featured, tags: postTags } = parsed.data;
+    const data = parsed.data as Record<string, unknown>;
+    const { title, excerpt, content, categoryId, authorId, heroImageId, coverUrl, status, featured, tags: postTags } = data as {
+      title: string; excerpt: string; content: unknown; categoryId: number; authorId: number;
+      heroImageId?: number | null; coverUrl?: string | null; status?: "draft" | "published"; featured?: boolean; tags?: string[];
+    };
 
     const slug = generateSlug(title);
 
