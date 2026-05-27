@@ -68,6 +68,10 @@ type SbProduct = {
   cover_image_url: string | null; cover_image_alt: string | null; author_name: string | null;
   category_id: string | null; meta_title: string | null; meta_description: string | null;
   focus_keyword: string | null; word_count: number | null; reading_time_minutes: number | null;
+  composition: string | null; usage_instructions: string | null; who_can_use: string | null;
+  benefits: unknown | null; differentials: unknown | null; faq: unknown | null;
+  brand: string | null; is_kit: boolean | null; featured: boolean | null;
+  published_at: string | null;
   status: string; created_at: string; updated_at: string;
 };
 type SbSubscriber = {
@@ -215,21 +219,30 @@ export async function POST() {
           const content = sp.content ? { type: "doc", _html: sp.content } : null;
           const status: "draft" | "published" = sp.status === "published" ? "published" : "draft";
 
+          const productData: Record<string, unknown> = {
+            name: sp.title, description: sp.excerpt, content,
+            composition: sp.composition || null,
+            usageInstructions: sp.usage_instructions || null,
+            whoCanUse: sp.who_can_use || null,
+            benefits: sp.benefits ?? null,
+            differentials: sp.differentials ?? null,
+            faq: sp.faq ?? null,
+            brand: sp.brand || null,
+            isKit: sp.is_kit ?? false,
+            featured: sp.featured ?? false,
+            seoTitle: sp.meta_title, seoDescription: sp.meta_description,
+            status, publishedAt: sp.published_at || null,
+            updatedAt: sp.updated_at,
+          };
+          if (imageId) productData.imageId = imageId;
+
           const [existing] = await db.select({ id: products.id }).from(products).where(eq(products.slug, sp.slug)).limit(1);
           if (existing) {
-            const updateData: Record<string, unknown> = {
-              name: sp.title, description: sp.excerpt, content,
-              seoTitle: sp.meta_title, seoDescription: sp.meta_description,
-              status, updatedAt: sp.updated_at,
-            };
-            if (imageId) updateData.imageId = imageId;
-            await db.update(products).set(updateData).where(eq(products.id, existing.id));
+            await db.update(products).set(productData).where(eq(products.id, existing.id));
             prodUpdated++;
           } else {
             await db.insert(products).values({
-              name: sp.title, slug: sp.slug, description: sp.excerpt, content, imageId,
-              seoTitle: sp.meta_title, seoDescription: sp.meta_description,
-              status, createdAt: sp.created_at, updatedAt: sp.updated_at,
+              ...productData, slug: sp.slug, createdAt: sp.created_at,
             });
             prodCreated++;
           }
