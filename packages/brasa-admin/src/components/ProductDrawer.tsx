@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, X, Eye, EyeOff } from "lucide-react";
 import Drawer from "./Drawer";
 import Spinner from "./Spinner";
+import BrasaLoader from "./BrasaLoader";
 import FormField from "./FormField";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "./ImageUpload";
@@ -224,7 +225,7 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
     <Drawer open={open} onClose={onClose} title="Editar Produto" maxWidth={showPreview ? "max-w-6xl" : "max-w-2xl"}>
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
-          <Spinner />
+          <BrasaLoader />
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
