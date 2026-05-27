@@ -56,18 +56,23 @@ export async function GET(
 
     let html = await upstream.text();
 
-    // Rewrite relative asset URLs so they resolve against the frontend
-    // origin instead of the CMS proxy. Using <base> breaks Next.js
-    // client-side hydration, so we rewrite src/href attributes directly.
+    // Rewrite root-relative URLs so assets, images, scripts and links
+    // resolve against the frontend origin, not the CMS proxy.
+    // Matches `/path` but skips `//protocol-relative` and full URLs.
     const origin = tenant.frontendUrl.replace(/\/+$/, "");
     html = html.replace(
-      /(src|href|action)=(["'])\/_next\//g,
-      `$1=$2${origin}/_next/`,
+      /(src|href|action|poster)=(["'])\/(?!\/)/g,
+      `$1=$2${origin}/`,
     );
-    // Also rewrite srcset entries
+    // srcset entries: " /path" or ",/path"
     html = html.replace(
-      /srcset=(["'])(\/_next\/)/g,
-      `srcset=$1${origin}/_next/`,
+      /(srcset=["'][^"']*?(?:,|\s))\/(?!\/)/g,
+      `$1${origin}/`,
+    );
+    // srcset starting with root-relative
+    html = html.replace(
+      /(srcset=["'])\/(?!\/)/g,
+      `$1${origin}/`,
     );
 
     return new NextResponse(html, {
