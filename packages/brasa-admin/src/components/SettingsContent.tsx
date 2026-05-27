@@ -320,14 +320,11 @@ export function SettingsContent({
             description="Links das redes sociais exibidos no site"
           />
           <SocialLinksEditor settings={settings} onChange={onSettingsChange} />
-        </div>
-      )}
 
-      {activeSection === "contato" && (
-        <div className="space-y-6">
+          {/* WhatsApp */}
           <SectionHeader
             title="Contato"
-            description="Informações de contato exibidas no site"
+            description="Número exibido nos botões de WhatsApp do site"
           />
           <FormField
             label="WhatsApp"

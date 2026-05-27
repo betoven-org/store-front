@@ -54,7 +54,19 @@ export async function GET(
       );
     }
 
-    const html = await upstream.text();
+    let html = await upstream.text();
+
+    // Inject <base> so relative asset URLs (/_next/*, images, etc.)
+    // resolve against the frontend origin instead of the CMS proxy.
+    const base = tenant.frontendUrl.replace(/\/+$/, "");
+    const baseTag = `<base href="${base}/" />`;
+    if (html.includes("<head>")) {
+      html = html.replace("<head>", `<head>${baseTag}`);
+    } else if (html.includes("<HEAD>")) {
+      html = html.replace("<HEAD>", `<HEAD>${baseTag}`);
+    } else {
+      html = baseTag + html;
+    }
 
     return new NextResponse(html, {
       headers: {

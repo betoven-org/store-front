@@ -8,14 +8,20 @@ import { parseBody, updateSettingsSchema } from "@brasa/core/validations";
 import { notifyFrontend } from "@brasa/core/revalidate";
 import { headers } from "next/headers";
 
+async function getSettingsTenantId(): Promise<number> {
+  const h = await headers();
+  return parseInt(h.get("x-tenant-id") || "1", 10);
+}
+
 export async function GET() {
   const session = await auth();
   if (!session?.user)
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
+    const tenantId = await getSettingsTenantId();
     const result = await db.query.siteSettings.findFirst({
-      where: eq(siteSettings.id, 1),
+      where: eq(siteSettings.tenantId, tenantId),
       with: {
         logo: true,
         favicon: true,
@@ -46,11 +52,13 @@ export async function PATCH(request: NextRequest) {
     const parsed = parseBody(updateSettingsSchema, body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
-    // Check if settings row exists
+    const tenantId = await getSettingsTenantId();
+
+    // Check if settings row exists for this tenant
     const [existing] = await db
       .select({ id: siteSettings.id })
       .from(siteSettings)
-      .where(eq(siteSettings.id, 1))
+      .where(eq(siteSettings.tenantId, tenantId))
       .limit(1);
 
     let result;
@@ -59,19 +67,17 @@ export async function PATCH(request: NextRequest) {
       [result] = await db
         .update(siteSettings)
         .set({ ...parsed.data, updatedAt: new Date().toISOString() })
-        .where(eq(siteSettings.id, 1))
+        .where(eq(siteSettings.id, existing.id))
         .returning();
     } else {
       [result] = await db
         .insert(siteSettings)
-        .values({ id: 1, ...parsed.data })
+        .values({ tenantId, ...parsed.data })
         .returning();
     }
 
     revalidateTag("settings");
 
-    const h = await headers();
-    const tenantId = parseInt(h.get("x-tenant-id") || "1", 10);
     notifyFrontend(tenantId, {
       paths: ["/"],
       tags: ["settings"],
@@ -79,7 +85,7 @@ export async function PATCH(request: NextRequest) {
 
     // Re-fetch with relations for the response
     const updated = await db.query.siteSettings.findFirst({
-      where: eq(siteSettings.id, 1),
+      where: eq(siteSettings.tenantId, tenantId),
       with: {
         logo: true,
         favicon: true,

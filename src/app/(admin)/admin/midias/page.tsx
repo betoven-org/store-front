@@ -45,8 +45,8 @@ type ApiResponse = {
   totalDocs?: number;
 };
 
-function formatFileSize(bytes?: number): string {
-  if (!bytes) return "--";
+function formatFileSize(bytes?: number | null): string {
+  if (!bytes) return "Sem tamanho";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   if (bytes < 1024 * 1024 * 1024)
@@ -641,7 +641,7 @@ export default function MidiasPage() {
                       <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
                         {item.width && item.height
                           ? `${item.width}x${item.height}`
-                          : "--"}
+                          : "N/A"}
                       </td>
                     </tr>
                   );
