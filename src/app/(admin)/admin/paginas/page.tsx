@@ -433,12 +433,7 @@ export default function PaginasPage() {
               {dynamicPages.map((dp) => (
                 <tr
                   key={`dynamic-${dp.type}`}
-                  onClick={() => {
-                    const proxyBase = dp.type === "product"
-                      ? `/api/admin/products/${dp.id}/preview-proxy`
-                      : `/api/admin/posts/${dp.id}/preview-proxy`;
-                    window.open(proxyBase, "_blank");
-                  }}
+                  onClick={() => router.push(`/admin/paginas/dynamic?type=${dp.type === "blog" ? "post" : "product"}&id=${dp.id}`)}
                   className="cursor-pointer transition-colors hover:bg-background"
                 >
                   <td className="px-4 py-3 font-medium text-foreground">
