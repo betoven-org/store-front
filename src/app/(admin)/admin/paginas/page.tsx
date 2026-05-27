@@ -27,6 +27,16 @@ type Page = {
   updatedAt: string;
 };
 
+type DynamicPage = {
+  type: "blog" | "product";
+  id: number;
+  title: string;
+  slug: string;
+  path: string;
+  updatedAt: string;
+  imageUrl: string | null;
+};
+
 function Spinner() {
   return (
     <svg
@@ -157,12 +167,14 @@ type PageTemplateItem = {
 
 export default function PaginasPage() {
   const [pages, setPages] = useState<Page[]>([]);
+  const [dynamicPages, setDynamicPages] = useState<DynamicPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templates, setTemplates] = useState<PageTemplateItem[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("blank");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const router = useRouter();
 
   const form = useForm<CreatePageForm>({
@@ -171,12 +183,42 @@ export default function PaginasPage() {
   });
 
   useEffect(() => {
-    fetch("/api/admin/pages")
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao carregar páginas");
-        return res.json();
+    Promise.all([
+      fetch("/api/admin/pages").then((r) => r.ok ? r.json() : { docs: [] }),
+      fetch("/api/admin/posts?limit=1&status=published").then((r) => r.ok ? r.json() : { docs: [] }),
+      fetch("/api/admin/products?limit=1&status=published").then((r) => r.ok ? r.json() : { docs: [] }),
+    ])
+      .then(([pagesData, postsData, productsData]) => {
+        setPages(pagesData.docs ?? []);
+        const dynamic: DynamicPage[] = [];
+        const posts = postsData.docs ?? [];
+        const products = productsData.docs ?? [];
+        if (posts.length > 0) {
+          const p = posts[0];
+          dynamic.push({
+            type: "blog",
+            id: p.id,
+            title: "Blog — Detalhe do Post",
+            slug: p.slug,
+            path: `/posts/${p.slug}`,
+            updatedAt: p.updatedAt || p.createdAt,
+            imageUrl: p.coverUrl || p.imageUrl || null,
+          });
+        }
+        if (products.length > 0) {
+          const p = products[0];
+          dynamic.push({
+            type: "product",
+            id: p.id,
+            title: "Produto — Detalhe",
+            slug: p.slug,
+            path: `/${p.slug}/p`,
+            updatedAt: p.updatedAt || p.createdAt,
+            imageUrl: p.imageUrl || null,
+          });
+        }
+        setDynamicPages(dynamic);
       })
-      .then((data) => setPages(data.docs ?? []))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -384,6 +426,76 @@ export default function PaginasPage() {
         </div>
       )}
 
+      {/* Paginas dinamicas */}
+      {dynamicPages.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Páginas dinâmicas</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {dynamicPages.map((dp) => (
+              <button
+                key={dp.type}
+                type="button"
+                onClick={() => {
+                  if (dp.type === "product") {
+                    setPreviewUrl(`/api/admin/products/${dp.id}/preview-proxy`);
+                  } else {
+                    setPreviewUrl(`/api/admin/posts/${dp.id}/preview-proxy`);
+                  }
+                }}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/30 hover:bg-accent/50"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-muted-foreground">
+                  {dp.type === "blog" ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+                      <path d="M18 14h-8" /><path d="M15 18h-5" /><path d="M10 6h8v4h-8V6Z" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                      <path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
+                    </svg>
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{dp.title}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground truncate">
+                    Exemplo: <code className="rounded bg-accent px-1 py-0.5">{dp.path}</code>
+                  </p>
+                </div>
+                <span className="ml-auto shrink-0 text-muted-foreground">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+                  </svg>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Preview modal */}
+      {previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="flex h-[85vh] w-[90vw] max-w-5xl flex-col rounded-lg border border-border bg-card shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <span className="text-xs font-semibold text-foreground">Preview da pagina</span>
+              <button
+                type="button"
+                onClick={() => setPreviewUrl(null)}
+                className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+            <iframe src={previewUrl} className="flex-1 w-full border-0 bg-white" title="Preview" />
+          </div>
+        </div>
+      )}
+
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Páginas do CMS</h2>
       <div className="overflow-visible rounded-lg border border-border bg-card">
         {error ? (
           <div className="flex items-center gap-2 p-6 text-sm text-destructive">
