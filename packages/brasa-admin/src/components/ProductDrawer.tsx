@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Eye, EyeOff } from "lucide-react";
 import Drawer from "./Drawer";
 import Spinner from "./Spinner";
 import FormField from "./FormField";
@@ -39,6 +39,7 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
   const [content, setContent] = useState<unknown>(null);
   const [contentHtml, setContentHtml] = useState<string>("");
   const [useHtmlEditor, setUseHtmlEditor] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -220,14 +221,35 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
   const removeDifferential = (index: number) => setDifferentials((prev) => prev.filter((_, i) => i !== index));
 
   return (
-    <Drawer open={open} onClose={onClose} title="Editar Produto" maxWidth="max-w-2xl">
+    <Drawer open={open} onClose={onClose} title="Editar Produto" maxWidth={showPreview ? "max-w-6xl" : "max-w-2xl"}>
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
           <Spinner />
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className={`flex flex-1 min-h-0 ${showPreview ? "gap-0" : ""}`}>
+          {/* Preview iframe */}
+          {showPreview && productId && (
+            <div className="flex-1 border-r border-border flex flex-col min-w-0">
+              <div className="flex items-center justify-between border-b border-border bg-background px-3 py-1.5">
+                <span className="text-[11px] font-medium text-muted-foreground">Preview do produto</span>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(false)}
+                  className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+              <iframe
+                src={`/api/admin/products/${productId}/preview-proxy`}
+                className="flex-1 w-full border-0 bg-white"
+                title="Preview do produto"
+              />
+            </div>
+          )}
+          <div className={`${showPreview ? "w-[480px] shrink-0" : "flex-1"} overflow-y-auto px-6 py-5`}>
             {errors.form && (
               <div className="mb-5 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {errors.form}
@@ -352,13 +374,23 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
               </div>
             </div>
           </div>
-
-          <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
-            <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={saving}>
-              {saving && <Spinner className="size-4" />}
-              {saving ? "Salvando..." : "Salvar"}
-            </Button>
+          </div>{/* close flex row */}
+          <div className="flex items-center justify-between border-t px-6 py-4">
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showPreview ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              {showPreview ? "Fechar preview" : "Preview no site"}
+            </button>
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+              <Button type="submit" disabled={saving}>
+                {saving && <Spinner className="size-4" />}
+                {saving ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
           </div>
         </form>
       )}
