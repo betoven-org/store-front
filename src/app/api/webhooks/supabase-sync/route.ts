@@ -259,6 +259,7 @@ async function handleProduct(
       content,
       seoTitle: (record.meta_title as string) || null,
       seoDescription: (record.meta_description as string) || null,
+      faq: record.faq ?? null,
       status,
       updatedAt: (record.updated_at as string) || new Date().toISOString(),
     };
@@ -273,6 +274,7 @@ async function handleProduct(
       imageId,
       seoTitle: (record.meta_title as string) || null,
       seoDescription: (record.meta_description as string) || null,
+      faq: record.faq ?? null,
       status,
       tenantId,
       createdAt: (record.created_at as string) || new Date().toISOString(),

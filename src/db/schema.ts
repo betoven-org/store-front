@@ -192,6 +192,7 @@ export const products = pgTable("products", {
   imageId: integer("image_id").references(() => media.id, {
     onDelete: "set null",
   }),
+  faq: jsonb("faq"), // [{pergunta: string, resposta: string}]
   galleryImages: jsonb("gallery_images"), // number[] (media ids)
   seoTitle: varchar("seo_title", { length: 500 }),
   seoDescription: text("seo_description"),

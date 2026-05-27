@@ -47,6 +47,7 @@ export const GET = withApiKey(async ({ tenantId }, _req, params) => {
     whoCanUse: row.whoCanUse,
     benefits: row.benefits,
     differentials: row.differentials,
+    faq: row.faq,
     brand: row.brand,
     isKit: row.isKit,
     featured: row.featured,
