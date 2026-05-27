@@ -269,7 +269,7 @@ export default function PostsListPage() {
                         if (el) el.indeterminate = someSelected;
                       }}
                       onChange={toggleAll}
-                      className="size-4 rounded border-input accent-primary"
+                      className="size-4 rounded border-input accent-sidebar-accent"
                       aria-label="Selecionar todos"
                     />
                   </TableHead>
@@ -305,7 +305,7 @@ export default function PostsListPage() {
                         type="checkbox"
                         checked={selected.has(post.id)}
                         onChange={() => toggleOne(post.id)}
-                        className="size-4 rounded border-input accent-primary"
+                        className="size-4 rounded border-input accent-sidebar-accent"
                         aria-label={`Selecionar ${post.title}`}
                       />
                     </TableCell>

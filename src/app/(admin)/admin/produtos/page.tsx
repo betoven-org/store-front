@@ -502,7 +502,7 @@ export default function ProductsListPage() {
                         if (el) el.indeterminate = someSelected;
                       }}
                       onChange={toggleAll}
-                      className="size-4 rounded border-input accent-primary"
+                      className="size-4 rounded border-input accent-sidebar-accent"
                       aria-label="Selecionar todos"
                     />
                   </TableHead>
@@ -536,7 +536,7 @@ export default function ProductsListPage() {
                         type="checkbox"
                         checked={selected.has(product.id)}
                         onChange={() => toggleOne(product.id)}
-                        className="size-4 rounded border-input accent-primary"
+                        className="size-4 rounded border-input accent-sidebar-accent"
                         aria-label={`Selecionar ${product.name}`}
                       />
                     </TableCell>
