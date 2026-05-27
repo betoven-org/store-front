@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Upload } from "lucide-react";
-import Spinner from "./Spinner";
+import BrasaLoader from "./BrasaLoader";
 import MediaLibrary from "./MediaLibrary";
 
 type Props = {
@@ -102,7 +102,7 @@ export default function ImageUpload({ value, onChange, previewUrl }: Props) {
         >
           {uploading ? (
             <>
-              <Spinner className="mb-2 size-8" />
+              <BrasaLoader />
               <p className="text-sm font-medium text-primary">Enviando...</p>
             </>
           ) : (

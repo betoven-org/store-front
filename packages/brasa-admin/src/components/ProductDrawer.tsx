@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, X, Eye, EyeOff } from "lucide-react";
 import Drawer from "./Drawer";
-import Spinner from "./Spinner";
 import BrasaLoader from "./BrasaLoader";
 import FormField from "./FormField";
 import RichTextEditor from "./RichTextEditor";
@@ -388,7 +387,7 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
             <div className="flex items-center gap-3">
               <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
               <Button type="submit" disabled={saving}>
-                {saving && <Spinner className="size-4" />}
+                {saving && <BrasaLoader size="sm" />}
                 {saving ? "Salvando..." : "Salvar"}
               </Button>
             </div>

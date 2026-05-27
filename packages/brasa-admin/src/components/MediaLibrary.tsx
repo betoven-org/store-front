@@ -8,6 +8,7 @@ import {
   type ChangeEvent,
   type DragEvent,
 } from "react";
+import BrasaLoader from "./BrasaLoader";
 import ReactCrop, {
   centerCrop,
   makeAspectCrop,
@@ -83,13 +84,6 @@ function IconSearch() {
   );
 }
 
-function IconSpinner() {
-  return (
-    <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
-}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -254,7 +248,7 @@ function LibraryTab({
 
         {loading && (
           <div className="flex justify-center py-6">
-            <IconSpinner />
+            <BrasaLoader size="sm" />
           </div>
         )}
 
@@ -539,7 +533,7 @@ function UploadTab({
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: "var(--primary)" }}
           >
-            {uploading && <IconSpinner />}
+            {uploading && <BrasaLoader size="sm" />}
             {uploading ? "Enviando..." : "Upload"}
           </button>
         </div>

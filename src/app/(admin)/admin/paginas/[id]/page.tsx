@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, PageBuilder , BrasaPageLoader } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, PageBuilder, BrasaPageLoader, BrasaLoader } from "@brasa/admin";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 
 type EditState = {
@@ -49,20 +49,6 @@ function slugToPath(slug: string) {
   return slug === "home" ? "/" : `/${slug}`;
 }
 
-function Spinner({ small }: { small?: boolean }) {
-  return (
-    <svg
-      className={`${small ? "h-3.5 w-3.5" : "h-8 w-8"} animate-spin text-primary`}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
-}
 
 /* ── Toolbar icons ──────────────────────────────────────────────────── */
 
@@ -908,7 +894,7 @@ export default function EditPagePage({
   // Header extra
   const publishButton = (
     <div className="flex items-center gap-2">
-      {saving && <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Spinner small /></span>}
+      {saving && <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><BrasaLoader size="sm" /></span>}
       {/* Duplicate button */}
       <button
         type="button"
@@ -1421,7 +1407,7 @@ export default function EditPagePage({
               </a>
               {loadingVersions ? (
                 <div className="flex items-center justify-center py-12">
-                  <Spinner small />
+                  <BrasaLoader size="sm" />
                   <span className="ml-2 text-xs text-muted-foreground">Carregando...</span>
                 </div>
               ) : versions.length === 0 ? (

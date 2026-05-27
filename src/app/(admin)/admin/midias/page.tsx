@@ -16,7 +16,7 @@ import {
   List,
   FolderPlus,
 } from "lucide-react";
-import { AdminShell, DeleteConfirm, BulkBar, Spinner } from "@brasa/admin";
+import { AdminShell, DeleteConfirm, BulkBar, BrasaPageLoader } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -446,7 +446,7 @@ export default function MidiasPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Spinner className="h-7 w-7" />
+          <BrasaPageLoader />
           <span className="ml-3 text-sm text-muted-foreground">
             Carregando...
           </span>

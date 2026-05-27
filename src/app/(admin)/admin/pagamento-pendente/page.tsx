@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BrasaLoader } from "@brasa/admin";
 
 function WarningIcon() {
   return (
@@ -33,30 +34,6 @@ function LogoIcon() {
   );
 }
 
-function SpinnerIcon() {
-  return (
-    <svg
-      className="h-5 w-5 animate-spin"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
-  );
-}
 
 export default function PagamentoPendentePage() {
   const [loading, setLoading] = useState(false);
@@ -123,7 +100,7 @@ export default function PagamentoPendentePage() {
           disabled={loading}
           className="w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-8 px-3 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 h-10 text-sm"
         >
-          {loading && <SpinnerIcon />}
+          {loading && <BrasaLoader size="sm" />}
           {loading ? "Redirecionando..." : "Regularizar pagamento"}
         </button>
 

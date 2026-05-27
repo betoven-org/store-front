@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
-import { AdminShell, DeleteConfirm, BulkBar, AuthorDrawer, Spinner } from "@brasa/admin";
+import { AdminShell, DeleteConfirm, BulkBar, AuthorDrawer, BrasaPageLoader } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -142,7 +142,7 @@ export default function AutoresPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Spinner />
+          <BrasaPageLoader />
         </div>
       ) : data.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">

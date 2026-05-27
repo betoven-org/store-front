@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Plus, Package, Pencil, Trash2, X, MoreVertical, ExternalLink, SlidersHorizontal, Calendar, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
-import { AdminShell, StatusBadge, DeleteConfirm, ProductDrawer, BulkBar, Spinner } from "@brasa/admin";
+import { AdminShell, StatusBadge, DeleteConfirm, ProductDrawer, BulkBar, BrasaPageLoader } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -478,7 +478,7 @@ export default function ProductsListPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Spinner className="size-8" />
+          <BrasaPageLoader />
         </div>
       ) : data.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">

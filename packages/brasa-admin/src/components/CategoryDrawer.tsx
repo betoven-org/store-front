@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Drawer from "./Drawer";
-import Spinner from "./Spinner";
+import BrasaLoader from "./BrasaLoader";
 import FormField from "./FormField";
 import { Button } from "@/components/ui/button";
 
@@ -88,7 +88,7 @@ export default function CategoryDrawer({ categoryId, onClose, onSaved }: Props) 
     <Drawer open={open} onClose={onClose} title="Editar Categoria" maxWidth="max-w-md">
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
-          <Spinner />
+          <BrasaLoader />
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
@@ -115,7 +115,7 @@ export default function CategoryDrawer({ categoryId, onClose, onSaved }: Props) 
               Cancelar
             </Button>
             <Button type="submit" disabled={saving || !name.trim()}>
-              {saving && <Spinner className="h-4 w-4" />}
+              {saving && <BrasaLoader size="sm" />}
               {saving ? "Salvando..." : "Salvar"}
             </Button>
           </div>

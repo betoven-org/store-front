@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
-import { AdminShell, DeleteConfirm, UserDrawer, Spinner } from "@brasa/admin";
+import { AdminShell, DeleteConfirm, UserDrawer, BrasaPageLoader } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -166,7 +166,7 @@ export default function UsuariosPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Spinner />
+          <BrasaPageLoader />
         </div>
       ) : data.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">

@@ -3,18 +3,31 @@
 /**
  * BrasaLoader — Loading animation for the Brasa CMS.
  * Geometric blocks that assemble into a grid pattern, representing
- * sections being built. Centered on screen.
+ * sections being built.
+ *
+ * size="sm"  → 16px, inline use (buttons, badges)
+ * size="md"  → 52px, default (drawers, cards)
  */
 
-export default function BrasaLoader({ text }: { text?: string }) {
+type Props = {
+  text?: string;
+  size?: "sm" | "md";
+};
+
+const SIZES = {
+  sm: { container: "w-[16px] h-[16px]", block: "w-[6px] h-[6px] rounded-[2px]" },
+  md: { container: "w-[52px] h-[52px]", block: "w-[22px] h-[22px] rounded-[4px]" },
+} as const;
+
+export default function BrasaLoader({ text, size = "md" }: Props) {
+  const s = SIZES[size];
   return (
     <div className="flex flex-col items-center justify-center gap-5">
-      <div className="relative w-[52px] h-[52px]">
-        {/* 4 blocks assembling into a 2x2 grid */}
-        <span className="absolute w-[22px] h-[22px] rounded-[4px] bg-foreground/80 top-0 left-0 animate-[brasa-tl_1.4s_ease-in-out_infinite]" />
-        <span className="absolute w-[22px] h-[22px] rounded-[4px] bg-foreground/60 top-0 right-0 animate-[brasa-tr_1.4s_ease-in-out_infinite_0.15s]" />
-        <span className="absolute w-[22px] h-[22px] rounded-[4px] bg-foreground/40 bottom-0 left-0 animate-[brasa-bl_1.4s_ease-in-out_infinite_0.3s]" />
-        <span className="absolute w-[22px] h-[22px] rounded-[4px] bg-foreground/20 bottom-0 right-0 animate-[brasa-br_1.4s_ease-in-out_infinite_0.45s]" />
+      <div className={`relative ${s.container}`}>
+        <span className={`absolute ${s.block} bg-foreground/80 top-0 left-0 animate-[brasa-tl_1.4s_ease-in-out_infinite]`} />
+        <span className={`absolute ${s.block} bg-foreground/60 top-0 right-0 animate-[brasa-tr_1.4s_ease-in-out_infinite_0.15s]`} />
+        <span className={`absolute ${s.block} bg-foreground/40 bottom-0 left-0 animate-[brasa-bl_1.4s_ease-in-out_infinite_0.3s]`} />
+        <span className={`absolute ${s.block} bg-foreground/20 bottom-0 right-0 animate-[brasa-br_1.4s_ease-in-out_infinite_0.45s]`} />
       </div>
       {text && (
         <p className="text-[12px] font-medium text-muted-foreground animate-pulse">{text}</p>

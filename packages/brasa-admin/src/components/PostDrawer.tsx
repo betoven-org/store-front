@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Drawer from "./Drawer";
-import Spinner from "./Spinner";
+import BrasaLoader from "./BrasaLoader";
 import FormField from "./FormField";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "./ImageUpload";
@@ -190,7 +190,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
     <Drawer open={open} onClose={onClose} title="Editar Post">
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
-          <Spinner />
+          <BrasaLoader />
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
@@ -259,7 +259,7 @@ export default function PostDrawer({ postId, onClose, onSaved }: Props) {
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving && <Spinner className="h-4 w-4" />}
+              {saving && <BrasaLoader size="sm" />}
               {saving ? "Salvando..." : "Salvar"}
             </Button>
           </div>

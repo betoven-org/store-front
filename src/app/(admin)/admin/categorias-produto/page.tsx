@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, Tags } from "lucide-react";
-import { AdminShell, DeleteConfirm, BulkBar, ProductCategoryDrawer, Spinner } from "@brasa/admin";
+import { AdminShell, DeleteConfirm, BulkBar, ProductCategoryDrawer, BrasaPageLoader } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -146,7 +146,7 @@ export default function CategoriasProdutoPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Spinner />
+          <BrasaPageLoader />
         </div>
       ) : data.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">
