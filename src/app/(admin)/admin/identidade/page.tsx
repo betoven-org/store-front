@@ -263,6 +263,24 @@ export default function IdentidadePage() {
           </div>
         </section>
 
+        {/* WhatsApp */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-background px-5 py-3">
+            <h3 className="text-[13px] font-semibold text-foreground">WhatsApp</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Número exibido nos botões de WhatsApp do site</p>
+          </div>
+          <div className="p-5">
+            <FormField
+              label="Número"
+              name="whatsapp"
+              value={settings.whatsapp ?? ""}
+              onChange={handleChange}
+              placeholder="5531999999999"
+              description="Número com DDI + DDD, sem espaços"
+            />
+          </div>
+        </section>
+
         {/* SEO Preview */}
         <section className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="border-b border-border bg-background px-5 py-3">
