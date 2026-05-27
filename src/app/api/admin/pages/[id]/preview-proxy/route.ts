@@ -58,21 +58,21 @@ export async function GET(
 
     // Rewrite root-relative URLs so assets, images, scripts and links
     // resolve against the frontend origin, not the CMS proxy.
-    // Matches `/path` but skips `//protocol-relative` and full URLs.
     const origin = tenant.frontendUrl.replace(/\/+$/, "");
+
+    // src, href, action, poster — single URL attributes
     html = html.replace(
       /(src|href|action|poster)=(["'])\/(?!\/)/g,
       `$1=$2${origin}/`,
     );
-    // srcset entries: " /path" or ",/path"
+
+    // srcset — may contain multiple entries separated by commas
     html = html.replace(
-      /(srcset=["'][^"']*?(?:,|\s))\/(?!\/)/g,
-      `$1${origin}/`,
-    );
-    // srcset starting with root-relative
-    html = html.replace(
-      /(srcset=["'])\/(?!\/)/g,
-      `$1${origin}/`,
+      /srcset=(["'])([^"']+)\1/g,
+      (_match, quote, value) => {
+        const fixed = value.replace(/(^|,\s*)\/(?!\/)/g, `$1${origin}/`);
+        return `srcset=${quote}${fixed}${quote}`;
+      },
     );
 
     return new NextResponse(html, {
