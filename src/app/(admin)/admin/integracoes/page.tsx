@@ -47,15 +47,6 @@ const INTEGRATIONS: Integration[] = [
     limit: "Ilimitado",
   },
   {
-    key: "email",
-    name: "Emails transacionais",
-    description: "Welcome, avisos de pagamento e notificações enviados automaticamente.",
-    category: "Incluído no plano",
-    type: "included",
-    pricing: "Gratuito",
-    limit: "100 emails/dia",
-  },
-  {
     key: "analytics",
     name: "Analytics",
     description: "Métricas de requisições, pageviews e performance integradas ao painel.",
