@@ -99,12 +99,12 @@ async function main() {
     console.log(`  ${GREEN}Paginas criadas${RESET} ${DIM}(home, politica-de-privacidade, blog)${RESET}`);
 
     // 6. Criar subscription ativa
-    const nextDue = new Date(Date.now() + 30 * 86400000).toISOString();
+    const nextDue = new Date(Date.now() + 7 * 86400000).toISOString();
     await sql`
       INSERT INTO subscriptions (tenant_id, status, next_due_date)
       VALUES (${tenantId}, 'active', ${nextDue})
     `;
-    console.log(`  ${GREEN}Subscription criada${RESET} ${DIM}(ativa por 30 dias)${RESET}`);
+    console.log(`  ${GREEN}Subscription criada${RESET} ${DIM}(trial 7 dias)${RESET}`);
 
     // 7. Seed guias
     await sql`

@@ -63,9 +63,9 @@ async function seed() {
     console.log(`Site settings created (id: ${settings.id})`);
   }
 
-  // Insert default subscription (30 days trial)
+  // Insert default subscription (7 days trial)
   const nextDueDate = new Date();
-  nextDueDate.setDate(nextDueDate.getDate() + 30);
+  nextDueDate.setDate(nextDueDate.getDate() + 7);
 
   const [subscription] = await db
     .insert(subscriptions)

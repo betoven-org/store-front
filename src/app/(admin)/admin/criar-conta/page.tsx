@@ -76,7 +76,7 @@ export default function CriarContaPage() {
               <span style={{ color: "#F97316" }}>conta.</span>
             </h1>
             <p className="mt-3 text-[15px] text-[#666] leading-relaxed">
-              Configure seu CMS em segundos.<br />30 dias gratis pra testar.
+              Configure seu CMS em segundos.<br />7 dias gratis pra testar.
             </p>
           </div>
 
@@ -241,7 +241,7 @@ export default function CriarContaPage() {
               <span style={{ color: "#F97316" }}>quiser.</span>
             </h2>
             <p className="mt-5 text-[14px] opacity-55 max-w-[340px] mx-auto leading-relaxed">
-              30 dias gratuitos. Sem cartao de credito. Cancele quando quiser.
+              7 dias gratuitos. Sem cartao de credito. Cancele quando quiser.
             </p>
           </div>
         </div>

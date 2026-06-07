@@ -107,8 +107,8 @@ export async function POST(req: NextRequest) {
       (${tenantId}, 'politica-de-privacidade', 'Politica de Privacidade', null)
     `;
 
-    // Create subscription (30-day trial)
-    const nextDue = new Date(Date.now() + 30 * 86400000).toISOString();
+    // Create subscription (7-day trial)
+    const nextDue = new Date(Date.now() + 7 * 86400000).toISOString();
     await sql`
       INSERT INTO subscriptions (tenant_id, status, next_due_date, grace_days)
       VALUES (${tenantId}, 'active', ${nextDue}, 7)
