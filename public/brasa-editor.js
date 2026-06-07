@@ -386,6 +386,28 @@
           detach();
         }
         break;
+
+      case "brasa:sections-update":
+        // Update DOM text/image values from new props without full reload
+        if (msg.blocks && Array.isArray(msg.blocks)) {
+          msg.blocks.forEach(function (block) {
+            var els = document.querySelectorAll('[data-brasa-block="' + block.id + '"]');
+            els.forEach(function (el) {
+              var propKey = el.getAttribute("data-brasa-prop");
+              if (!propKey || !block.props) return;
+              var newVal = block.props[propKey];
+              if (newVal === undefined) return;
+              if (isImage(el)) {
+                if (el.src !== newVal) el.src = newVal;
+              } else if (isRichText(el)) {
+                if (el.innerHTML !== newVal) el.innerHTML = newVal;
+              } else {
+                if (el.textContent !== newVal) el.textContent = newVal;
+              }
+            });
+          });
+        }
+        break;
     }
   });
 })();

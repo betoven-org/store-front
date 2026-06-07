@@ -624,7 +624,7 @@ export default function EditPagePage({
         setPage(updated);
       }
       setLastSaved(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
-      setPreviewKey((k) => k + 1);
+      // No iframe reload — preview updates via postMessage (brasa:sections-update)
     } catch {
       toast.error("Erro ao salvar sections");
     } finally {
@@ -634,6 +634,24 @@ export default function EditPagePage({
 
   // Keep ref in sync so the message listener always calls the latest version
   saveSectionsRef.current = saveSections;
+
+  // ── Autosave every 30s if there are unsaved changes ─────────────
+  const autosaveRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const sectionBlocksRef = useRef(sectionBlocks);
+  sectionBlocksRef.current = sectionBlocks;
+
+  useEffect(() => {
+    autosaveRef.current = setInterval(() => {
+      // Autosave editState if dirty
+      const current = editStateRef.current;
+      if (current && JSON.stringify(current) !== savedSnapshot) {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        save(current);
+      }
+    }, 30000);
+    return () => { if (autosaveRef.current) clearInterval(autosaveRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [save, savedSnapshot]);
 
   // ── Keyboard shortcuts ──────────────────────────────────────────
   const editStateRef = useRef(editState);
@@ -696,6 +714,9 @@ export default function EditPagePage({
     isUndoRedoRef.current = false;
     if (sectionsDebounceRef.current) clearTimeout(sectionsDebounceRef.current);
     sectionsDebounceRef.current = setTimeout(() => saveSections(blocks), 1500);
+
+    // Instant preview update via postMessage (no iframe reload)
+    sendToIframe({ type: "brasa:sections-update", blocks });
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
