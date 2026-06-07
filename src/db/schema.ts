@@ -301,6 +301,18 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+// ── Tenant Integrations (chaves por tenant) ───────────────────────────────────
+
+export const tenantIntegrations = pgTable("tenant_integrations", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  integration: varchar("integration", { length: 50 }).notNull(),
+  config: jsonb("config").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
 // ── AI Credits ────────────────────────────────────────────────────────────────
 
 export const aiCredits = pgTable("ai_credits", {
