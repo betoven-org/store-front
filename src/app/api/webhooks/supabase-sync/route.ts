@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@brasa/core/db";
 import {
-  categories, authors, posts, tags, media, products, productCategories, subscribers,
+  categories, authors, posts, tags, media, products, productCategories, subscribers, subscriptions,
 } from "@brasa/core/schema";
 import { and, eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
@@ -59,6 +59,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const tenantId = await getTenantId();
+
+    // Block sync if subscription is suspended
+    const [sub] = await db
+      .select({ status: subscriptions.status })
+      .from(subscriptions)
+      .where(eq(subscriptions.tenantId, tenantId))
+      .limit(1);
+
+    if (sub?.status === "suspended") {
+      return NextResponse.json(
+        { error: "Assinatura suspensa — sincronizacao bloqueada" },
+        { status: 402 },
+      );
+    }
     const payload: WebhookPayload = await request.json();
     const { type, table, record, old_record } = payload;
 

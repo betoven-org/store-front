@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { stripe } from "@/lib/stripe";
+import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { subscriptions } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  if (!token) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 

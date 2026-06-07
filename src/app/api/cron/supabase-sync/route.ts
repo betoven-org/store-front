@@ -1,6 +1,6 @@
 import { db } from "@brasa/core/db";
 import {
-  categories, authors, posts, tags, media, products, siteSettings,
+  categories, authors, posts, tags, media, products, siteSettings, subscriptions,
 } from "@brasa/core/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -90,6 +90,21 @@ export async function GET(req: NextRequest) {
 
   try {
     const tenantId = await getTenantId();
+
+    // Block sync if subscription is suspended
+    const [sub] = await db
+      .select({ status: subscriptions.status })
+      .from(subscriptions)
+      .where(eq(subscriptions.tenantId, tenantId))
+      .limit(1);
+
+    if (sub?.status === "suspended") {
+      return NextResponse.json(
+        { error: "Assinatura suspensa — sincronizacao bloqueada" },
+        { status: 402 },
+      );
+    }
+
     // Read last sync timestamp
     const [settings] = await db.select({ lastSyncAt: siteSettings.lastSyncAt }).from(siteSettings).where(eq(siteSettings.tenantId, tenantId)).limit(1);
     const since = settings?.lastSyncAt || "2000-01-01T00:00:00.000Z";

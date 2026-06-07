@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
+import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { subscriptions } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
@@ -18,14 +18,14 @@ async function getOrCreatePrice(): Promise<string> {
   }
 
   const product = await stripe.products.create({
-    name: "CMS Medicinal na Web",
+    name: "Brasa CMS — Plano Mensal",
     description:
-      "Assinatura mensal — Plataforma de gestao de conteudo com painel administrativo, editor de posts, analytics integrado e hospedagem inclusa.",
+      "Plataforma de gestao de conteudo com Page Builder, editor de posts, analytics integrado e hospedagem inclusa.",
   });
 
   const price = await stripe.prices.create({
     product: product.id,
-    unit_amount: 45000,
+    unit_amount: 55000,
     currency: "brl",
     recurring: { interval: "month" },
     lookup_key: "cms_mensal",
@@ -35,8 +35,8 @@ async function getOrCreatePrice(): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  if (!token) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       "http://localhost:3000";
 
     const tenantId = await getTenantId();
-    const email = token.email as string;
+    const email = session.user.email;
 
     // Verificar se ja existe um stripeCustomerId salvo
     const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.tenantId, tenantId)).limit(1);
@@ -75,6 +75,15 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/admin?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/admin/pagamento-pendente`,
       metadata: { tenantId: String(tenantId) },
+      custom_fields: [
+        {
+          key: "cpf_cnpj",
+          label: { type: "custom", custom: "CPF ou CNPJ" },
+          type: "text",
+          text: { minimum_length: 11, maximum_length: 18 },
+        },
+      ],
+      tax_id_collection: { enabled: true },
     };
 
     if (customerId) {
@@ -83,9 +92,9 @@ export async function POST(req: NextRequest) {
       sessionParams.customer_email = email;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: checkoutSession.url });
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Erro ao criar sessao de checkout";

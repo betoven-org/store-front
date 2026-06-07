@@ -133,9 +133,35 @@ export default function AssinaturaSection() {
     );
   }
 
+  async function handleCheckout() {
+    setPortalLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/stripe/checkout", { method: "POST" });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erro ao iniciar checkout.");
+      }
+
+      const { url } = await res.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("URL de checkout nao retornada.");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao processar pagamento.",
+      );
+      setPortalLoading(false);
+    }
+  }
+
   if (!subscription) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+      <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
           <CreditCardIcon />
         </div>
@@ -143,9 +169,21 @@ export default function AssinaturaSection() {
           Nenhuma assinatura ativa
         </h3>
         <p className="max-w-sm text-sm text-muted-foreground">
-          Configure a integracao com o Stripe para gerenciar assinaturas e
-          cobrar seus clientes de forma recorrente.
+          Assine o Brasa CMS por R$ 550,00/mes para manter o painel
+          administrativo, sincronizacao de dados e hospedagem ativos.
         </p>
+        <button
+          type="button"
+          onClick={handleCheckout}
+          disabled={portalLoading}
+          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground text-background text-[13px] font-medium h-9 px-4 transition-all hover:brightness-[0.97] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
+        >
+          {portalLoading && <SpinnerIcon className="h-4 w-4" />}
+          {portalLoading ? "Redirecionando..." : "Assinar agora"}
+        </button>
+        {error && (
+          <p className="text-sm font-medium text-destructive">{error}</p>
+        )}
       </div>
     );
   }
@@ -189,7 +227,7 @@ export default function AssinaturaSection() {
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Valor
           </p>
-          <p className="text-sm font-medium text-foreground">R$ 450,00/mes</p>
+          <p className="text-sm font-medium text-foreground">R$ 550,00/mes</p>
         </div>
 
         {/* Período de carência */}

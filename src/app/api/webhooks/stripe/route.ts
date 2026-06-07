@@ -51,6 +51,12 @@ export async function POST(req: NextRequest) {
         stripePriceId = stripeSub.items.data[0]?.price?.id || null;
       }
 
+      // Extrair CPF/CNPJ do custom_fields
+      const taxId =
+        (session as any).custom_fields?.find(
+          (f: any) => f.key === "cpf_cnpj",
+        )?.text?.value || null;
+
       const [existing] = await db
         .select()
         .from(subscriptions)
@@ -65,6 +71,7 @@ export async function POST(req: NextRequest) {
             stripeCustomerId,
             stripeSubscriptionId,
             stripePriceId,
+            taxId,
             nextDueDate: nextDue.toISOString(),
             updatedAt: now,
           })
@@ -76,6 +83,7 @@ export async function POST(req: NextRequest) {
           stripeCustomerId,
           stripeSubscriptionId,
           stripePriceId,
+          taxId,
           nextDueDate: nextDue.toISOString(),
           graceDays: 7,
           createdAt: now,
