@@ -1,4 +1,5 @@
 "use client";
+import { BrasaLoader } from "@brasa/admin";
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -147,7 +148,7 @@ export default function LoginPage() {
               style={{ backgroundColor: "#F97316" }}
             >
               {loading ? (
-                <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <BrasaLoader size="sm" />
               ) : (
                 <>
                   Entrar

@@ -1,4 +1,5 @@
 "use client";
+import { BrasaLoader } from "@brasa/admin";
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -157,7 +158,7 @@ export default function RecoverPasswordPage() {
                 style={{ backgroundColor: "#F97316" }}
               >
                 {loading ? (
-                  <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <BrasaLoader size="sm" />
                 ) : (
                   "Enviar código"
                 )}
@@ -268,7 +269,7 @@ export default function RecoverPasswordPage() {
                 style={{ backgroundColor: "#F97316" }}
               >
                 {loading ? (
-                  <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <BrasaLoader size="sm" />
                 ) : (
                   "Redefinir senha"
                 )}

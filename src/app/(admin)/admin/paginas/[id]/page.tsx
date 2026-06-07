@@ -207,7 +207,7 @@ function PreviewFrame({
         <div
           style={{
             width: config.width,
-            height: "100%",
+            height: "100vh",
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
@@ -231,7 +231,7 @@ function PreviewFrame({
       <div
         style={{
           width: config.width,
-          height: "100%",
+          height: "100vh",
           transform: `scale(${scale})`,
           transformOrigin: "top center",
         }}

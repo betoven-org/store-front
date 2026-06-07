@@ -62,7 +62,7 @@ function PreviewFrame({
   const frameHeight = scale > 0 ? `${100 / scale}%` : "100%";
   return (
     <div ref={containerRef} className="flex-1 bg-accent overflow-hidden flex justify-center">
-      <div style={{ width: config.width, height: "100%", transform: `scale(${scale})`, transformOrigin: "top center" }}>
+      <div style={{ width: config.width, height: "100vh", transform: `scale(${scale})`, transformOrigin: "top center" }}>
         <iframe ref={iframeRef} src={src} className="border-0 bg-card" style={{ width: config.width, height: frameHeight }} title={title} />
       </div>
     </div>
