@@ -881,20 +881,13 @@ export default function EditPagePage({
   hasDraftRef.current = hasDraft;
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.previewUrl || tenant?.frontendUrl || "";
-  const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
-  // Preview: always show the real frontend site
-  // With draft → pass ?preview=draft&pageId=X so frontend fetches draft data
-  // Without draft → load published page normally
-  // No frontend URL → internal preview fallback
+  // Preview: use internal renderer (reliable, always works)
+  // The internal preview renders sections server-side without depending on external frontend
   const hasContent = !!(page.content || page.draft);
-  const previewBase = frontendBase
-    ? hasDraft
-      ? `/api/admin/pages/${id}/preview-proxy?slug=${encodeURIComponent(pagePath)}&preview=draft`
-      : `/api/admin/pages/${id}/preview-proxy?slug=${encodeURIComponent(pagePath)}`
-    : hasContent || hasSections
-      ? `/api/admin/pages/${id}/preview?sections=draft`
-      : "";
+  const previewBase = hasContent || hasSections
+    ? `/api/admin/pages/${id}/preview?sections=draft`
+    : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
     ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
