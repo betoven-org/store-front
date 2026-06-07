@@ -1138,8 +1138,8 @@ export default function EditPagePage({
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Open Graph</span>
                   <div className="flex-1 border-t border-border" />
                 </div>
-                <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Título redes sociais" />
-                <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descrição redes sociais" />
+                <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Título redes sociais" ai="rewrite" aiContext={editState.title} />
+                <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descrição redes sociais" ai="rewrite" aiContext={editState.metaDescription} />
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-foreground">OG Image</label>
                   <ImageUpload

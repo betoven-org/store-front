@@ -248,6 +248,7 @@ export default function EditPostPage({
               error={errors.excerpt}
               required
               placeholder="Resumo do post"
+              ai="summarize"
               description="Breve descrição exibida nos cards e resultados de busca"
             />
 
