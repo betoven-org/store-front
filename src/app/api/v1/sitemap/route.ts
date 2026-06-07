@@ -22,7 +22,7 @@ function xmlResponse(xml: string) {
   return new Response(xml, {
     headers: {
       "Content-Type": "application/xml",
-      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=3600",
     },
   });
 }
