@@ -3,6 +3,12 @@ import { drizzle } from "drizzle-orm/neon-http";
 import bcrypt from "bcryptjs";
 import { users, siteSettings, subscriptions } from "./schema";
 
+// Usage: DATABASE_URL=... ADMIN_EMAIL=admin@example.com SITE_NAME="Meu Site" tsx src/db/seed.ts
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@brasa.tech";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const SITE_NAME = process.env.SITE_NAME || "Meu Site";
+
 async function seed() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -15,14 +21,14 @@ async function seed() {
   console.log("Seeding database...");
 
   // Hash the default admin password
-  const passwordHash = await bcrypt.hash("admin123", 12);
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
   // Insert admin user
   const [adminUser] = await db
     .insert(users)
     .values({
       name: "Administrador",
-      email: "admin@medicinal.com",
+      email: ADMIN_EMAIL,
       passwordHash,
       role: "admin",
     })
@@ -39,22 +45,17 @@ async function seed() {
   const [settings] = await db
     .insert(siteSettings)
     .values({
-      siteName: "Medicinal na Web",
-      siteDescription:
-        "Blog sobre plantas medicinais, suplementos, receitas naturais e bem-estar.",
-      footerText:
-        "Medicinal na Web - Seu guia de saude natural e plantas medicinais.",
-      copyrightText: `${new Date().getFullYear()} Medicinal na Web. Todos os direitos reservados.`,
+      siteName: SITE_NAME,
+      siteDescription: `Site gerenciado pelo Brasa CMS.`,
+      footerText: `${SITE_NAME} — Todos os direitos reservados.`,
+      copyrightText: `${new Date().getFullYear()} ${SITE_NAME}. Todos os direitos reservados.`,
       newsletterTitle: "Receba nossas novidades",
       newsletterDescription:
-        "Cadastre-se para receber artigos, dicas e receitas diretamente no seu e-mail.",
+        "Cadastre-se para receber conteudos diretamente no seu e-mail.",
       newsletterConsent:
         "Ao se inscrever, voce concorda em receber nossos e-mails. Pode cancelar a qualquer momento.",
-      seoTitle: "Medicinal na Web - Plantas Medicinais, Suplementos e Bem-estar",
-      seoDescription:
-        "Descubra o poder das plantas medicinais, suplementos naturais, receitas saudaveis e dicas de bem-estar no Medicinal na Web.",
-      seoKeywords:
-        "plantas medicinais, suplementos naturais, receitas saudaveis, bem-estar, saude natural, fitoterapia",
+      seoTitle: SITE_NAME,
+      seoDescription: `${SITE_NAME} — Conteudo gerenciado pelo Brasa CMS.`,
     })
     .returning();
 
@@ -62,7 +63,7 @@ async function seed() {
     console.log(`Site settings created (id: ${settings.id})`);
   }
 
-  // Insert default subscription
+  // Insert default subscription (30 days trial)
   const nextDueDate = new Date();
   nextDueDate.setDate(nextDueDate.getDate() + 30);
 

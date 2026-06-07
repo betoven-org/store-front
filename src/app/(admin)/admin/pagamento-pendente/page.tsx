@@ -72,7 +72,7 @@ export default function PagamentoPendentePage() {
       <div className="mb-8 flex items-center gap-3">
         <LogoIcon />
         <span className="text-2xl font-bold text-primary">
-          Medicinal na Web
+          Brasa CMS
         </span>
       </div>
 
@@ -111,10 +111,10 @@ export default function PagamentoPendentePage() {
         <p className="mt-6 text-sm text-muted-foreground">
           Precisa de ajuda? Entre em contato:{" "}
           <a
-            href="mailto:contato@medicinalweb.com"
+            href="mailto:suporte@brasa.tech"
             className="text-primary underline hover:text-[#0a4f8c]"
           >
-            contato@medicinalweb.com
+            suporte@brasa.tech
           </a>
         </p>
       </div>

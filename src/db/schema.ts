@@ -259,7 +259,7 @@ export const pagesRelations = relations(pages, () => ({}));
 export const siteSettings = pgTable("site_settings", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
-  siteName: varchar("site_name", { length: 255 }).default("Medicinal na Web"),
+  siteName: varchar("site_name", { length: 255 }).default("Meu Site"),
   siteDescription: text("site_description"),
   logoId: integer("logo_id").references(() => media.id, {
     onDelete: "set null",

@@ -20,8 +20,8 @@ export default function BeforeLogin() {
           lineHeight: "1.5",
         }}
       >
-        Painel administrativo do{" "}
-        <strong style={{ color: "var(--primary)" }}>Medicinal na Web</strong>.
+        Painel administrativo{" "}
+        <strong style={{ color: "var(--primary)" }}>Brasa CMS</strong>.
         <br />
         Acesse com suas credenciais para gerenciar o conteudo.
       </p>

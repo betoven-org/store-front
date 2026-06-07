@@ -117,7 +117,7 @@ export default function IdentidadePage() {
               name="siteName"
               value={settings.siteName}
               onChange={handleChange}
-              placeholder="Ex: Medicinal na Web"
+              placeholder="Ex: Minha Loja"
             />
             <FormField
               label="Descrição"
@@ -192,7 +192,7 @@ export default function IdentidadePage() {
               value={frontendUrl}
               onChange={(e) => setFrontendUrl(e.target.value)}
               placeholder="https://meusite.vercel.app"
-              description="Sem barra final. Ex: https://blog-medicinal.vercel.app"
+              description="Sem barra final. Ex: https://meusite.vercel.app"
             />
             {tenant?.frontendUrl && (
               <div className="mt-3 flex items-center gap-2">

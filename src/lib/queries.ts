@@ -88,7 +88,7 @@ const _getSiteSettings = unstable_cache(
     if (!row) {
       return {
         id: 0,
-        siteName: "Medicinal na Web",
+        siteName: "Meu Site",
         siteDescription: null,
         logoId: null,
         faviconId: null,

@@ -270,7 +270,7 @@ export function SettingsContent({
             name="siteName"
             value={settings.siteName}
             onChange={onSettingsChange}
-            placeholder="Ex: Medicinal na Web"
+            placeholder="Ex: Minha Loja"
           />
           <FormField
             label="Descrição do Site"
@@ -344,7 +344,7 @@ export function SettingsContent({
             name="copyrightText"
             value={settings.copyrightText}
             onChange={onSettingsChange}
-            placeholder="Ex: 2024 Medicinal na Web. Todos os direitos reservados."
+            placeholder="Ex: 2024 Sua Empresa. Todos os direitos reservados."
           />
         </div>
       )}
