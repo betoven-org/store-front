@@ -88,31 +88,31 @@ Tornar o Brasa CMS tao fluido e dinâmico quanto o deco.cx, mas com UX superior,
 ## Ordem de execucao sugerida
 
 ### Sprint 1 — Fluidez do Editor (torna o CMS viciante)
-- [ ] #29 Autosave (30s debounce)
-- [ ] #2 Preview sem reload (postMessage patch)
-- [ ] #1 Inline editing basico (texto)
-- [ ] #10 SEO templates (%s)
-- [ ] #32 Onboarding wizard
+- [x] #29 Autosave (30s debounce) ✓
+- [x] #2 Preview sem reload (postMessage patch) ✓
+- [x] #1 Inline editing basico (texto) ✓ (já existia)
+- [x] #10 SEO templates (%s) ✓
+- [x] #32 Onboarding wizard ✓
 
 ### Sprint 2 — SEO & Profissionalismo
 - [ ] #11 JSON-LD automatico
-- [ ] #12 SEO preview (Google/Social)
-- [ ] #16 Redirects manager
-- [ ] #5 Widgets: color, date, video
-- [ ] #27 AI content generation (OpenAI)
+- [x] #12 SEO preview (Google/Social) ✓ (tab SEO no editor)
+- [x] #16 Redirects manager ✓
+- [x] #5 Widgets: color, date, video ✓
+- [x] #27 AI content generation (OpenAI) ✓ + sistema de creditos
 
 ### Sprint 3 — Personalizacao & Growth
-- [ ] #3 Section variants (A/B)
+- [x] #3 Section variants (A/B) ✓ (schema pronto, falta UI de config)
 - [ ] #19 Matchers (device, random%)
-- [ ] #22 Resend email
+- [x] #22 Resend email ✓
 - [ ] #36 Super-admin dashboard
 - [ ] #28 Command palette expandido
 
 ### Sprint 4 — Integracoes & Scale
-- [ ] #4 Lazy/Deferred sections
-- [ ] #23 Search engine (Algolia/Typesense)
-- [ ] #24 PostHog analytics
-- [ ] #26 Unsplash na media library
+- [x] #4 Lazy/Deferred sections ✓ (flag no SectionBlock)
+- [x] #23 Search engine (Algolia/Typesense) ✓
+- [ ] #24 PostHog analytics (script injection)
+- [x] #26 Unsplash na media library ✓ (API pronta, falta UI tab)
 - [ ] #37 Planos diferenciados
 
 ### Sprint 5 — Polish & Enterprise
@@ -122,6 +122,19 @@ Tornar o Brasa CMS tao fluido e dinâmico quanto o deco.cx, mas com UX superior,
 - [ ] #33 Activity log
 - [ ] #39 White-label
 - [ ] #40 Custom domains com SSL
+
+### Extras implementados (fora do roadmap original)
+- [x] Stripe billing R$550/mês + CPF/CNPJ
+- [x] Self-service signup + 7 dias trial
+- [x] Bloqueio de sync quando inadimplente
+- [x] Theme editor (cores OKLch, fontes, radius)
+- [x] Section schema system (defineSection + extractor)
+- [x] Editor split panel (estilo deco)
+- [x] Preview com dados reais (posts, categorias, produtos)
+- [x] Integrações: OpenAI, Unsplash, Resend, Slack, Algolia/Typesense
+- [x] Sistema de créditos de AI (50 grátis, debita por uso)
+- [x] Notificação Slack automática no publish
+- [x] BrasaLoader unificado (formas geométricas)
 
 ---
 

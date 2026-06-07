@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
+import { db } from "@brasa/core/db";
+import { aiCredits, aiUsageLog } from "@brasa/core/schema";
+import { eq } from "drizzle-orm";
+import { getTenantId } from "@/lib/tenant";
 
 /**
  * POST /api/admin/ai/generate — AI content generation via OpenAI
  * Body: { prompt, context?, mode: "write" | "rewrite" | "summarize" | "seo" }
+ *
+ * Credits system: each generation costs 1 credit.
+ * New tenants start with 50 free credits. Buy more via admin.
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -14,6 +21,30 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY não configurada" }, { status: 500 });
+  }
+
+  const tenantId = await getTenantId();
+
+  // Check credits
+  let [credits] = await db
+    .select()
+    .from(aiCredits)
+    .where(eq(aiCredits.tenantId, tenantId))
+    .limit(1);
+
+  if (!credits) {
+    // First time — create with 50 free credits
+    [credits] = await db
+      .insert(aiCredits)
+      .values({ tenantId, balance: 50, totalUsed: 0 })
+      .returning();
+  }
+
+  if (credits.balance <= 0) {
+    return NextResponse.json(
+      { error: "Créditos de IA esgotados. Adquira mais créditos em Configurações." },
+      { status: 402 },
+    );
   }
 
   const { prompt, context, mode = "write" } = await req.json();
@@ -60,8 +91,30 @@ export async function POST(req: NextRequest) {
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content || "";
+    const tokensUsed = data.usage?.total_tokens || 0;
 
-    return NextResponse.json({ content, mode });
+    // Deduct 1 credit and log usage
+    await db
+      .update(aiCredits)
+      .set({
+        balance: credits.balance - 1,
+        totalUsed: credits.totalUsed + 1,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(aiCredits.id, credits.id));
+
+    await db.insert(aiUsageLog).values({
+      tenantId,
+      userId: Number(session.user.id),
+      mode,
+      tokensUsed,
+    });
+
+    return NextResponse.json({
+      content,
+      mode,
+      creditsRemaining: credits.balance - 1,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro na geração" },

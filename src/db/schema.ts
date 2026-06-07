@@ -301,6 +301,25 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+// ── AI Credits ────────────────────────────────────────────────────────────────
+
+export const aiCredits = pgTable("ai_credits", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
+  balance: integer("balance").default(50).notNull(),
+  totalUsed: integer("total_used").default(0).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const aiUsageLog = pgTable("ai_usage_log", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
+  userId: integer("user_id").references(() => users.id),
+  mode: varchar("mode", { length: 20 }).notNull(),
+  tokensUsed: integer("tokens_used").default(0).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
 // ── Forms (lead capture) ──────────────────────────────────────────────────────
 
 export const forms = pgTable("forms", {
