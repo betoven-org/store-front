@@ -21,12 +21,13 @@ export async function GET(
   const tenantId = await getTenantId();
 
   const [tenant] = await db
-    .select({ frontendUrl: tenants.frontendUrl })
+    .select({ frontendUrl: tenants.frontendUrl, previewUrl: tenants.previewUrl })
     .from(tenants)
     .where(eq(tenants.id, tenantId))
     .limit(1);
 
-  if (!tenant?.frontendUrl) {
+  const effectiveUrl = tenant?.previewUrl || tenant?.frontendUrl;
+  if (!effectiveUrl) {
     return new NextResponse("frontend_url não configurado", { status: 404 });
   }
 
@@ -34,7 +35,7 @@ export async function GET(
   const preview = req.nextUrl.searchParams.get("preview") || "";
   const path = slug.startsWith("/") ? slug : `/${slug}`;
 
-  const target = new URL(path, tenant.frontendUrl);
+  const target = new URL(path, effectiveUrl);
   if (preview) target.searchParams.set("preview", preview);
   target.searchParams.set("pageId", id);
 
@@ -58,7 +59,7 @@ export async function GET(
 
     // Rewrite root-relative URLs so assets, images, scripts and links
     // resolve against the frontend origin, not the CMS proxy.
-    const origin = tenant.frontendUrl.replace(/\/+$/, "");
+    const origin = effectiveUrl.replace(/\/+$/, "");
 
     // src, href, action, poster — single URL attributes
     html = html.replace(

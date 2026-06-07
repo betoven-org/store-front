@@ -34,6 +34,7 @@ export default function IdentidadePage() {
   const tenant = useTenant();
   const refetchTenant = useTenantRefetch();
   const [frontendUrl, setFrontendUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
   const [tenantSaving, setTenantSaving] = useState(false);
   const [tenantLoaded, setTenantLoaded] = useState(false);
   const [visibleNetworks, setVisibleNetworks] = useState<SocialKey[]>([]);
@@ -41,6 +42,7 @@ export default function IdentidadePage() {
 
   if (tenant && !tenantLoaded) {
     setFrontendUrl(tenant.frontendUrl || "");
+    setPreviewUrl(tenant.previewUrl || "");
     setTenantLoaded(true);
   }
 
@@ -69,12 +71,19 @@ export default function IdentidadePage() {
   async function handleSaveAll() {
     await handleSave();
     // Also save frontend URL if changed
+    const tenantUpdates: Record<string, string> = {};
     if (tenant && frontendUrl !== (tenant.frontendUrl || "")) {
+      tenantUpdates.frontendUrl = frontendUrl;
+    }
+    if (tenant && previewUrl !== (tenant.previewUrl || "")) {
+      tenantUpdates.previewUrl = previewUrl;
+    }
+    if (Object.keys(tenantUpdates).length > 0) {
       try {
         const res = await fetch("/api/admin/tenant-info", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ frontendUrl }),
+          body: JSON.stringify(tenantUpdates),
         });
         if (res.ok) refetchTenant();
       } catch {}
@@ -187,12 +196,12 @@ export default function IdentidadePage() {
           </div>
           <div className="p-5">
             <FormField
-              label="Frontend URL"
+              label="Frontend URL (produção)"
               name="frontendUrl"
               value={frontendUrl}
               onChange={(e) => setFrontendUrl(e.target.value)}
-              placeholder="https://meusite.vercel.app"
-              description="Sem barra final. Ex: https://meusite.vercel.app"
+              placeholder="https://www.meusite.com.br"
+              description="URL publica do site. Usada no sitemap, SEO e links."
             />
             {tenant?.frontendUrl && (
               <div className="mt-3 flex items-center gap-2">
@@ -202,6 +211,16 @@ export default function IdentidadePage() {
                 </span>
               </div>
             )}
+            <div className="mt-4">
+              <FormField
+                label="Preview URL (Vercel/dev)"
+                name="previewUrl"
+                value={previewUrl}
+                onChange={(e) => setPreviewUrl(e.target.value)}
+                placeholder="https://meusite.vercel.app"
+                description="URL usada no preview do editor. Pode ser diferente da produção."
+              />
+            </div>
           </div>
         </section>
 

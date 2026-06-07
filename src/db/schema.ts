@@ -42,6 +42,7 @@ export const tenants = pgTable("tenants", {
   active: boolean("active").default(true).notNull(),
   apiKey: text("api_key").unique(),
   frontendUrl: text("frontend_url"),
+  previewUrl: text("preview_url"),
   revalidateSecret: text("revalidate_secret"),
   manifest: jsonb("manifest"),
   draftManifest: jsonb("draft_manifest"),

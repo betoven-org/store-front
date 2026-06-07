@@ -18,6 +18,7 @@ export async function GET() {
       name: tenants.name,
       domain: tenants.domain,
       frontendUrl: tenants.frontendUrl,
+      previewUrl: tenants.previewUrl,
       revalidateSecret: tenants.revalidateSecret,
     })
     .from(tenants)
@@ -39,7 +40,7 @@ export async function PATCH(request: NextRequest) {
   const tenantId = await getTenantId();
   const body = await request.json();
 
-  const allowedFields = ["frontendUrl", "domain"] as const;
+  const allowedFields = ["frontendUrl", "previewUrl", "domain"] as const;
   const updates: Record<string, string | null> = {};
 
   for (const field of allowedFields) {
@@ -63,6 +64,7 @@ export async function PATCH(request: NextRequest) {
       name: tenants.name,
       domain: tenants.domain,
       frontendUrl: tenants.frontendUrl,
+      previewUrl: tenants.previewUrl,
       revalidateSecret: tenants.revalidateSecret,
     });
 
