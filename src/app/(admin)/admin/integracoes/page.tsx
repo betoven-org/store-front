@@ -18,7 +18,7 @@ type Integration = {
 };
 
 const INTEGRATIONS: Integration[] = [
-  // Included (global keys, tenant gets credits/limits)
+  // Included (global — gerenciado pelo CMS, sem config do tenant)
   {
     key: "ai",
     name: "AI Assistant",
@@ -26,28 +26,46 @@ const INTEGRATIONS: Integration[] = [
     category: "Incluído no plano",
     type: "included",
     pricing: "50 créditos grátis",
-    limit: "1 crédito por geração",
+    limit: "1 crédito por geração · Compre mais em Assinaturas",
   },
   {
     key: "unsplash",
-    name: "Unsplash",
-    description: "Banco de imagens stock gratuito. Busque direto na biblioteca de mídias.",
+    name: "Imagens Stock",
+    description: "Banco de imagens gratuito integrado na biblioteca de mídias.",
     category: "Incluído no plano",
     type: "included",
     pricing: "Gratuito",
-    limit: "50 buscas/hora",
+    limit: "Ilimitado",
+  },
+  {
+    key: "search",
+    name: "Busca inteligente",
+    description: "Busca fulltext em posts e produtos com autocomplete.",
+    category: "Incluído no plano",
+    type: "included",
+    pricing: "Gratuito",
+    limit: "Ilimitado",
+  },
+  {
+    key: "email",
+    name: "Emails transacionais",
+    description: "Welcome, avisos de pagamento e notificações enviados automaticamente.",
+    category: "Incluído no plano",
+    type: "included",
+    pricing: "Gratuito",
+    limit: "100 emails/dia",
   },
   {
     key: "analytics",
-    name: "Analytics interno",
-    description: "Métricas de requisições, pageviews e performance. Sem precisar de GA4.",
+    name: "Analytics",
+    description: "Métricas de requisições, pageviews e performance integradas ao painel.",
     category: "Incluído no plano",
     type: "included",
     pricing: "Gratuito",
     limit: "Ilimitado",
   },
 
-  // Client-key (tenant configura sua chave)
+  // Client-key (tenant configura sua conta)
   {
     key: "slack",
     name: "Slack",
@@ -60,40 +78,15 @@ const INTEGRATIONS: Integration[] = [
     ],
   },
   {
-    key: "resend",
-    name: "Resend (Email)",
-    description: "Emails transacionais personalizados — welcome, avisos, notificações.",
-    category: "Email",
-    type: "client-key",
-    pricing: "Plano free: 100 emails/dia",
-    fields: [
-      { key: "apiKey", label: "API Key", placeholder: "re_...", secret: true },
-      { key: "fromEmail", label: "Email remetente", placeholder: "noreply@seudominio.com" },
-    ],
-  },
-  {
     key: "posthog",
     name: "PostHog",
-    description: "Analytics avançado com session replay, funnels e feature flags.",
-    category: "Analytics",
+    description: "Analytics avançado com session replay, funnels e feature flags. Complementa o analytics interno.",
+    category: "Analytics avançado",
     type: "client-key",
     pricing: "Plano free: 1M eventos/mês",
     fields: [
       { key: "apiKey", label: "Project API Key", placeholder: "phc_...", secret: true },
       { key: "host", label: "Host", placeholder: "https://app.posthog.com" },
-    ],
-  },
-  {
-    key: "algolia",
-    name: "Algolia",
-    description: "Search profissional com autocomplete, facets e relevância.",
-    category: "Search",
-    type: "client-key",
-    pricing: "Plano free: 10K buscas/mês",
-    fields: [
-      { key: "appId", label: "Application ID", placeholder: "ABC123" },
-      { key: "apiKey", label: "Search API Key", placeholder: "...", secret: true },
-      { key: "indexName", label: "Index", placeholder: "content" },
     ],
   },
 
