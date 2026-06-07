@@ -32,6 +32,14 @@ type Settings = {
   seoKeywords: string;
   privacyPolicy: string;
   robotsTxt: string;
+  umamiWebsiteId: string;
+  umamiUrl: string;
+  gtmId: string;
+  ga4Id: string;
+  googleAdsId: string;
+  facebookPixelId: string;
+  customHeadScripts: string;
+  customBodyScripts: string;
   supabaseUrl: string;
   supabaseAnonKey: string;
   supabaseServiceRoleKey: string;
@@ -464,6 +472,112 @@ export function SettingsContent({
             <p className="text-xs text-muted-foreground">
               Use o formato padrao de robots.txt. O Sitemap sera adicionado automaticamente se nao estiver presente.
             </p>
+          </div>
+        </div>
+      )}
+
+      {activeSection === "scripts" && (
+        <div className="space-y-6">
+          <SectionHeader
+            title="Scripts & Analytics"
+            description="IDs de rastreamento e scripts customizados injetados no site"
+          />
+
+          <FormField
+            label="Google Tag Manager (GTM)"
+            name="gtmId"
+            value={settings.gtmId}
+            onChange={onSettingsChange}
+            placeholder="GTM-XXXXXXX"
+            description="ID do container GTM. O script sera injetado automaticamente no head e body do site."
+          />
+          <FormField
+            label="Google Analytics 4 (GA4)"
+            name="ga4Id"
+            value={settings.ga4Id}
+            onChange={onSettingsChange}
+            placeholder="G-XXXXXXXXXX"
+            description="Measurement ID do GA4. Ignorado se GTM ja estiver configurado com GA4."
+          />
+          <FormField
+            label="Google Ads"
+            name="googleAdsId"
+            value={settings.googleAdsId}
+            onChange={onSettingsChange}
+            placeholder="AW-XXXXXXXXXX"
+          />
+          <FormField
+            label="Facebook Pixel"
+            name="facebookPixelId"
+            value={settings.facebookPixelId}
+            onChange={onSettingsChange}
+            placeholder="123456789012345"
+          />
+
+          <div className="border-t border-border pt-6">
+            <SectionHeader
+              title="Umami Analytics"
+              description="Analytics open-source auto-hospedado"
+            />
+            <div className="space-y-4">
+              <FormField
+                label="Website ID"
+                name="umamiWebsiteId"
+                value={settings.umamiWebsiteId}
+                onChange={onSettingsChange}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              />
+              <FormField
+                label="URL do Umami"
+                name="umamiUrl"
+                value={settings.umamiUrl}
+                onChange={onSettingsChange}
+                placeholder="https://analytics.seusite.com"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-6">
+            <SectionHeader
+              title="Scripts Customizados"
+              description="HTML/JS injetado diretamente no site. Use com cuidado."
+            />
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">
+                  Scripts no Head
+                </label>
+                <textarea
+                  name="customHeadScripts"
+                  value={settings.customHeadScripts}
+                  onChange={onSettingsChange}
+                  rows={6}
+                  placeholder={'<script>\n  // Seu script aqui\n</script>'}
+                  aria-label="Scripts no Head"
+                  className="w-full rounded-md border bg-card px-3 py-2 font-mono text-xs shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Inserido antes do fechamento do &lt;head&gt;. Ideal para meta tags, scripts de terceiros.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">
+                  Scripts no Body
+                </label>
+                <textarea
+                  name="customBodyScripts"
+                  value={settings.customBodyScripts}
+                  onChange={onSettingsChange}
+                  rows={6}
+                  placeholder={'<noscript>\n  <!-- Fallback aqui -->\n</noscript>'}
+                  aria-label="Scripts no Body"
+                  className="w-full rounded-md border bg-card px-3 py-2 font-mono text-xs shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Inserido logo apos a abertura do &lt;body&gt;. Ideal para noscript tags e pixels.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

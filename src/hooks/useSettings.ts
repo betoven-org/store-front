@@ -27,6 +27,14 @@ export type Settings = {
   seoKeywords: string;
   privacyPolicy: string;
   robotsTxt: string;
+  umamiWebsiteId: string;
+  umamiUrl: string;
+  gtmId: string;
+  ga4Id: string;
+  googleAdsId: string;
+  facebookPixelId: string;
+  customHeadScripts: string;
+  customBodyScripts: string;
   supabaseUrl: string;
   supabaseAnonKey: string;
   supabaseServiceRoleKey: string;
@@ -52,6 +60,14 @@ const EMPTY_SETTINGS: Settings = {
   seoKeywords: "",
   privacyPolicy: "",
   robotsTxt: "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api",
+  umamiWebsiteId: "",
+  umamiUrl: "",
+  gtmId: "",
+  ga4Id: "",
+  googleAdsId: "",
+  facebookPixelId: "",
+  customHeadScripts: "",
+  customBodyScripts: "",
   supabaseUrl: "",
   supabaseAnonKey: "",
   supabaseServiceRoleKey: "",

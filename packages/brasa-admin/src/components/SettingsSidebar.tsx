@@ -6,12 +6,12 @@ import { useState, useRef, useEffect } from "react";
 
 export type SectionKey =
   | "identidade"
-
   | "footer"
   | "newsletter"
   | "paginas"
   | "metatags"
   | "robots"
+  | "scripts"
   | "supabase"
   | "assinatura";
 
@@ -187,7 +187,10 @@ const groups: Group[] = [
     id: "integracoes",
     label: "Integrações",
     icon: <IconIntegrations />,
-    items: [{ key: "supabase", label: "Supabase" }],
+    items: [
+      { key: "scripts", label: "Scripts & Analytics" },
+      { key: "supabase", label: "Supabase" },
+    ],
   },
 ];
 

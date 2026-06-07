@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   Newspaper, Tag, Users, Image, Package, Layers,
   PanelBottom, Layout, Mail, Sparkles, Search, Bot,
-  BarChart3, UserCog, Database, CreditCard, HelpCircle,
+  BarChart3, UserCog, Database, CreditCard, Code, HelpCircle,
   PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
   ChevronsUpDown, Trash2,
 } from "lucide-react";
@@ -60,6 +60,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Integrações",
     items: [
+      { href: "/admin/scripts", label: "Scripts & Analytics", icon: <Code className="size-[15px]" /> },
       { href: "/admin/supabase", label: "Supabase", icon: <Database className="size-[15px]" /> },
       { href: "/admin/assinatura", label: "Assinaturas", icon: <CreditCard className="size-[15px]" /> },
     ],
