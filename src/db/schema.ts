@@ -294,6 +294,7 @@ export const siteSettings = pgTable("site_settings", {
   customBodyScripts: text("custom_body_scripts"),
   supabaseSyncEnabled: boolean("supabase_sync_enabled").default(false),
   lastSyncAt: timestamp("last_sync_at", { mode: "string" }),
+  theme: jsonb("theme"),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
