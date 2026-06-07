@@ -14,7 +14,7 @@
  */
 
 import type { CommerceAdapter } from "./types";
-import { createVtexAdapter } from "./adapters/vtex";
+import { createVtexAdapter } from "./adapters/vtex/index";
 import { createShopifyAdapter } from "./adapters/shopify";
 import { createNuvemshopAdapter } from "./adapters/nuvemshop";
 import { createWakeAdapter } from "./adapters/wake";
