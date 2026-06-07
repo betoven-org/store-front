@@ -201,7 +201,7 @@ function PreviewFrame({
 
   if (!config.frame) {
     // Desktop: iframe at real width, scaled to fit column, full height
-    const iframeHeight = scale > 0 ? `${100 / scale}%` : "100%";
+    const iframeHeight = scale > 0 ? `${100 / scale}vh` : "100vh";
     return (
       <div ref={containerRef} className="flex-1 bg-accent overflow-hidden">
         <div
@@ -225,7 +225,7 @@ function PreviewFrame({
   }
 
   // Tablet / Mobile: same scaling approach, no device mockup
-  const frameHeight = scale > 0 ? `${100 / scale}%` : "100%";
+  const frameHeight = scale > 0 ? `${100 / scale}vh` : "100vh";
   return (
     <div ref={containerRef} className="flex-1 bg-accent overflow-hidden flex justify-center">
       <div

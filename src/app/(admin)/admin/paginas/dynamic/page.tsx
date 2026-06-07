@@ -49,7 +49,7 @@ function PreviewFrame({
   }, [device, config.width]);
 
   if (!config.frame) {
-    const iframeHeight = scale > 0 ? `${100 / scale}%` : "100%";
+    const iframeHeight = scale > 0 ? `${100 / scale}vh` : "100vh";
     return (
       <div ref={containerRef} className="flex-1 bg-accent overflow-hidden">
         <div style={{ width: config.width, height: "100vh", transform: `scale(${scale})`, transformOrigin: "top left" }}>
@@ -59,7 +59,7 @@ function PreviewFrame({
     );
   }
 
-  const frameHeight = scale > 0 ? `${100 / scale}%` : "100%";
+  const frameHeight = scale > 0 ? `${100 / scale}vh` : "100vh";
   return (
     <div ref={containerRef} className="flex-1 bg-accent overflow-hidden flex justify-center">
       <div style={{ width: config.width, height: "100vh", transform: `scale(${scale})`, transformOrigin: "top center" }}>
