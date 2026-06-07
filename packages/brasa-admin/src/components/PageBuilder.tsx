@@ -492,12 +492,107 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
             </div>
 
             {/* Editor form */}
-            <div className="overflow-y-auto px-4 py-3">
+            <div className="overflow-y-auto px-4 py-3 space-y-4">
               <SectionEditor
                 schema={selectedSchema.props}
                 values={selectedBlock.props}
                 onChange={updateProps}
               />
+
+              {/* A/B Variants */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Variantes A/B</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const variants = selectedBlock.variants || [];
+                      const newVariant = { name: `Variante ${variants.length + 1}`, weight: 50, props: { ...selectedBlock.props } };
+                      onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants: [...variants, newVariant] } : b));
+                    }}
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    + Adicionar
+                  </button>
+                </div>
+                {selectedBlock.variants && selectedBlock.variants.length > 0 ? (
+                  <div className="space-y-2">
+                    {selectedBlock.variants.map((v, i) => (
+                      <div key={i} className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+                        <input
+                          type="text"
+                          value={v.name}
+                          onChange={(e) => {
+                            const variants = [...(selectedBlock.variants || [])];
+                            variants[i] = { ...variants[i], name: e.target.value };
+                            onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants } : b));
+                          }}
+                          className="flex-1 text-xs bg-transparent border-0 outline-0 text-foreground"
+                        />
+                        <input
+                          type="number"
+                          value={v.weight}
+                          onChange={(e) => {
+                            const variants = [...(selectedBlock.variants || [])];
+                            variants[i] = { ...variants[i], weight: Number(e.target.value) };
+                            onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants } : b));
+                          }}
+                          className="w-12 text-xs text-center bg-transparent border border-border rounded px-1 py-0.5"
+                          min={0}
+                          max={100}
+                        />
+                        <span className="text-[10px] text-muted-foreground">%</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const variants = (selectedBlock.variants || []).filter((_, idx) => idx !== i);
+                            onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants: variants.length > 0 ? variants : undefined } : b));
+                          }}
+                          className="text-[10px] text-muted-foreground hover:text-destructive"
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">Sem variantes — mostra a versão padrão.</p>
+                )}
+              </div>
+
+              {/* Conditions */}
+              <div className="border-t border-border pt-4">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Condições</span>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[11px] text-muted-foreground w-16">Device</label>
+                    <select
+                      value={selectedBlock.matcher?.device || "all"}
+                      onChange={(e) => {
+                        const matcher = { ...selectedBlock.matcher, device: e.target.value as "all" | "mobile" | "desktop" };
+                        onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, matcher: matcher.device === "all" ? undefined : matcher } : b));
+                      }}
+                      className="flex-1 text-xs rounded border border-border bg-background px-2 py-1"
+                    >
+                      <option value="all">Todos</option>
+                      <option value="desktop">Desktop</option>
+                      <option value="mobile">Mobile</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[11px] text-muted-foreground w-16">Lazy</label>
+                    <input
+                      type="checkbox"
+                      checked={selectedBlock.deferred || false}
+                      onChange={(e) => {
+                        onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, deferred: e.target.checked || undefined } : b));
+                      }}
+                      className="rounded border-border"
+                    />
+                    <span className="text-[10px] text-muted-foreground">Carregar ao scroll</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : (

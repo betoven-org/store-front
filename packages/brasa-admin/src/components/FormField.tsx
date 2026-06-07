@@ -43,6 +43,7 @@ function AIButton({
 }) {
   const [loading, setLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
 
   async function generate(selectedMode: string) {
     setLoading(true);
@@ -74,8 +75,11 @@ function AIButton({
       if (data.content) {
         onGenerated(data.content.trim());
       }
+      if (data.creditsRemaining !== undefined) {
+        setCredits(data.creditsRemaining);
+      }
     } catch {
-      // Silent fail — toast would need to be imported from page context
+      // Silent fail
     } finally {
       setLoading(false);
     }
@@ -95,7 +99,7 @@ function AIButton({
         type="button"
         onClick={() => setShowMenu(!showMenu)}
         className="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        title="Gerar com IA"
+        title={credits !== null ? `IA (${credits} créditos)` : "Gerar com IA"}
         aria-label="Gerar conteúdo com IA"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

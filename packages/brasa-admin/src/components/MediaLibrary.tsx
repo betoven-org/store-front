@@ -542,10 +542,88 @@ function UploadTab({
   );
 }
 
+// ── Stock (Unsplash) tab ──────────────────────────────────────────────────────
+
+function StockTab({ onSelect }: { onSelect: (url: string) => void }) {
+  const [query, setQuery] = useState("");
+  const [images, setImages] = useState<{ id: string; url: string; thumb: string; alt: string; author: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  async function search(q?: string) {
+    const searchQuery = q || query;
+    if (!searchQuery.trim()) return;
+    setLoading(true);
+    setSearched(true);
+    try {
+      const res = await fetch(`/api/admin/integrations/unsplash?q=${encodeURIComponent(searchQuery)}&per_page=20`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setImages(data.images || []);
+    } catch {
+      setImages([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b border-border">
+        <form onSubmit={(e) => { e.preventDefault(); search(); }} className="flex gap-2">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar imagens no Unsplash..."
+            className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium hover:brightness-[0.97] disabled:opacity-50"
+          >
+            {loading ? "..." : "Buscar"}
+          </button>
+        </form>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {!searched ? (
+          <p className="text-center text-sm text-muted-foreground py-8">
+            Busque imagens gratuitas no Unsplash.
+          </p>
+        ) : images.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground py-8">
+            {loading ? "Buscando..." : "Nenhuma imagem encontrada."}
+          </p>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {images.map((img) => (
+              <button
+                key={img.id}
+                type="button"
+                onClick={() => onSelect(img.url)}
+                className="group relative rounded-lg overflow-hidden border border-border hover:border-primary transition-colors"
+              >
+                <img src={img.thumb} alt={img.alt} className="w-full h-24 object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-end p-1.5">
+                  <span className="text-[9px] text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                    {img.author}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function MediaLibrary({ open, onClose, onSelect }: MediaLibraryProps) {
-  const [activeTab, setActiveTab] = useState<"library" | "upload">("library");
+  const [activeTab, setActiveTab] = useState<"library" | "upload" | "stock">("library");
 
   // Close on Escape
   useEffect(() => {
@@ -614,7 +692,7 @@ export default function MediaLibrary({ open, onClose, onSelect }: MediaLibraryPr
 
         {/* Tabs */}
         <div className="flex gap-1 px-5 pt-3 border-b border-border shrink-0">
-          {(["library", "upload"] as const).map((tab) => (
+          {(["library", "upload", "stock"] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -625,7 +703,7 @@ export default function MediaLibrary({ open, onClose, onSelect }: MediaLibraryPr
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab === "library" ? "Biblioteca" : "Upload"}
+              {tab === "library" ? "Biblioteca" : tab === "upload" ? "Upload" : "Stock"}
             </button>
           ))}
         </div>
@@ -634,8 +712,10 @@ export default function MediaLibrary({ open, onClose, onSelect }: MediaLibraryPr
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {activeTab === "library" ? (
             <LibraryTab onSelect={handleLibrarySelect} />
-          ) : (
+          ) : activeTab === "upload" ? (
             <UploadTab onUploaded={handleUploaded} />
+          ) : (
+            <StockTab onSelect={(url) => { onSelect(0, url); onClose(); }} />
           )}
         </div>
       </div>
