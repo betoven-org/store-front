@@ -90,6 +90,20 @@ const INTEGRATIONS: Integration[] = [
     ],
   },
 
+  {
+    key: "supabase",
+    name: "Supabase",
+    description: "Sincronize produtos, posts e categorias de um projeto Supabase para o CMS.",
+    category: "Banco de dados",
+    type: "client-key",
+    pricing: "Gratuito",
+    fields: [
+      { key: "url", label: "Supabase URL", placeholder: "https://xxxx.supabase.co" },
+      { key: "anonKey", label: "Anon Key", placeholder: "eyJ...", secret: true },
+      { key: "serviceRoleKey", label: "Service Role Key (opcional)", placeholder: "eyJ...", secret: true },
+    ],
+  },
+
   // Commerce (tenant configura sua plataforma)
   {
     key: "vtex",

@@ -63,9 +63,8 @@ const navGroups: NavGroup[] = [
   {
     label: "Integrações",
     items: [
-      { href: "/admin/integracoes", label: "Todas", icon: <Layers className="size-[15px]" /> },
+      { href: "/admin/integracoes", label: "Marketplace", icon: <Layers className="size-[15px]" /> },
       { href: "/admin/scripts", label: "Scripts & Analytics", icon: <Code className="size-[15px]" /> },
-      { href: "/admin/supabase", label: "Supabase", icon: <Database className="size-[15px]" /> },
       { href: "/admin/assinatura", label: "Assinaturas", icon: <CreditCard className="size-[15px]" /> },
     ],
   },
