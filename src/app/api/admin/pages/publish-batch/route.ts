@@ -34,22 +34,37 @@ export async function POST(request: NextRequest) {
   let published = 0;
 
   for (const page of pending) {
-    if (!page.draft) continue;
-    const draft = page.draft as Record<string, unknown>;
+    const hasDraft = !!page.draft;
+    const hasDraftSections =
+      page.draftSections != null &&
+      JSON.stringify(page.draftSections) !== JSON.stringify(page.sections ?? []);
+
+    if (!hasDraft && !hasDraftSections) continue;
+
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (hasDraft) {
+      const draft = page.draft as Record<string, unknown>;
+      updateData.title = (draft.title as string) ?? page.title;
+      updateData.metaTitle = (draft.metaTitle as string) ?? page.metaTitle;
+      updateData.metaDescription = (draft.metaDescription as string) ?? page.metaDescription;
+      updateData.ogTitle = (draft.ogTitle as string) ?? page.ogTitle;
+      updateData.ogDescription = (draft.ogDescription as string) ?? page.ogDescription;
+      updateData.ogImageUrl = (draft.ogImageUrl as string) ?? page.ogImageUrl;
+      updateData.content = (draft.content as string) ?? page.content;
+      updateData.draft = null;
+    }
+
+    if (hasDraftSections) {
+      updateData.sections = page.draftSections;
+      updateData.draftSections = null;
+    }
 
     await db
       .update(pages)
-      .set({
-        title: (draft.title as string) ?? page.title,
-        metaTitle: (draft.metaTitle as string) ?? page.metaTitle,
-        metaDescription: (draft.metaDescription as string) ?? page.metaDescription,
-        ogTitle: (draft.ogTitle as string) ?? page.ogTitle,
-        ogDescription: (draft.ogDescription as string) ?? page.ogDescription,
-        ogImageUrl: (draft.ogImageUrl as string) ?? page.ogImageUrl,
-        content: (draft.content as string) ?? page.content,
-        draft: null,
-        updatedAt: new Date().toISOString(),
-      })
+      .set(updateData)
       .where(and(eq(pages.id, page.id), eq(pages.tenantId, tenantId)));
 
     published++;

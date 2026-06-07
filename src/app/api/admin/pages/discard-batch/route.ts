@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   await db
     .update(pages)
-    .set({ draft: null, updatedAt: new Date().toISOString() })
+    .set({ draft: null, draftSections: null, updatedAt: new Date().toISOString() })
     .where(and(inArray(pages.id, ids), eq(pages.tenantId, tenantId)));
 
   return NextResponse.json({ success: true, discarded: ids.length });
