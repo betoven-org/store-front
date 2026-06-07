@@ -32,10 +32,14 @@ export type FieldFormat =
   | "color"
   | "url"
   | "date"
+  | "datetime"
   | "email"
   | "code"
+  | "video"
   | "select"
-  | "hidden";
+  | "hidden"
+  | "icon"
+  | "map";
 
 export type FieldSchema = {
   type: FieldType;
@@ -67,6 +71,8 @@ export type SectionSchema = {
   description?: string;
   /** Group/category for organizing sections */
   group?: string;
+  /** Thumbnail image URL for the section picker */
+  thumbnail?: string;
   /** File path relative to sections/ */
   path: string;
   /** Props schema */

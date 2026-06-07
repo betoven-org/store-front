@@ -17,10 +17,14 @@ type FieldFormat =
   | "color"
   | "url"
   | "date"
+  | "datetime"
   | "email"
   | "code"
+  | "video"
   | "select"
-  | "hidden";
+  | "hidden"
+  | "icon"
+  | "map";
 
 type FieldSchema = {
   type: FieldType;
@@ -302,15 +306,17 @@ function StringField({ fieldKey, schema, value, onChange }: FieldRendererProps) 
     );
   }
 
-  // url | email | date | text (default)
+  // url | email | date | datetime | video | text (default)
   const inputType =
-    format === "url"
+    format === "url" || format === "video"
       ? "url"
       : format === "email"
         ? "email"
         : format === "date"
           ? "date"
-          : "text";
+          : format === "datetime"
+            ? "datetime-local"
+            : "text";
 
   return (
     <FieldWrapper>

@@ -172,16 +172,25 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
                     key={section.key}
                     type="button"
                     onClick={() => onSelect(section)}
-                    className="flex w-full flex-col rounded-md px-3 py-2.5 text-left hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <span className="text-sm font-medium text-foreground">
-                      {section.title}
-                    </span>
-                    {section.description && (
-                      <span className="mt-0.5 text-xs text-muted-foreground">
-                        {section.description}
-                      </span>
+                    {section.thumbnail && (
+                      <img
+                        src={section.thumbnail}
+                        alt=""
+                        className="h-10 w-14 rounded border border-border object-cover flex-shrink-0"
+                      />
                     )}
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm font-medium text-foreground">
+                        {section.title}
+                      </span>
+                      {section.description && (
+                        <span className="mt-0.5 block text-xs text-muted-foreground truncate">
+                          {section.description}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>

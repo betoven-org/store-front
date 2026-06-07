@@ -12,7 +12,9 @@
     "./validations": "./src/validations.ts",
     "./slug": "./src/slug.ts",
     "./db": "./src/db.ts",
-    "./revalidate": "./src/revalidate.ts"
+    "./revalidate": "./src/revalidate.ts",
+    "./manifest": "./src/manifest.ts",
+    "./section-schema": "./src/section-schema.ts"
   },
   "dependencies": {},
   "peerDependencies": {
