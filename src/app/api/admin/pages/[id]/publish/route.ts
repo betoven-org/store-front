@@ -86,5 +86,16 @@ export async function POST(
   await db.update(pages).set(updateData).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId)));
 
   const [updated] = await db.select().from(pages).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId))).limit(1);
+
+  // Notify Slack on publish (best-effort, non-blocking)
+  if (process.env.SLACK_WEBHOOK_URL) {
+    const userName = session.user.name || session.user.email;
+    fetch(process.env.SLACK_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: `📄 ${userName} publicou a página "${updated?.title || "Sem título"}" no Brasa CMS` }),
+    }).catch(() => {});
+  }
+
   return NextResponse.json(updated);
 }
