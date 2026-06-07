@@ -880,7 +880,7 @@ export default function EditPagePage({
   const hasDraft = page.draft !== null || hasSectionsDraft;
   hasDraftRef.current = hasDraft;
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
-  const frontendBase = tenant?.frontendUrl || "";
+  const frontendBase = tenant?.previewUrl || tenant?.frontendUrl || "";
   const previewSecret = tenant?.revalidateSecret || "";
   const pagePath = slugToPath(page.slug);
   // Preview: always show the real frontend site

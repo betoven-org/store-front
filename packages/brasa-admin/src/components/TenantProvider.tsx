@@ -8,6 +8,7 @@ type TenantInfo = {
   name: string;
   domain: string | null;
   frontendUrl: string | null;
+  previewUrl: string | null;
   revalidateSecret: string | null;
 };
 
