@@ -75,6 +75,18 @@ export async function GET(
       },
     );
 
+    // CSS url() with root-relative paths (background-image, etc.)
+    html = html.replace(
+      /url\((["']?)\/(?!\/)/g,
+      `url($1${origin}/`,
+    );
+
+    // Inject <base> tag so any remaining relative URLs resolve to frontend
+    html = html.replace(
+      /<head([^>]*)>/i,
+      `<head$1><base href="${origin}/" />`,
+    );
+
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
