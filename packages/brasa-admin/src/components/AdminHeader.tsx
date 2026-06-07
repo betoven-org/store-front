@@ -241,6 +241,9 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
         </div>
       </div>
 
+      {/* Page-level actions */}
+      {extra}
+
       {/* Separator */}
       <div className="h-6 w-px bg-border self-center" />
 
