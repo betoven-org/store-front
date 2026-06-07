@@ -1,15 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
-import { pages } from "@brasa/core/schema";
-import { and, eq } from "drizzle-orm";
+import { pages, posts, categories, products, siteSettings } from "@brasa/core/schema";
+import { and, eq, desc } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 function esc(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function renderSection(s: { component: string; props: Record<string, any> }, index: number): string {
+// ── Data fetchers ─────────────────────────────────────────────────────────────
+
+async function getRealPosts(tenantId: number, limit = 10) {
+  return db.query.posts.findMany({
+    where: eq(posts.tenantId, tenantId),
+    orderBy: [desc(posts.publishedAt)],
+    limit,
+    with: { category: true, heroImage: true, author: true },
+  });
+}
+
+async function getRealCategories(tenantId: number) {
+  return db.select().from(categories).where(eq(categories.tenantId, tenantId));
+}
+
+async function getRealProducts(tenantId: number, limit = 8) {
+  return db.query.products.findMany({
+    where: eq(products.tenantId, tenantId),
+    orderBy: [desc(products.createdAt)],
+    limit,
+    with: { image: true },
+  });
+}
+
+// ── Section renderers with real data ──────────────────────────────────────────
+
+function renderSection(
+  s: { component: string; props: Record<string, any> },
+  index: number,
+  data: { posts: any[]; categories: any[]; products: any[]; siteName: string },
+): string {
   const p = s.props || {};
 
   switch (s.component) {
@@ -33,74 +63,90 @@ function renderSection(s: { component: string; props: Record<string, any> }, ind
         </div>
       </section>`;
 
-    case "HeroPost":
+    case "HeroPost": {
+      const featured = data.posts[0];
+      const sidePosts = data.posts.slice(1, 1 + parseInt(p.sideCount || "4"));
       return `<section class="section-heropost">
         <div class="heropost-main">
-          <div class="placeholder-img"></div>
+          ${featured?.heroImage?.url ? `<img src="${esc(featured.heroImage.url)}" alt="${esc(featured.title)}" class="heropost-img" />` : `<div class="placeholder-img"></div>`}
           <div class="heropost-info">
-            ${p.showCategory !== false ? `<span class="tag">Categoria</span>` : ""}
-            <h2>Post em Destaque</h2>
-            <p class="meta">${p.showAuthor !== false ? "Autor • " : ""}${p.showReadingTime !== false ? "5 min leitura" : ""}</p>
+            ${p.showCategory !== false && featured?.category ? `<span class="tag">${esc(featured.category.name)}</span>` : ""}
+            <h2>${esc(featured?.title || "Sem posts ainda")}</h2>
+            <p class="meta">${p.showAuthor !== false && featured?.author ? `${esc(featured.author.name)} • ` : ""}${p.showReadingTime !== false ? `${featured?.readingTimeMinutes || 5} min leitura` : ""}</p>
           </div>
         </div>
         <aside class="heropost-side">
-          ${Array.from({ length: parseInt(p.sideCount || "4") }).map((_, i) => `
-            <div class="side-post"><span class="side-num">${i + 1}</span><span>Post recente ${i + 1}</span></div>
+          ${sidePosts.map((post: any, i: number) => `
+            <div class="side-post"><span class="side-num">${i + 1}</span><span>${esc(post.title)}</span></div>
           `).join("")}
+          ${sidePosts.length === 0 ? `<div class="side-post"><span class="side-num">—</span><span class="meta">Publique posts para ver aqui</span></div>` : ""}
         </aside>
       </section>`;
+    }
 
     case "PostCarousel":
+    case "PostGrid": {
+      const limit = parseInt(p.limit || "6");
+      const postsSlice = data.posts.slice(0, limit);
+      const cols = p.columns || "3";
       return `<section class="section-posts">
         <div class="section-header-row">
           <div><h2>${esc(p.title || "Posts")}</h2>${p.subtitle ? `<p class="subtitle">${esc(p.subtitle)}</p>` : ""}</div>
           ${p.viewAllHref ? `<a href="${esc(p.viewAllHref)}" class="view-all">Ver todos →</a>` : ""}
         </div>
-        <div class="post-list">
-          ${Array.from({ length: parseInt(p.limit || "5") }).map((_, i) => `
-            <div class="post-list-item"><span class="post-num">${i + 1}</span><div class="post-list-text"><span class="post-title">Post titulo ${i + 1}</span>${p.showCategory !== false ? `<span class="tag small">Categoria</span>` : ""}</div></div>
+        <div class="post-grid cols-${cols}">
+          ${postsSlice.map((post: any) => `
+            <div class="post-card">
+              ${post.heroImage?.url ? `<img src="${esc(post.heroImage.url)}" alt="${esc(post.title)}" class="post-card-img" />` : `<div class="placeholder-img small"></div>`}
+              <div class="post-card-body">
+                ${p.showCategory !== false && post.category ? `<span class="tag small">${esc(post.category.name)}</span>` : ""}
+                <h3>${esc(post.title)}</h3>
+                ${p.showReadingTime !== false ? `<span class="meta">${post.readingTimeMinutes || 5} min</span>` : ""}
+              </div>
+            </div>
           `).join("")}
+          ${postsSlice.length === 0 ? `<p class="meta">Nenhum post publicado ainda.</p>` : ""}
         </div>
       </section>`;
+    }
 
-    case "PostGrid":
-      return `<section class="section-posts">
-        <div class="section-header-row">
-          <div><h2>${esc(p.title || "Posts")}</h2>${p.subtitle ? `<p class="subtitle">${esc(p.subtitle)}</p>` : ""}</div>
-          ${p.viewAllHref ? `<a href="${esc(p.viewAllHref)}" class="view-all">Ver todos →</a>` : ""}
-        </div>
-        <div class="post-grid cols-${p.columns || "3"}">
-          ${Array.from({ length: parseInt(p.limit || "6") }).map((_, i) => `
-            <div class="post-card"><div class="placeholder-img small"></div><div class="post-card-body">${p.showCategory !== false ? `<span class="tag small">Categoria</span>` : ""}<h3>Post ${i + 1}</h3>${p.showReadingTime !== false ? `<span class="meta">5 min</span>` : ""}</div></div>
-          `).join("")}
-        </div>
-      </section>`;
-
-    case "PostGridWithSidebar":
+    case "PostGridWithSidebar": {
+      const gridPosts = data.posts.slice(0, parseInt(p.gridLimit || "4"));
+      const sidebarPosts = data.posts.slice(0, parseInt(p.sidebarLimit || "5"));
       return `<section class="section-grid-sidebar">
         <div class="grid-main">
           <h2>${esc(p.gridTitle || "Posts")}</h2>
           <div class="post-grid cols-${p.gridColumns || "2"}">
-            ${Array.from({ length: parseInt(p.gridLimit || "4") }).map((_, i) => `
-              <div class="post-card"><div class="placeholder-img small"></div><div class="post-card-body">${p.gridShowCategory !== false ? `<span class="tag small">Categoria</span>` : ""}<h3>Post ${i + 1}</h3></div></div>
+            ${gridPosts.map((post: any) => `
+              <div class="post-card">
+                ${post.heroImage?.url ? `<img src="${esc(post.heroImage.url)}" alt="${esc(post.title)}" class="post-card-img" />` : `<div class="placeholder-img small"></div>`}
+                <div class="post-card-body">
+                  ${p.gridShowCategory !== false && post.category ? `<span class="tag small">${esc(post.category.name)}</span>` : ""}
+                  <h3>${esc(post.title)}</h3>
+                </div>
+              </div>
             `).join("")}
           </div>
         </div>
         <aside class="grid-sidebar">
           <h3>${esc(p.sidebarTitle || "Destaques")}</h3>
-          ${Array.from({ length: parseInt(p.sidebarLimit || "5") }).map((_, i) => `
-            <div class="side-post"><span class="side-num">${i + 1}</span><span>Post ${i + 1}</span></div>
+          ${sidebarPosts.map((post: any, i: number) => `
+            <div class="side-post"><span class="side-num">${i + 1}</span><span>${esc(post.title)}</span></div>
           `).join("")}
         </aside>
       </section>`;
+    }
 
-    case "CategoryBar":
+    case "CategoryBar": {
+      const cats = data.categories.slice(0, parseInt(p.limit || "10"));
       return `<section class="section-catbar">
         ${p.title ? `<h3>${esc(p.title)}</h3>` : ""}
         <div class="catbar-list">
-          ${Array.from({ length: parseInt(p.limit || "5") }).map((_, i) => `<span class="cat-pill">Categoria ${i + 1}</span>`).join("")}
+          ${cats.map((cat: any) => `<span class="cat-pill">${esc(cat.name)}</span>`).join("")}
+          ${cats.length === 0 ? `<span class="meta">Nenhuma categoria</span>` : ""}
         </div>
       </section>`;
+    }
 
     case "Features":
       return `<section class="section-features">
@@ -117,20 +163,28 @@ function renderSection(s: { component: string; props: Record<string, any> }, ind
         </div>
       </section>`;
 
-    case "ProductShowcase":
+    case "ProductShowcase": {
+      const prodLimit = parseInt(p.limit || "4");
+      const prods = data.products.slice(0, prodLimit);
       return `<section class="section-products">
         <h2>${esc(p.title || "Produtos")}</h2>
         <div class="product-grid cols-${p.columns || "4"}">
-          ${Array.from({ length: parseInt(p.limit || "4") }).map((_, i) => `
-            <div class="product-card"><div class="placeholder-img small"></div><h4>Produto ${i + 1}</h4>${p.showDescription ? `<p class="meta">Descricao do produto</p>` : ""}</div>
+          ${prods.map((prod: any) => `
+            <div class="product-card">
+              ${prod.image?.url ? `<img src="${esc(prod.image.url)}" alt="${esc(prod.name)}" class="product-card-img" />` : `<div class="placeholder-img small"></div>`}
+              <h4>${esc(prod.name)}</h4>
+              ${p.showDescription && prod.description ? `<p class="meta">${esc(prod.description.slice(0, 80))}</p>` : ""}
+            </div>
           `).join("")}
+          ${prods.length === 0 ? `<p class="meta">Nenhum produto cadastrado.</p>` : ""}
         </div>
         ${p.viewAllHref ? `<a href="${esc(p.viewAllHref)}" class="view-all center">Ver todos →</a>` : ""}
       </section>`;
+    }
 
     case "WhatsAppCTA":
       return `<section class="section-wpp" style="background:${p.style === "dark" ? "#1a1a1a" : p.style === "brand" ? "#075e54" : "#f0fdf4"}; color:${p.style === "light" ? "#1a1a1a" : "#fff"}">
-        <h2>${esc(p.title || "Fale com um Farmaceutico")}</h2>
+        <h2>${esc(p.title || "Fale conosco")}</h2>
         <p>${esc(p.description || "")}</p>
         <button class="wpp-btn">${esc(p.buttonText || "Iniciar conversa")}</button>
       </section>`;
@@ -139,7 +193,7 @@ function renderSection(s: { component: string; props: Record<string, any> }, ind
       return `<footer class="section-footer">
         ${p.showNewsletter !== false ? `<div class="footer-newsletter"><h4>Newsletter</h4><div class="newsletter-form"><input type="email" placeholder="seu@email.com" /><button>Assinar</button></div></div>` : ""}
         ${p.showSocial !== false ? `<div class="footer-social"><span class="social-icon">f</span><span class="social-icon">ig</span><span class="social-icon">yt</span></div>` : ""}
-        <p class="footer-copy">© 2026 — Todos os direitos reservados</p>
+        <p class="footer-copy">© ${new Date().getFullYear()} ${esc(data.siteName)} — Todos os direitos reservados</p>
         ${p.showPrivacy !== false ? `<a href="#" class="footer-link">Politica de Privacidade</a>` : ""}
       </footer>`;
 
@@ -151,9 +205,114 @@ function renderSection(s: { component: string; props: Record<string, any> }, ind
   }
 }
 
+// ── CSS styles ────────────────────────────────────────────────────────────────
+
+const PREVIEW_CSS = `
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', system-ui, sans-serif; color: #1a1a1a; line-height: 1.6; }
+h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+img { max-width: 100%; height: auto; display: block; }
+.preview-bar { position: sticky; top: 0; z-index: 100; background: #f59e0b; color: #000; padding: 6px 16px; font-size: 11px; font-weight: 600; text-align: center; letter-spacing: 0.04em; text-transform: uppercase; }
+.section-banner { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.banner-overlay { position: relative; z-index: 1; text-align: center; padding: 40px 24px; }
+.banner-title { font-size: 1.5rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.banner-desc { margin-top: 8px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.banner-link { display: inline-block; margin-top: 12px; color: #fff; font-weight: 600; text-decoration: underline; }
+.section-hero { min-height: 400px; display: flex; align-items: center; background-size: cover; background-position: center; padding: 60px 24px; }
+.hero-dark { background-color: #111; color: #fff; }
+.hero-content { max-width: 700px; margin: 0 auto; }
+.hero-title { font-size: 2.5rem; margin-bottom: 12px; }
+.hero-subtitle { font-size: 1.1rem; opacity: 0.85; margin-bottom: 16px; }
+.hero-cta { display: inline-block; margin-top: 16px; padding: 12px 28px; background: #1a1a1a; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; }
+.hero-dark .hero-cta { background: #fff; color: #1a1a1a; }
+.section-heropost { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 24px; max-width: 1200px; margin: 0 auto; }
+.heropost-main { position: relative; border-radius: 12px; overflow: hidden; min-height: 300px; }
+.heropost-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.heropost-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; background: linear-gradient(transparent, rgba(0,0,0,.7)); color: #fff; }
+.heropost-info h2 { font-size: 1.5rem; }
+.heropost-side { display: flex; flex-direction: column; gap: 8px; }
+.side-post { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #f9fafb; font-size: 13px; }
+.side-num { font-weight: 700; color: #9ca3af; font-size: 18px; min-width: 24px; }
+.section-posts { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+.section-header-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
+.section-header-row h2 { font-size: 1.4rem; }
+.subtitle { font-size: 0.9rem; color: #6b7280; margin-top: 4px; }
+.view-all { font-size: 13px; font-weight: 600; color: #0d61ac; text-decoration: none; }
+.view-all.center { display: block; text-align: center; margin-top: 20px; }
+.post-grid { display: grid; gap: 16px; }
+.post-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.post-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.post-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.post-card { border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb; }
+.post-card-img { width: 100%; height: 160px; object-fit: cover; }
+.post-card-body { padding: 12px; }
+.post-card-body h3 { font-size: 14px; margin-top: 4px; }
+.section-grid-sidebar { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+.grid-main h2, .grid-sidebar h3 { margin-bottom: 16px; }
+.grid-sidebar { display: flex; flex-direction: column; gap: 8px; }
+.section-catbar { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+.section-catbar h3 { font-size: 1rem; margin-bottom: 12px; }
+.catbar-list { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-pill { padding: 6px 14px; border-radius: 20px; background: #f3f4f6; font-size: 13px; font-weight: 500; }
+.section-features { padding: 48px 24px; max-width: 1200px; margin: 0 auto; text-align: center; }
+.section-features h2 { font-size: 1.5rem; margin-bottom: 8px; }
+.features-grid { display: grid; gap: 24px; margin-top: 32px; text-align: left; }
+.features-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.features-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.features-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.feature-card { padding: 24px; border-radius: 12px; background: #f9fafb; }
+.feature-card h4 { margin: 12px 0 6px; }
+.feature-card p { font-size: 13px; color: #6b7280; }
+.feature-icon { width: 40px; height: 40px; object-fit: contain; }
+.feature-icon-placeholder { width: 40px; height: 40px; border-radius: 8px; background: #e5e7eb; }
+.section-products { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+.section-products h2 { font-size: 1.4rem; margin-bottom: 20px; }
+.product-grid { display: grid; gap: 16px; }
+.product-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.product-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.product-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.product-card { border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
+.product-card-img { width: 100%; height: 160px; object-fit: cover; }
+.product-card h4 { padding: 8px 12px 0; font-size: 14px; font-family: 'Inter', sans-serif; }
+.product-card .meta { padding: 0 12px 8px; font-size: 12px; color: #6b7280; }
+.section-wpp { padding: 48px 24px; text-align: center; border-radius: 12px; margin: 24px; }
+.section-wpp h2 { font-size: 1.4rem; margin-bottom: 8px; }
+.section-wpp p { margin-bottom: 16px; opacity: 0.9; }
+.wpp-btn { padding: 12px 28px; border: none; border-radius: 24px; background: #25d366; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+.section-footer { background: #f9fafb; padding: 40px 24px; text-align: center; border-top: 1px solid #e5e7eb; margin-top: 24px; }
+.footer-newsletter { margin-bottom: 20px; }
+.footer-newsletter h4 { margin-bottom: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; }
+.newsletter-form { display: flex; gap: 8px; justify-content: center; }
+.newsletter-form input { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; width: 220px; }
+.newsletter-form button { padding: 8px 16px; background: #1a1a1a; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.footer-social { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+.social-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #e5e7eb; font-size: 11px; font-weight: 700; }
+.footer-copy { font-size: 12px; color: #9ca3af; margin-bottom: 4px; }
+.footer-link { font-size: 12px; color: #6b7280; }
+.section-unknown { margin: 16px 24px; padding: 16px; border: 1px dashed #d1d5db; border-radius: 8px; }
+.unknown-header { font-weight: 600; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.unknown-props { display: flex; flex-wrap: wrap; gap: 6px; }
+.prop-pill { font-size: 11px; background: #f3f4f6; padding: 3px 8px; border-radius: 4px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.tag.small { font-size: 10px; padding: 1px 6px; }
+.meta { font-size: 12px; color: #9ca3af; }
+.placeholder-img { width: 100%; height: 280px; background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%); border-radius: 8px; }
+.placeholder-img.small { height: 160px; border-radius: 0; }
+.section-badge { background: #0d61ac; color: white; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
+@media (max-width: 768px) {
+  .section-heropost { grid-template-columns: 1fr; }
+  .section-grid-sidebar { grid-template-columns: 1fr; }
+  .post-grid.cols-3, .post-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .product-grid.cols-3, .product-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
+`;
+
+// ── Route handler ─────────────────────────────────────────────────────────────
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user)
@@ -174,7 +333,22 @@ export async function GET(
   if (useSections) {
     const sections = (page.draftSections ?? page.sections) as { component: string; props: Record<string, any> }[] | null;
     if (sections && sections.length > 0) {
-      const renderedSections = sections.map((s, i) => renderSection(s, i)).join("\n");
+      // Fetch real data in parallel
+      const [realPosts, realCategories, realProducts, settings] = await Promise.all([
+        getRealPosts(tenantId),
+        getRealCategories(tenantId),
+        getRealProducts(tenantId),
+        db.select({ siteName: siteSettings.siteName }).from(siteSettings).where(eq(siteSettings.tenantId, tenantId)).limit(1),
+      ]);
+
+      const data = {
+        posts: realPosts,
+        categories: realCategories,
+        products: realProducts,
+        siteName: settings[0]?.siteName || "Meu Site",
+      };
+
+      const renderedSections = sections.map((s, i) => renderSection(s, i, data)).join("\n");
 
       const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -185,147 +359,16 @@ export async function GET(
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', system-ui, sans-serif; color: #1a1a1a; line-height: 1.6; }
-    h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
-    img { max-width: 100%; height: auto; display: block; }
-    .preview-bar { position: sticky; top: 0; z-index: 100; background: #f59e0b; color: #000; padding: 6px 16px; font-size: 11px; font-weight: 600; text-align: center; letter-spacing: 0.04em; text-transform: uppercase; }
-
-    /* Banner */
-    .section-banner { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .banner-overlay { position: relative; z-index: 1; text-align: center; padding: 40px 24px; }
-    .banner-title { font-size: 1.5rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
-    .banner-desc { margin-top: 8px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.4); }
-    .banner-link { display: inline-block; margin-top: 12px; color: #fff; font-weight: 600; text-decoration: underline; }
-
-    /* Hero */
-    .section-hero { min-height: 400px; display: flex; align-items: center; background-size: cover; background-position: center; padding: 60px 24px; }
-    .hero-dark { background-color: #111; color: #fff; }
-    .hero-content { max-width: 700px; margin: 0 auto; }
-    .hero-title { font-size: 2.5rem; margin-bottom: 12px; }
-    .hero-subtitle { font-size: 1.1rem; opacity: 0.85; margin-bottom: 16px; }
-    .hero-cta { display: inline-block; margin-top: 16px; padding: 12px 28px; background: #1a1a1a; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; }
-    .hero-dark .hero-cta { background: #fff; color: #1a1a1a; }
-
-    /* HeroPost */
-    .section-heropost { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 24px; max-width: 1200px; margin: 0 auto; }
-    .heropost-main { position: relative; border-radius: 12px; overflow: hidden; }
-    .heropost-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; background: linear-gradient(transparent, rgba(0,0,0,.7)); color: #fff; }
-    .heropost-info h2 { font-size: 1.5rem; }
-    .heropost-side { display: flex; flex-direction: column; gap: 8px; }
-    .side-post { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #f9fafb; font-size: 13px; }
-    .side-num { font-weight: 700; color: #9ca3af; font-size: 18px; min-width: 24px; }
-
-    /* Posts */
-    .section-posts { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
-    .section-header-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
-    .section-header-row h2 { font-size: 1.4rem; }
-    .subtitle { font-size: 0.9rem; color: #6b7280; margin-top: 4px; }
-    .view-all { font-size: 13px; font-weight: 600; color: #0d61ac; text-decoration: none; }
-    .view-all.center { display: block; text-align: center; margin-top: 20px; }
-    .post-list { display: flex; flex-direction: column; gap: 6px; }
-    .post-list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; background: #f9fafb; }
-    .post-num { font-weight: 700; font-size: 20px; color: #d1d5db; min-width: 28px; }
-    .post-list-text { display: flex; flex-direction: column; gap: 4px; }
-    .post-title { font-weight: 600; font-size: 14px; }
-    .post-grid { display: grid; gap: 16px; }
-    .post-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
-    .post-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .post-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-    .post-card { border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb; }
-    .post-card-body { padding: 12px; }
-    .post-card-body h3 { font-size: 14px; margin-top: 4px; }
-
-    /* Grid + sidebar */
-    .section-grid-sidebar { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
-    .grid-main h2, .grid-sidebar h3 { margin-bottom: 16px; }
-    .grid-sidebar { display: flex; flex-direction: column; gap: 8px; }
-
-    /* CategoryBar */
-    .section-catbar { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
-    .section-catbar h3 { font-size: 1rem; margin-bottom: 12px; }
-    .catbar-list { display: flex; gap: 8px; flex-wrap: wrap; }
-    .cat-pill { padding: 6px 14px; border-radius: 20px; background: #f3f4f6; font-size: 13px; font-weight: 500; }
-
-    /* Features */
-    .section-features { padding: 48px 24px; max-width: 1200px; margin: 0 auto; text-align: center; }
-    .section-features h2 { font-size: 1.5rem; margin-bottom: 8px; }
-    .features-grid { display: grid; gap: 24px; margin-top: 32px; text-align: left; }
-    .features-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
-    .features-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .features-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-    .feature-card { padding: 24px; border-radius: 12px; background: #f9fafb; }
-    .feature-card h4 { margin: 12px 0 6px; }
-    .feature-card p { font-size: 13px; color: #6b7280; }
-    .feature-icon { width: 40px; height: 40px; object-fit: contain; }
-    .feature-icon-placeholder { width: 40px; height: 40px; border-radius: 8px; background: #e5e7eb; }
-
-    /* Products */
-    .section-products { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
-    .section-products h2 { font-size: 1.4rem; margin-bottom: 20px; }
-    .product-grid { display: grid; gap: 16px; }
-    .product-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
-    .product-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .product-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-    .product-card { border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; padding-bottom: 12px; }
-    .product-card h4 { padding: 8px 12px 0; font-size: 14px; font-family: 'Inter', sans-serif; }
-    .product-card .meta { padding: 0 12px; font-size: 12px; color: #6b7280; }
-
-    /* WhatsApp CTA */
-    .section-wpp { padding: 48px 24px; text-align: center; border-radius: 12px; margin: 24px; }
-    .section-wpp h2 { font-size: 1.4rem; margin-bottom: 8px; }
-    .section-wpp p { margin-bottom: 16px; opacity: 0.9; }
-    .wpp-btn { padding: 12px 28px; border: none; border-radius: 24px; background: #25d366; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
-
-    /* Footer */
-    .section-footer { background: #f9fafb; padding: 40px 24px; text-align: center; border-top: 1px solid #e5e7eb; margin-top: 24px; }
-    .footer-newsletter { margin-bottom: 20px; }
-    .footer-newsletter h4 { margin-bottom: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; }
-    .newsletter-form { display: flex; gap: 8px; justify-content: center; }
-    .newsletter-form input { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; width: 220px; }
-    .newsletter-form button { padding: 8px 16px; background: #1a1a1a; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .footer-social { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
-    .social-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #e5e7eb; font-size: 11px; font-weight: 700; }
-    .footer-copy { font-size: 12px; color: #9ca3af; margin-bottom: 4px; }
-    .footer-link { font-size: 12px; color: #6b7280; }
-
-    /* Unknown fallback */
-    .section-unknown { margin: 16px 24px; padding: 16px; border: 1px dashed #d1d5db; border-radius: 8px; }
-    .unknown-header { font-weight: 600; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-    .unknown-props { display: flex; flex-wrap: wrap; gap: 6px; }
-    .prop-pill { font-size: 11px; background: #f3f4f6; padding: 3px 8px; border-radius: 4px; }
-
-    /* Shared */
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    .tag.small { font-size: 10px; padding: 1px 6px; }
-    .meta { font-size: 12px; color: #9ca3af; }
-    .placeholder-img { width: 100%; height: 280px; background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%); border-radius: 8px; }
-    .placeholder-img.small { height: 160px; border-radius: 0; }
-    .section-badge { background: #0d61ac; color: white; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
-
-    @media (max-width: 768px) {
-      .section-heropost { grid-template-columns: 1fr; }
-      .section-grid-sidebar { grid-template-columns: 1fr; }
-      .post-grid.cols-3, .post-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
-      .product-grid.cols-3, .product-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
-      .features-grid.cols-3, .features-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
-    }
-  </style>
+  <style>${PREVIEW_CSS}</style>
 </head>
 <body>
-  <div class="preview-bar">Preview — Rascunho</div>
+  <div class="preview-bar">Preview — Dados reais do banco</div>
   ${renderedSections}
 </body>
 </html>`;
 
       return new NextResponse(html, {
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-
-          "Cache-Control": "no-store",
-        },
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
       });
     }
   }
@@ -348,12 +391,8 @@ export async function GET(
     h1, h2, h3 { font-family: 'Playfair Display', serif; }
     .preview-bar { position: sticky; top: 0; z-index: 100; background: #f59e0b; color: #000; padding: 6px 16px; font-size: 11px; font-weight: 600; text-align: center; letter-spacing: 0.04em; text-transform: uppercase; }
     .content { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
-    .content h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 16px; color: #111; }
-    .content h2 { font-size: 1.25rem; font-weight: 600; margin: 24px 0 12px; color: #222; }
-    .content h3 { font-size: 1.1rem; font-weight: 600; margin: 20px 0 8px; color: #333; }
+    .content h1 { font-size: 1.75rem; margin-bottom: 16px; }
     .content p { margin-bottom: 12px; color: #444; }
-    .content ul, .content ol { margin: 0 0 12px 24px; color: #444; }
-    .content a { color: #0d61ac; }
     .content img { max-width: 100%; border-radius: 8px; margin: 16px 0; }
   </style>
 </head>
@@ -364,10 +403,6 @@ export async function GET(
 </html>`;
 
   return new NextResponse(html, {
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Cache-Control": "no-store",
-    },
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
