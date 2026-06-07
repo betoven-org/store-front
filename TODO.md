@@ -139,6 +139,15 @@ Tornar o Brasa CMS tao fluido e dinâmico quanto o deco.cx, mas com UX superior,
 - [x] Tab "Stock" (Unsplash) na MediaLibrary com busca visual
 - [x] Painel A/B variants + condições (device/lazy) no editor de sections
 - [x] Página /admin/integracoes com overview + teste de cada integração
+- [x] Commerce module — 6 plataformas e-commerce com types abstratos (Schema.org):
+  - [x] VTEX (Catalog + Checkout + Intelligent Search)
+  - [x] Shopify (Storefront GraphQL API)
+  - [x] Nuvemshop (REST API v1)
+  - [x] Wake (GraphQL API)
+  - [x] VNDA (REST API v2)
+  - [x] Linx (REST API v1)
+  - [x] Auto-detection por env vars
+  - [x] APIs públicas: /api/v1/commerce/products, /products/:slug, /suggestions
 
 ---
 
