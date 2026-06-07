@@ -31,7 +31,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/categorias", label: "Categorias", icon: <Tag className="size-[15px]" /> },
       { href: "/admin/autores", label: "Autores", icon: <Users className="size-[15px]" /> },
       { href: "/admin/midias", label: "Mídias", icon: <Image className="size-[15px]" /> },
-      { href: "/admin/formularios", label: "Formulários", icon: <FileText className="size-[15px]" /> },
+      // { href: "/admin/formularios", label: "Formulários", icon: <FileText className="size-[15px]" /> },
     ],
   },
   {
