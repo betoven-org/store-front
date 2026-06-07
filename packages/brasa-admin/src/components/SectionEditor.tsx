@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import ToggleSwitch from "./ToggleSwitch";
+import ImageUpload from "./ImageUpload";
 
 // ---------------------------------------------------------------------------
 // Types (mirrors packages/brasa-core/src/manifest.ts)
@@ -234,30 +235,11 @@ function StringField({ fieldKey, schema, value, onChange }: FieldRendererProps) 
           required={schema.required}
           description={schema.description}
         />
-        <input
-          id={id}
-          type="text"
-          value={strVal}
-          placeholder={placeholder ?? "https://..."}
-          required={schema.required}
-          onChange={(e) => onChange(e.target.value)}
-          className={inputCls}
+        <ImageUpload
+          value={strVal ? 1 : null}
+          previewUrl={strVal || null}
+          onChange={(_id, url) => onChange(url ?? "")}
         />
-        {strVal && (
-          <div className="mt-1.5 overflow-hidden rounded-md border border-border bg-background">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={strVal}
-              alt={`Preview de ${schema.title ?? fieldKey}`}
-              className="max-h-40 w-auto object-contain p-2"
-              width={320}
-              height={160}
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = "none";
-              }}
-            />
-          </div>
-        )}
       </FieldWrapper>
     );
   }
