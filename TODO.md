@@ -102,17 +102,17 @@ Tornar o Brasa CMS tao fluido e dinâmico quanto o deco.cx, mas com UX superior,
 - [x] #27 AI content generation (OpenAI) ✓ + sistema de creditos
 
 ### Sprint 3 — Personalizacao & Growth
-- [x] #3 Section variants (A/B) ✓ (schema pronto, falta UI de config)
-- [ ] #19 Matchers (device, random%)
+- [x] #3 Section variants (A/B) ✓ (schema + UI completa: variantes, peso %, device filter)
+- [x] #19 Matchers (device) ✓ (device filter no editor de section)
 - [x] #22 Resend email ✓
 - [ ] #36 Super-admin dashboard
 - [ ] #28 Command palette expandido
 
 ### Sprint 4 — Integracoes & Scale
-- [x] #4 Lazy/Deferred sections ✓ (flag no SectionBlock)
+- [x] #4 Lazy/Deferred sections ✓ (flag + toggle no editor)
 - [x] #23 Search engine (Algolia/Typesense) ✓
 - [ ] #24 PostHog analytics (script injection)
-- [x] #26 Unsplash na media library ✓ (API pronta, falta UI tab)
+- [x] #26 Unsplash na media library ✓ (API + tab Stock na MediaLibrary)
 - [ ] #37 Planos diferenciados
 
 ### Sprint 5 — Polish & Enterprise
@@ -132,9 +132,13 @@ Tornar o Brasa CMS tao fluido e dinâmico quanto o deco.cx, mas com UX superior,
 - [x] Editor split panel (estilo deco)
 - [x] Preview com dados reais (posts, categorias, produtos)
 - [x] Integrações: OpenAI, Unsplash, Resend, Slack, Algolia/Typesense
-- [x] Sistema de créditos de AI (50 grátis, debita por uso)
+- [x] Sistema de créditos de AI (50 grátis, debita por uso, saldo visível)
 - [x] Notificação Slack automática no publish
 - [x] BrasaLoader unificado (formas geométricas)
+- [x] Botão AI (✨) nos campos de texto com dropdown (escrever/reescrever/resumir/SEO)
+- [x] Tab "Stock" (Unsplash) na MediaLibrary com busca visual
+- [x] Painel A/B variants + condições (device/lazy) no editor de sections
+- [x] Página /admin/integracoes com overview + teste de cada integração
 
 ---
 
