@@ -15,13 +15,14 @@ function BrandLogo({ height = 24 }: { height?: number }) {
   );
 }
 
-export default function LoginPage() {
+export default function CriarContaPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [siteName, setSiteName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [remember, setRemember] = useState(true);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -29,15 +30,32 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await authClient.signIn.email({
+      // 1. Create tenant + user in our DB
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, siteName }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao criar conta");
+      }
+
+      // 2. Create account in Neon Auth
+      await authClient.signUp.email({
+        name,
         email,
         password,
       });
 
+      // 3. Sign in
+      await authClient.signIn.email({ email, password });
+
       router.push("/admin");
       router.refresh();
-    } catch {
-      setError("Credenciais inválidas");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar conta");
     } finally {
       setLoading(false);
     }
@@ -52,17 +70,57 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-1 flex-col justify-center max-w-[420px] w-full">
-          <div className="mb-10">
-            <h1 className="text-[36px] font-bold tracking-tight leading-[1.1] text-[#1a1a1a]">
-              Bem-vindo{" "}
-              <span style={{ color: "#F97316" }}>de volta.</span>
+          <div className="mb-8">
+            <h1 className="text-[32px] font-bold tracking-tight leading-[1.1] text-[#1a1a1a]">
+              Crie sua{" "}
+              <span style={{ color: "#F97316" }}>conta.</span>
             </h1>
             <p className="mt-3 text-[15px] text-[#666] leading-relaxed">
-              Entre com seu email para acessar o painel<br />de administração.
+              Configure seu CMS em segundos.<br />30 dias gratis pra testar.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="siteName" className="text-[13px] font-semibold text-[#1a1a1a]">
+                Nome do site
+              </label>
+              <div className="flex items-center gap-3 h-[48px] px-4 bg-white border border-[#e0e0e0] rounded-xl transition-colors focus-within:border-[#F97316]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[#999] shrink-0">
+                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <input
+                  id="siteName"
+                  type="text"
+                  required
+                  value={siteName}
+                  onChange={(e) => setSiteName(e.target.value)}
+                  className="flex-1 border-0 outline-0 bg-transparent text-[#1a1a1a] text-[14px] min-w-0 placeholder:text-[#bbb]"
+                  placeholder="Minha Loja"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="name" className="text-[13px] font-semibold text-[#1a1a1a]">
+                Seu nome
+              </label>
+              <div className="flex items-center gap-3 h-[48px] px-4 bg-white border border-[#e0e0e0] rounded-xl transition-colors focus-within:border-[#F97316]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[#999] shrink-0">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="flex-1 border-0 outline-0 bg-transparent text-[#1a1a1a] text-[14px] min-w-0 placeholder:text-[#bbb]"
+                  placeholder="Joao Silva"
+                />
+              </div>
+            </div>
+
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-[13px] font-semibold text-[#1a1a1a]">
                 Email
@@ -96,39 +154,14 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   required
-                  autoComplete="current-password"
+                  minLength={6}
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="flex-1 border-0 outline-0 bg-transparent text-[#1a1a1a] text-[14px] min-w-0 placeholder:text-[#bbb]"
-                  placeholder="••••••••"
+                  placeholder="Min. 6 caracteres"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={remember}
-                  onClick={() => setRemember(!remember)}
-                  className="w-[18px] h-[18px] rounded flex items-center justify-center shrink-0 transition-colors"
-                  style={{
-                    backgroundColor: remember ? "#F97316" : "transparent",
-                    border: remember ? "none" : "2px solid #ccc",
-                  }}
-                >
-                  {remember && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 6 9 17l-5-5"/>
-                    </svg>
-                  )}
-                </button>
-                <span className="text-[13px] text-[#555]">Lembrar de mim</span>
-              </label>
-              <Link href="/admin/recuperar-senha" className="text-[13px] text-[#F97316] font-medium hover:underline">
-                Esqueceu sua senha?
-              </Link>
             </div>
 
             {error && (
@@ -143,34 +176,22 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 h-[48px] rounded-xl text-white text-[15px] font-semibold transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 h-[48px] rounded-xl text-white text-[15px] font-semibold transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
               style={{ backgroundColor: "#F97316" }}
             >
               {loading ? (
                 <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
               ) : (
-                <>
-                  Entrar
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-                  </svg>
-                </>
+                "Criar conta gratis"
               )}
             </button>
 
-            <p className="text-center text-[13px] text-[#666] mt-1">
-              Nao tem conta?{" "}
-              <Link href="/admin/criar-conta" className="text-[#F97316] font-medium hover:underline">
-                Criar conta gratis
+            <p className="text-center text-[13px] text-[#666] mt-2">
+              Ja tem uma conta?{" "}
+              <Link href="/admin/login" className="text-[#F97316] font-medium hover:underline">
+                Entrar
               </Link>
             </p>
-
-            <div className="flex items-center gap-2 mt-1 text-[12px] text-[#999]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>
-              </svg>
-              Conexão protegida com TLS
-            </div>
           </form>
         </div>
 
@@ -199,12 +220,6 @@ export default function LoginPage() {
           background: "radial-gradient(circle, oklch(0.50 0.16 30 / 0.30) 0%, transparent 55%)",
           filter: "blur(50px)",
         }} />
-        <div className="absolute pointer-events-none" style={{
-          right: "5%", bottom: "10%",
-          width: 400, height: 400, borderRadius: "50%",
-          background: "radial-gradient(circle, oklch(0.65 0.20 40 / 0.20) 0%, transparent 50%)",
-          filter: "blur(40px)",
-        }} />
 
         <div className="flex justify-center relative z-10">
           <div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.15em] uppercase opacity-70">
@@ -219,17 +234,14 @@ export default function LoginPage() {
         <div className="flex flex-1 items-center justify-center relative z-10">
           <div className="text-center flex flex-col items-center">
             <h2 className="text-[32px] font-bold mt-8 tracking-tight leading-[1.25]">
-              Gerencie{" "}
-              <span style={{ color: "#F97316" }}>conteúdo,</span>
+              Comece{" "}
+              <span style={{ color: "#F97316" }}>gratis,</span>
               <br />
-              construa{" "}
-              <span style={{ color: "#F97316" }}>páginas,</span>
-              <br />
-              publique em{" "}
-              <span style={{ color: "#F97316" }}>segundos.</span>
+              escale quando{" "}
+              <span style={{ color: "#F97316" }}>quiser.</span>
             </h2>
             <p className="mt-5 text-[14px] opacity-55 max-w-[340px] mx-auto leading-relaxed">
-              Um CMS cloud projetado para equipes que precisam de velocidade e controle. API-first, sem limites.
+              30 dias gratuitos. Sem cartao de credito. Cancele quando quiser.
             </p>
           </div>
         </div>

@@ -72,6 +72,7 @@ export default async function middleware(req: NextRequest) {
 
   const isLoginPage = pathname === "/admin/login";
   const isRecoverPage = pathname === "/admin/recuperar-senha" || pathname === "/admin/redefinir-senha";
+  const isRegisterPage = pathname === "/admin/criar-conta";
   const isPaymentPage = pathname === "/admin/pagamento-pendente";
   const isAdminRoute = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
@@ -89,10 +90,12 @@ export default async function middleware(req: NextRequest) {
   if (
     isLoginPage ||
     isRecoverPage ||
+    isRegisterPage ||
     isPaymentPage ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/cron") ||
-    pathname.startsWith("/api/subscription-status")
+    pathname.startsWith("/api/subscription-status") ||
+    pathname === "/api/auth/register"
   ) {
     return trackAndReturn(injectTenant(tenantId, req), req, start, tenantId);
   }
