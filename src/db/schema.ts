@@ -277,6 +277,8 @@ export const siteSettings = pgTable("site_settings", {
   newsletterDescription: text("newsletter_description"),
   newsletterConsent: text("newsletter_consent"),
   seoTitle: varchar("seo_title", { length: 255 }),
+  seoTitleTemplate: varchar("seo_title_template", { length: 255 }).default("%s"),
+  seoDescriptionTemplate: varchar("seo_description_template", { length: 500 }).default("%s"),
   seoDescription: text("seo_description"),
   seoKeywords: text("seo_keywords"),
   privacyPolicy: text("privacy_policy"),
@@ -296,6 +298,42 @@ export const siteSettings = pgTable("site_settings", {
   lastSyncAt: timestamp("last_sync_at", { mode: "string" }),
   theme: jsonb("theme"),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+// ── Forms (lead capture) ──────────────────────────────────────────────────────
+
+export const forms = pgTable("forms", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  fields: jsonb("fields").notNull(),
+  successMessage: text("success_message").default("Enviado com sucesso!"),
+  notifyEmail: text("notify_email"),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const formSubmissions = pgTable("form_submissions", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
+  formId: integer("form_id").notNull().references(() => forms.id, { onDelete: "cascade" }),
+  data: jsonb("data").notNull(),
+  ip: varchar("ip", { length: 45 }),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+// ── Redirects ─────────────────────────────────────────────────────────────────
+
+export const redirects = pgTable("redirects", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
+  from: varchar("from_path", { length: 500 }).notNull(),
+  to: varchar("to_path", { length: 500 }).notNull(),
+  type: integer("type").default(301).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
 // ── Subscriptions ─────────────────────────────────────────────────────────────

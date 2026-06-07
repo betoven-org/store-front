@@ -41,6 +41,8 @@ export const GET = withApiKey(async ({ tenantId }) => {
     },
     seo: {
       title: row.seoTitle,
+      titleTemplate: row.seoTitleTemplate || "%s",
+      descriptionTemplate: row.seoDescriptionTemplate || "%s",
       description: row.seoDescription,
       keywords: row.seoKeywords,
     },

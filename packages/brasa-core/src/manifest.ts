@@ -90,13 +90,32 @@ export type BrasaManifest = {
 
 // ── Page Content (stored in DB) ──────────────────────────────────────────────
 
+export type SectionVariant = {
+  /** Variant name (e.g. "Controle", "Variante A") */
+  name: string;
+  /** Traffic weight (0-100). All variants should sum to 100 */
+  weight: number;
+  /** Props for this variant */
+  props: Record<string, unknown>;
+};
+
 export type SectionBlock = {
   /** Unique ID for this block instance */
   id: string;
   /** Section key (matches SectionSchema.key) */
   component: string;
-  /** Props values */
+  /** Props values (used when no variants) */
   props: Record<string, unknown>;
+  /** A/B test variants. When set, `props` is ignored and a variant is chosen by weight */
+  variants?: SectionVariant[];
+  /** Matcher conditions for conditional rendering */
+  matcher?: {
+    device?: "mobile" | "desktop" | "all";
+    startDate?: string;
+    endDate?: string;
+  };
+  /** Deferred loading — section loads on scroll (lazy) */
+  deferred?: boolean;
 };
 
 export type PageContent = SectionBlock[];
