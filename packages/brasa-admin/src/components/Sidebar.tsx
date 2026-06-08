@@ -8,7 +8,7 @@ import {
   PanelBottom, Layout, Mail, Sparkles, Search, Bot, Palette,
   BarChart3, UserCog, Database, CreditCard, Code, HelpCircle,
   PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
-  ChevronsUpDown, Trash2, ArrowRightLeft, FileText,
+  ChevronsUpDown, Trash2, ArrowRightLeft, FileText, FolderOpen,
 } from "lucide-react";
 
 type NavItemDef = {
@@ -23,29 +23,37 @@ type NavGroup = {
   items: NavItemDef[];
 };
 
-const navGroups: NavGroup[] = [
-  {
-    label: "Blog",
-    items: [
-      { href: "/admin/posts", label: "Posts", icon: <Newspaper className="size-[15px]" /> },
-      { href: "/admin/categorias", label: "Categorias", icon: <Tag className="size-[15px]" /> },
-      { href: "/admin/autores", label: "Autores", icon: <Users className="size-[15px]" /> },
-      { href: "/admin/midias", label: "Mídias", icon: <Image className="size-[15px]" /> },
-      // { href: "/admin/formularios", label: "Formulários", icon: <FileText className="size-[15px]" /> },
-    ],
-  },
-  {
-    label: "Catalogo",
-    items: [
-      { href: "/admin/produtos", label: "Produtos", icon: <Package className="size-[15px]" /> },
-      { href: "/admin/categorias-produto", label: "Categorias de Produto", icon: <Layers className="size-[15px]" /> },
-    ],
-  },
+type CollectionNav = {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+};
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+  newspaper: <Newspaper className="size-[15px]" />,
+  tag: <Tag className="size-[15px]" />,
+  users: <Users className="size-[15px]" />,
+  package: <Package className="size-[15px]" />,
+  layers: <Layers className="size-[15px]" />,
+  image: <Image className="size-[15px]" />,
+  mail: <Mail className="size-[15px]" />,
+  file: <FileText className="size-[15px]" />,
+  database: <Database className="size-[15px]" />,
+};
+
+function resolveIcon(icon: string | null): React.ReactNode {
+  if (icon && ICON_MAP[icon]) return ICON_MAP[icon];
+  return <FolderOpen className="size-[15px]" />;
+}
+
+const staticGroups: NavGroup[] = [
   {
     label: "Storefront",
     items: [
       { href: "/admin/paginas", label: "Páginas", icon: <Layout className="size-[15px]" /> },
       { href: "/admin/global-sections", label: "Sections Globais", icon: <Layers className="size-[15px]" /> },
+      { href: "/admin/midias", label: "Mídias", icon: <Image className="size-[15px]" /> },
       { href: "/admin/redirects", label: "Redirects", icon: <ArrowRightLeft className="size-[15px]" /> },
       { href: "/admin/lixeira", label: "Lixeira", icon: <Trash2 className="size-[15px]" /> },
     ],
@@ -80,14 +88,16 @@ function BrandLogo({ height = 24 }: { height?: number }) {
   );
 }
 
-function findActiveGroup(pathname: string): string | null {
-  for (const group of navGroups) {
+function findActiveGroup(pathname: string, groups: NavGroup[]): string | null {
+  for (const group of groups) {
     for (const item of group.items) {
       if (pathname === item.href || pathname.startsWith(item.href + "/")) {
         return group.label;
       }
     }
   }
+  // Check collections route
+  if (pathname.startsWith("/admin/colecoes")) return "Conteúdo";
   return null;
 }
 
@@ -100,16 +110,41 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
+  const [collectionsNav, setCollectionsNav] = useState<CollectionNav[]>([]);
+
+  // Fetch collections for dynamic sidebar
+  useEffect(() => {
+    fetch("/api/admin/collections")
+      .then((r) => (r.ok ? r.json() : { docs: [] }))
+      .then((data) => setCollectionsNav(data.docs || []))
+      .catch(() => {});
+  }, []);
+
+  // Build dynamic nav groups: Conteúdo (collections) + static groups
+  const contentGroup: NavGroup = {
+    label: "Conteúdo",
+    items: [
+      ...collectionsNav.map((c) => ({
+        href: `/admin/colecoes/${c.id}`,
+        label: c.name,
+        icon: resolveIcon(c.icon),
+      })),
+      { href: "/admin/colecoes", label: "Gerenciar Collections", icon: <Database className="size-[15px]" /> },
+    ],
+  };
+
+  const navGroups: NavGroup[] = [contentGroup, ...staticGroups];
+
   const [openGroups, setOpenGroups] = useState<string[]>(() =>
-    navGroups.map((g) => g.label)
+    ["Conteúdo", ...staticGroups.map((g) => g.label)]
   );
 
   useEffect(() => {
-    const active = findActiveGroup(pathname);
+    const active = findActiveGroup(pathname, navGroups);
     if (active && !openGroups.includes(active)) {
       setOpenGroups((prev) => [...prev, active]);
     }
-  }, [pathname]);
+  }, [pathname, collectionsNav]);
 
   const toggleGroup = (label: string) => {
     setOpenGroups((prev) =>

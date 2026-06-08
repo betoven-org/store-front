@@ -525,3 +525,84 @@ export const pageVersionsRelations = relations(pageVersions, ({ one }) => ({
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
+
+// ── Collections ──────────────────────────────────────────────────────────────
+
+export const collectionSourceEnum = pgEnum("collection_source", ["local", "synced"]);
+
+export const collectionFieldTypeEnum = pgEnum("collection_field_type", [
+  "text",
+  "long_text",
+  "number",
+  "boolean",
+  "date",
+  "image",
+  "url",
+  "select",
+  "reference",
+  "json",
+]);
+
+export const collections = pgTable("collections", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  icon: varchar("icon", { length: 50 }),
+  source: collectionSourceEnum("source").default("local").notNull(),
+  syncConfig: jsonb("sync_config"),
+  pageSlugPattern: varchar("page_slug_pattern", { length: 255 }),
+  pageSections: jsonb("page_sections"),
+  pageDraftSections: jsonb("page_draft_sections"),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const collectionFields = pgTable("collection_fields", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: collectionFieldTypeEnum("type").notNull(),
+  required: boolean("required").default(false).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  config: jsonb("config"),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const collectionItems = pgTable("collection_items", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  collectionId: integer("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+  slug: varchar("slug", { length: 500 }).notNull(),
+  data: jsonb("data").notNull(),
+  status: postStatusEnum("status").default("draft").notNull(),
+  featured: boolean("featured").default(false).notNull(),
+  externalId: text("external_id"),
+  publishedAt: timestamp("published_at", { mode: "string" }),
+  deletedAt: timestamp("deleted_at", { mode: "string" }),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+  searchVector: tsvector("search_vector"),
+});
+
+// ── Collection Relations ─────────────────────────────────────────────────────
+
+export const collectionsRelations = relations(collections, ({ many }) => ({
+  fields: many(collectionFields),
+  items: many(collectionItems),
+}));
+
+export const collectionFieldsRelations = relations(collectionFields, ({ one }) => ({
+  collection: one(collections, {
+    fields: [collectionFields.collectionId],
+    references: [collections.id],
+  }),
+}));
+
+export const collectionItemsRelations = relations(collectionItems, ({ one }) => ({
+  collection: one(collections, {
+    fields: [collectionItems.collectionId],
+    references: [collections.id],
+  }),
+}));

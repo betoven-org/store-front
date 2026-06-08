@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
-import { pages, posts, categories, products, siteSettings } from "@brasa/core/schema";
+import { pages, posts, categories, products, siteSettings, tenants } from "@brasa/core/schema";
 import { and, eq, desc } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
@@ -892,7 +892,45 @@ export async function GET(
     return new NextResponse("Pagina nao encontrada", { status: 404 });
 
   const useSections = request.nextUrl.searchParams.get("sections") === "draft";
+  const mode = request.nextUrl.searchParams.get("mode");
 
+  // ── Frontend preview (only when explicitly requested via ?mode=frontend) ──
+  if (mode === "frontend") {
+    const [tenant] = await db
+      .select({ frontendUrl: tenants.frontendUrl, previewUrl: tenants.previewUrl, revalidateSecret: tenants.revalidateSecret })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+
+    const frontendBase = tenant?.previewUrl || tenant?.frontendUrl;
+
+    if (frontendBase) {
+      // Quick HEAD check with 3s timeout to verify frontend availability
+      let frontendAvailable = false;
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`${frontendBase}/api/cms-preview`, {
+          method: "HEAD",
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        frontendAvailable = res.ok || res.status === 405 || res.status === 400;
+      } catch {
+        // Frontend not reachable — fall through to internal renderer
+      }
+
+      if (frontendAvailable) {
+        const pagePath = page.slug === "home" ? "/" : `/${page.slug}`;
+        const previewUrl = `${frontendBase}/api/cms-preview?secret=${encodeURIComponent(tenant?.revalidateSecret || "")}&path=${encodeURIComponent(pagePath)}`;
+        return NextResponse.redirect(previewUrl);
+      }
+    }
+
+    // Frontend not available — fall through to internal renderer
+  }
+
+  // ── Internal renderer (default, handles both CMS and campaign section formats) ──
   if (useSections) {
     const sections = (page.draftSections ?? page.sections) as { component?: string; type?: string; props?: Record<string, any>; [key: string]: any }[] | null;
     if (sections && sections.length > 0) {

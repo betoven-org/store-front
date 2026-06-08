@@ -885,12 +885,11 @@ export default function EditPagePage({
   const pagePath = slugToPath(page.slug);
   const hasContent = !!(page.content || page.draft);
 
-  // Preview: use frontend real (1:1 com produção) when available, fallback to internal renderer
-  const previewBase = frontendBase && (hasContent || hasSections)
-    ? `${frontendBase}/api/cms-preview?secret=${encodeURIComponent(tenant?.revalidateSecret || "")}&path=${encodeURIComponent(pagePath)}`
-    : (hasContent || hasSections)
-      ? `/api/admin/pages/${id}/preview?sections=draft`
-      : "";
+  // Preview: always use internal renderer for draft sections (handles both CMS and campaign formats)
+  // Real frontend preview only when explicitly requested via mode=frontend
+  const previewBase = (hasContent || hasSections)
+    ? `/api/admin/pages/${id}/preview?sections=draft`
+    : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
     ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
@@ -1224,7 +1223,7 @@ export default function EditPagePage({
             </button>
 
             <span className="flex-1 rounded bg-background px-2 py-0.5 text-[11px] text-muted-foreground font-mono border border-border truncate">
-              {frontendBase || "preview interno"}{slugToPath(page.slug)}
+              preview interno{slugToPath(page.slug)}
             </span>
 
             <button type="button" onClick={() => { if (iframeRef.current) iframeRef.current.src = previewUrl; }} className="rounded p-1 text-muted-foreground hover:text-foreground" title="Recarregar">
