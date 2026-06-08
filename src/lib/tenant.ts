@@ -19,13 +19,27 @@ export type Tenant = {
 };
 
 /**
- * Get current tenant ID from request headers.
- * Set by middleware via x-tenant-id header.
+ * Get current tenant ID.
+ * Priority: x-tenant-id header (from middleware) → authenticated user's tenantId → fallback 1
+ * This allows multi-tenant to work on a single domain (cms.brasa.tech)
+ * by resolving tenant from the logged-in user when host-based resolution fails.
  */
 export const getTenantId = cache(async (): Promise<number> => {
   const h = await headers();
-  const id = h.get(TENANT_HEADER);
-  return id ? parseInt(id, 10) : 1;
+  const headerVal = h.get(TENANT_HEADER);
+  const headerTenantId = headerVal ? parseInt(headerVal, 10) : 1;
+
+  // If middleware resolved a specific tenant (not default), use it
+  if (headerTenantId > 1) return headerTenantId;
+
+  // Otherwise try to resolve from authenticated user session
+  try {
+    const { auth } = await import("@brasa/core/auth");
+    const session = await auth();
+    if (session?.user?.tenantId) return session.user.tenantId;
+  } catch { /* not authenticated */ }
+
+  return headerTenantId;
 });
 
 /**

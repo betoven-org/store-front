@@ -36,6 +36,7 @@ export type AuthSession = {
     name: string | null;
     email: string;
     role: UserRole;
+    tenantId: number;
     neonAuthId: string;
   };
 } | null;
@@ -68,6 +69,7 @@ export async function auth(): Promise<AuthSession> {
         name: dbUser.name,
         email: dbUser.email,
         role: dbUser.role as UserRole,
+        tenantId: dbUser.tenantId,
         neonAuthId: session.user.id,
       },
     };
