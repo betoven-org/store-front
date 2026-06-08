@@ -4,6 +4,7 @@ import { db } from "@brasa/core/db";
 import { tenants } from "@brasa/core/schema";
 import { eq, and, SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
+import { auth } from "@brasa/core/auth";
 
 export const TENANT_HEADER = "x-tenant-id";
 
@@ -34,10 +35,9 @@ export const getTenantId = cache(async (): Promise<number> => {
 
   // Otherwise try to resolve from authenticated user session
   try {
-    const { auth } = await import("@brasa/core/auth");
     const session = await auth();
     if (session?.user?.tenantId) return session.user.tenantId;
-  } catch { /* not authenticated */ }
+  } catch { /* not authenticated or auth unavailable */ }
 
   return headerTenantId;
 });

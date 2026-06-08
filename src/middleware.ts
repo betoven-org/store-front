@@ -66,9 +66,9 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Resolve tenant
+  // Resolve tenant from host first
   const host = req.headers.get("host") || "localhost";
-  const tenantId = await resolveTenantId(host, req.nextUrl.origin);
+  let tenantId = await resolveTenantId(host, req.nextUrl.origin);
 
   const isLoginPage = pathname === "/admin/login";
   const isRecoverPage = pathname === "/admin/recuperar-senha" || pathname === "/admin/redefinir-senha";
@@ -79,11 +79,33 @@ export default async function middleware(req: NextRequest) {
 
   // Check auth via Neon Auth session
   let isAuthenticated = false;
+  let sessionEmail: string | null = null;
   try {
     const { data: session } = await neonAuth.getSession();
     isAuthenticated = !!session?.user;
+    if (session?.user?.email) {
+      sessionEmail = session.user.email;
+    }
   } catch {
     // Not authenticated
+  }
+
+  // If host-based resolution returned default (1) but user is authenticated,
+  // resolve tenant from the user's DB record
+  if (tenantId === 1 && isAuthenticated && sessionEmail) {
+    try {
+      const res = await fetch(
+        `${req.nextUrl.origin}/api/tenant?email=${encodeURIComponent(sessionEmail)}`,
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.id && data.id > 0) {
+          tenantId = data.id;
+        }
+      }
+    } catch {
+      // Fail open — tenant.ts will also try auth() as fallback
+    }
   }
 
   // Public routes
@@ -123,8 +145,15 @@ export default async function middleware(req: NextRequest) {
   // Admin authenticated → check subscription
   if ((isAdminRoute || isAdminApi) && isAuthenticated) {
     try {
+      const cookieHeader = req.headers.get("cookie") || "";
       const statusRes = await fetch(
         new URL("/api/subscription-status", req.nextUrl.origin),
+        {
+          headers: {
+            cookie: cookieHeader,
+            [TENANT_HEADER]: String(tenantId),
+          },
+        },
       );
       if (statusRes.ok) {
         const data = await statusRes.json();
