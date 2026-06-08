@@ -33,13 +33,136 @@ async function getRealProducts(tenantId: number, limit = 50) {
   });
 }
 
+// ── Campaign section renderers (type-based format) ───────────────────────────
+
+function renderCampaignSection(s: Record<string, any>, index: number): string {
+  const isEven = index % 2 === 0;
+  const bgClass = isEven ? "lp-bg-white" : "lp-bg-alt";
+
+  switch (s.type) {
+    case "hero":
+      return `<section class="lp-hero">
+        <div class="lp-hero-inner">
+          ${s.eyebrow ? `<span class="lp-eyebrow">${esc(s.eyebrow)}</span>` : ""}
+          <h1 class="lp-hero-heading">${esc(s.heading || "")}</h1>
+          <p class="lp-hero-desc">${esc(s.description || "")}</p>
+        </div>
+        <div class="lp-hero-gradient"></div>
+      </section>`;
+
+    case "trust_badges":
+      return `<section class="lp-trust-badges">
+        <div class="lp-trust-inner">
+          ${(Array.isArray(s.items) ? s.items : []).map((item: any) => `
+            <div class="lp-trust-item">
+              ${item.icon ? `<img src="${esc(item.icon)}" alt="" class="lp-trust-icon" width="36" height="36" />` : `<div class="lp-trust-icon-placeholder"></div>`}
+              <span class="lp-trust-text">${esc(item.text || "")}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>`;
+
+    case "image_text":
+      return `<section class="lp-content-block ${bgClass}">
+        <div class="lp-content-inner lp-layout-img-left">
+          <div class="lp-content-media">
+            ${s.image?.src
+              ? `<img src="${esc(s.image.src)}" alt="${esc(s.image?.alt || s.heading || "")}" class="lp-content-img" />`
+              : `<div class="lp-img-placeholder"></div>`}
+          </div>
+          <div class="lp-content-text">
+            <h2 class="lp-content-heading">${esc(s.heading || "")}</h2>
+            <p class="lp-content-body">${esc(s.text || "")}</p>
+          </div>
+        </div>
+      </section>`;
+
+    case "text_image":
+      return `<section class="lp-content-block ${bgClass}">
+        <div class="lp-content-inner lp-layout-img-right">
+          <div class="lp-content-text">
+            <h2 class="lp-content-heading">${esc(s.heading || "")}</h2>
+            <p class="lp-content-body">${esc(s.text || "")}</p>
+          </div>
+          <div class="lp-content-media">
+            ${s.image?.src
+              ? `<img src="${esc(s.image.src)}" alt="${esc(s.image?.alt || s.heading || "")}" class="lp-content-img" />`
+              : `<div class="lp-img-placeholder"></div>`}
+          </div>
+        </div>
+      </section>`;
+
+    case "benefits_icons":
+      return `<section class="lp-benefits">
+        <div class="lp-benefits-inner">
+          ${(Array.isArray(s.items) ? s.items : []).map((item: any) => `
+            <div class="lp-benefit-card">
+              ${item.icon ? `<img src="${esc(item.icon)}" alt="" class="lp-benefit-icon" width="56" height="56" />` : `<div class="lp-benefit-icon-placeholder"></div>`}
+              <p class="lp-benefit-text">${esc(item.text || "")}</p>
+            </div>
+          `).join("")}
+        </div>
+      </section>`;
+
+    case "product_shelf":
+      return `<section class="lp-products">
+        <div class="lp-products-inner">
+          ${s.heading ? `<h2 class="lp-products-heading">${esc(s.heading)}</h2>` : ""}
+          <div class="lp-products-grid">
+            ${(Array.isArray(s.products) ? s.products : []).map((prod: any) => `
+              <a href="${esc(prod.href || "#")}" class="lp-product-card" target="_blank" rel="noopener">
+                ${prod.image ? `<img src="${esc(prod.image)}" alt="${esc(prod.name || "")}" class="lp-product-img" />` : `<div class="lp-product-img-placeholder"></div>`}
+                <div class="lp-product-info">
+                  <h3 class="lp-product-name">${esc(prod.name || "")}</h3>
+                  ${prod.price ? `<span class="lp-product-price">${esc(prod.price)}</span>` : ""}
+                  ${prod.installments ? `<span class="lp-product-installments">${esc(prod.installments)}</span>` : ""}
+                  <span class="lp-product-cta">Comprar agora →</span>
+                </div>
+              </a>
+            `).join("")}
+          </div>
+        </div>
+      </section>`;
+
+    case "video_section":
+      return `<section class="lp-videos">
+        <div class="lp-videos-inner">
+          <div class="lp-videos-grid">
+            ${(Array.isArray(s.videos) ? s.videos : []).map((v: any) => {
+              const embedUrl = (v.url || "").replace("watch?v=", "embed/").replace("/shorts/", "/embed/");
+              return `
+                <div class="lp-video-card">
+                  <div class="lp-video-wrapper">
+                    <iframe src="${esc(embedUrl)}" frameborder="0" allowfullscreen loading="lazy"></iframe>
+                  </div>
+                  ${v.title ? `<p class="lp-video-title">${esc(v.title)}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      </section>`;
+
+    default:
+      return `<section class="section-unknown">
+        <div class="unknown-header"><span class="section-badge">${index + 1}</span> ${esc(s.type || "desconhecido")}</div>
+        <div class="unknown-props">${Object.entries(s).filter(([k]) => k !== "type").map(([k, v]) => `<span class="prop-pill"><b>${esc(k)}</b>: ${esc(typeof v === "object" ? JSON.stringify(v).slice(0, 80) : String(v).slice(0, 80))}</span>`).join("")}</div>
+      </section>`;
+  }
+}
+
 // ── Section renderers with real data ──────────────────────────────────────────
 
 function renderSection(
-  s: { component: string; props: Record<string, any> },
+  s: { component?: string; type?: string; props?: Record<string, any>; [key: string]: any },
   index: number,
   data: { posts: any[]; categories: any[]; products: any[]; siteName: string },
 ): string {
+  // Campaign sections use "type" field with flat props
+  if (s.type && !s.component) {
+    return renderCampaignSection(s, index);
+  }
+
   const p = s.props || {};
 
   switch (s.component) {
@@ -360,6 +483,8 @@ img { max-width: 100%; height: auto; display: block; }
 .footer-copy { font-size: 12px; color: #9ca3af; margin-bottom: 4px; }
 .footer-link { font-size: 12px; color: #6b7280; }
 section + section { margin-top: 8px; }
+section[class^="lp-"] + section[class^="lp-"],
+section.lp-content-block + section.lp-content-block { margin-top: 0; }
 .section-lphero { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding: 64px 40px; max-width: 1200px; margin: 0 auto; min-height: 420px; }
 .lphero-headline { font-size: 2.4rem; margin-bottom: 16px; line-height: 1.2; }
 .lphero-sub { font-size: 1rem; color: #4b5563; margin-bottom: 24px; line-height: 1.7; }
@@ -419,6 +544,330 @@ section + section { margin-top: 8px; }
   .section-grid-sidebar { grid-template-columns: 1fr; }
   .post-grid.cols-3, .post-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
   .product-grid.cols-3, .product-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .lp-content-inner { grid-template-columns: 1fr !important; }
+  .lp-trust-inner { flex-direction: column; align-items: center; }
+  .lp-benefits-inner { grid-template-columns: 1fr !important; }
+  .lp-products-grid { grid-template-columns: 1fr !important; }
+  .lp-videos-grid { grid-template-columns: 1fr !important; }
+  .lp-hero-heading { font-size: 2rem !important; }
+}
+
+/* ── Campaign LP Styles ──────────────────────────────────────────────────── */
+
+/* Hero */
+.lp-hero {
+  position: relative;
+  background: linear-gradient(135deg, #0d3b66 0%, #1a5276 40%, #1e6f9f 100%);
+  color: #fff;
+  padding: 80px 24px 72px;
+  text-align: center;
+  overflow: hidden;
+}
+.lp-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 80%, rgba(255,255,255,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 20%, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.lp-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+}
+.lp-hero-gradient {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, #fff);
+}
+.lp-eyebrow {
+  display: inline-block;
+  padding: 6px 18px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  color: rgba(255,255,255,0.9);
+}
+.lp-hero-heading {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+}
+.lp-hero-desc {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.85);
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* Trust Badges */
+.lp-trust-badges {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 28px 24px;
+}
+.lp-trust-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.lp-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lp-trust-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(23%) sepia(76%) saturate(500%) hue-rotate(180deg);
+}
+.lp-trust-icon-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #cbd5e1;
+}
+.lp-trust-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.01em;
+}
+
+/* Content blocks (image_text / text_image) */
+.lp-content-block {
+  padding: 0;
+}
+.lp-bg-white { background: #fff; }
+.lp-bg-alt { background: #f8fafc; }
+.lp-content-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: stretch;
+  min-height: 400px;
+}
+.lp-content-media {
+  position: relative;
+  overflow: hidden;
+}
+.lp-content-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  min-height: 360px;
+}
+.lp-img-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+.lp-content-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 56px;
+}
+.lp-content-heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+.lp-content-body {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.8;
+}
+
+/* Benefits Icons */
+.lp-benefits {
+  background: linear-gradient(135deg, #0d3b66 0%, #1a5276 100%);
+  padding: 56px 24px;
+}
+.lp-benefits-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.lp-benefit-card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+.lp-benefit-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin: 0 auto 16px;
+  filter: brightness(0) invert(1);
+}
+.lp-benefit-icon-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 auto 16px;
+}
+.lp-benefit-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.5;
+}
+
+/* Product Shelf */
+.lp-products {
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  padding: 64px 24px;
+}
+.lp-products-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.lp-products-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 32px;
+}
+.lp-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  justify-items: center;
+}
+.lp-product-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  max-width: 320px;
+  width: 100%;
+}
+.lp-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+}
+.lp-product-img {
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  padding: 16px;
+  background: #f8fafc;
+}
+.lp-product-img-placeholder {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+}
+.lp-product-info {
+  padding: 20px;
+  text-align: left;
+}
+.lp-product-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+  font-family: 'Inter', sans-serif;
+}
+.lp-product-price {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0d3b66;
+  margin-bottom: 4px;
+  font-family: 'Inter', sans-serif;
+}
+.lp-product-installments {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+.lp-product-cta {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #0d3b66;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Video Section */
+.lp-videos {
+  background: #f8fafc;
+  padding: 56px 24px;
+}
+.lp-videos-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.lp-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.lp-video-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+.lp-video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 177.78%; /* 9:16 for shorts */
+  background: #000;
+}
+.lp-video-wrapper iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.lp-video-title {
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
 }
 `;
 
@@ -445,7 +894,7 @@ export async function GET(
   const useSections = request.nextUrl.searchParams.get("sections") === "draft";
 
   if (useSections) {
-    const sections = (page.draftSections ?? page.sections) as { component: string; props: Record<string, any> }[] | null;
+    const sections = (page.draftSections ?? page.sections) as { component?: string; type?: string; props?: Record<string, any>; [key: string]: any }[] | null;
     if (sections && sections.length > 0) {
       // Fetch real data in parallel
       const [realPosts, realCategories, realProducts, settings] = await Promise.all([
