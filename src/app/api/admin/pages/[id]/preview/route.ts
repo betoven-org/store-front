@@ -24,7 +24,7 @@ async function getRealCategories(tenantId: number) {
   return db.select().from(categories).where(eq(categories.tenantId, tenantId));
 }
 
-async function getRealProducts(tenantId: number, limit = 8) {
+async function getRealProducts(tenantId: number, limit = 50) {
   return db.query.products.findMany({
     where: eq(products.tenantId, tenantId),
     orderBy: [desc(products.createdAt)],
@@ -148,33 +148,34 @@ function renderSection(
       </section>`;
     }
 
-    case "LpHero":
-      return `<section class="section-lphero" style="${p.backgroundImage ? `background-image:url(${esc(p.backgroundImage)})` : ""}">
+    case "LpHero": {
+      const heroProd = p.productSlug ? data.products.find((pr: any) => pr.slug === p.productSlug) : null;
+      return `<section class="section-lphero"${p.backgroundImage ? ` style="background-image:url(${esc(p.backgroundImage)});background-size:cover;background-position:center"` : ""}>
         <div class="lphero-content">
-          <h1 class="lphero-headline">${esc(p.headline || "")}</h1>
-          ${p.subheadline ? `<p class="lphero-sub">${esc(p.subheadline)}</p>` : ""}
+          <h1 class="lphero-headline">${esc(p.headline || heroProd?.name || "")}</h1>
+          ${p.subheadline ? `<p class="lphero-sub">${esc(p.subheadline || heroProd?.description || "")}</p>` : ""}
           ${p.ctaText ? `<a href="${esc(p.ctaUrl || "#")}" class="hero-cta">${esc(p.ctaText)}</a>` : ""}
         </div>
-        ${p.showProductImage !== false && p.productSlug ? (() => {
-          const prod = data.products.find((pr: any) => pr.slug === p.productSlug);
-          return prod?.image?.url ? `<div class="lphero-img"><img src="${esc(prod.image.url)}" alt="${esc(prod.name)}" /></div>` : "";
-        })() : ""}
+        ${p.showProductImage !== false && heroProd?.image?.url ? `<div class="lphero-img"><img src="${esc(heroProd.image.url)}" alt="${esc(heroProd.name)}" /></div>` : ""}
       </section>`;
+    }
 
-    case "LpBenefits":
+    case "LpBenefits": {
+      const iconMap: Record<string, string> = { leaf: "🌿", shield: "🛡️", heart: "❤️", zap: "⚡", star: "⭐", check: "✅" };
       return `<section class="section-lpbenefits">
         ${p.title ? `<h2>${esc(p.title)}</h2>` : ""}
         ${p.subtitle ? `<p class="subtitle">${esc(p.subtitle)}</p>` : ""}
         <div class="benefits-grid cols-${p.columns || "3"} variant-${p.variant || "cards"}">
           ${(Array.isArray(p.items) ? p.items : []).map((item: any) => `
             <div class="benefit-card">
-              <div class="benefit-icon">${esc(item.icon || "✦")}</div>
+              <div class="benefit-icon">${iconMap[item.icon] || "✦"}</div>
               <h4>${esc(item.title || "")}</h4>
               <p>${esc(item.description || "")}</p>
             </div>
           `).join("")}
         </div>
       </section>`;
+    }
 
     case "LpFeatureDetail":
       return `<section class="section-feature-detail ${p.layout === "image-right" ? "layout-right" : "layout-left"}">
@@ -228,7 +229,12 @@ function renderSection(
 
     case "ProductShowcase": {
       const prodLimit = parseInt(p.limit || "4");
-      const prods = data.products.slice(0, prodLimit);
+      let prods = data.products;
+      if (p.mode === "manual" && p.manualSlugs) {
+        const slugs = (p.manualSlugs as string).split(",").map((s: string) => s.trim());
+        prods = slugs.map((sl: string) => data.products.find((pr: any) => pr.slug === sl)).filter(Boolean);
+      }
+      prods = prods.slice(0, prodLimit);
       return `<section class="section-products">
         <h2>${esc(p.title || "Produtos")}</h2>
         <div class="product-grid cols-${p.columns || "4"}">
@@ -353,42 +359,45 @@ img { max-width: 100%; height: auto; display: block; }
 .social-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #e5e7eb; font-size: 11px; font-weight: 700; }
 .footer-copy { font-size: 12px; color: #9ca3af; margin-bottom: 4px; }
 .footer-link { font-size: 12px; color: #6b7280; }
-.section-lphero { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; padding: 60px 24px; max-width: 1200px; margin: 0 auto; background-size: cover; background-position: center; }
-.lphero-headline { font-size: 2.2rem; margin-bottom: 12px; }
-.lphero-sub { font-size: 1.05rem; color: #4b5563; margin-bottom: 20px; line-height: 1.6; }
-.lphero-img img { width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; }
-.section-lpbenefits { padding: 48px 24px; max-width: 1200px; margin: 0 auto; text-align: center; }
+section + section { margin-top: 8px; }
+.section-lphero { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding: 64px 40px; max-width: 1200px; margin: 0 auto; min-height: 420px; }
+.lphero-headline { font-size: 2.4rem; margin-bottom: 16px; line-height: 1.2; }
+.lphero-sub { font-size: 1rem; color: #4b5563; margin-bottom: 24px; line-height: 1.7; }
+.lphero-img { display: flex; align-items: center; justify-content: center; }
+.lphero-img img { width: 100%; max-height: 360px; object-fit: contain; }
+.section-lpbenefits { padding: 56px 40px; max-width: 1200px; margin: 0 auto; text-align: center; background: #fafafa; border-radius: 16px; }
 .section-lpbenefits h2 { font-size: 1.5rem; margin-bottom: 8px; }
-.benefits-grid { display: grid; gap: 24px; margin-top: 32px; text-align: center; }
+.benefits-grid { display: grid; gap: 20px; margin-top: 32px; text-align: center; }
 .benefits-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .benefits-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .benefits-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-.benefit-card { padding: 24px; border-radius: 12px; background: #f9fafb; border: 1px solid #e5e7eb; }
-.benefit-card h4 { margin: 12px 0 6px; }
-.benefit-card p { font-size: 13px; color: #6b7280; }
-.benefit-icon { font-size: 24px; }
+.benefit-card { padding: 28px 20px; border-radius: 12px; background: #fff; border: 1px solid #e5e7eb; }
+.benefit-card h4 { margin: 10px 0 6px; font-size: 15px; }
+.benefit-card p { font-size: 13px; color: #6b7280; line-height: 1.5; }
+.benefit-icon { font-size: 32px; }
 .variant-minimal .benefit-card { background: transparent; border: none; }
-.section-feature-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; padding: 48px 24px; max-width: 1200px; margin: 0 auto; }
-.section-feature-detail.layout-right { direction: ltr; }
-.section-feature-detail.layout-left .fd-image { order: -1; }
-.fd-image img { width: 100%; border-radius: 12px; object-fit: cover; max-height: 400px; }
+.section-feature-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding: 48px 40px; max-width: 1200px; margin: 0 auto; }
+.section-feature-detail.layout-left { direction: rtl; }
+.section-feature-detail.layout-left > * { direction: ltr; }
+.fd-image img { width: 100%; border-radius: 12px; object-fit: cover; max-height: 340px; }
 .fd-content h2 { font-size: 1.4rem; margin-bottom: 12px; }
-.fd-text { font-size: 0.95rem; color: #374151; line-height: 1.7; }
-.fd-text p { margin-bottom: 12px; }
+.fd-text { font-size: 0.93rem; color: #374151; line-height: 1.7; }
+.fd-text p { margin-bottom: 10px; }
 .fd-badge { display: inline-block; padding: 4px 12px; background: #dbeafe; color: #1d4ed8; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
-.section-imagetext { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; padding: 48px 24px; max-width: 1200px; margin: 0 auto; }
-.section-imagetext.img-right .it-image { order: 1; }
-.it-image img { width: 100%; border-radius: 12px; object-fit: cover; max-height: 400px; }
+.section-imagetext { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding: 48px 40px; max-width: 1200px; margin: 0 auto; }
+.section-imagetext.img-right { direction: rtl; }
+.section-imagetext.img-right > * { direction: ltr; }
+.it-image img { width: 100%; border-radius: 12px; object-fit: cover; max-height: 340px; }
 .it-content h2 { font-size: 1.4rem; margin-bottom: 12px; }
-.it-text { font-size: 0.95rem; color: #374151; line-height: 1.7; }
-.it-text p { margin-bottom: 12px; }
-.section-video { padding: 32px 24px; max-width: 900px; margin: 0 auto; text-align: center; }
+.it-text { font-size: 0.93rem; color: #374151; line-height: 1.7; }
+.it-text p { margin-bottom: 10px; }
+.section-video { padding: 40px 40px; max-width: 900px; margin: 0 auto; text-align: center; }
 .section-video h2 { font-size: 1.3rem; margin-bottom: 8px; }
-.video-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; margin-top: 16px; border-radius: 12px; overflow: hidden; }
+.video-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; margin-top: 16px; border-radius: 12px; overflow: hidden; background: #000; }
 .video-wrapper.ratio-4-3 { padding-bottom: 75%; }
 .video-wrapper.ratio-1-1 { padding-bottom: 100%; }
 .video-wrapper iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
-.section-lpcta { padding: 48px 24px; text-align: center; background: #f0f9ff; border-radius: 16px; margin: 24px; }
+.section-lpcta { padding: 56px 40px; text-align: center; background: #f0f9ff; border-radius: 16px; margin: 24px 40px; }
 .section-lpcta.variant-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
 .section-lpcta.variant-dark { background: #1a1a1a; color: #fff; }
 .section-lpcta h2 { font-size: 1.4rem; margin-bottom: 8px; }
