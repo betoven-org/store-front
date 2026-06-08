@@ -883,12 +883,14 @@ export default function EditPagePage({
   const hasSections = sectionBlocks.length > 0 || (page.sections as SectionBlock[] | null)?.length;
   const frontendBase = tenant?.previewUrl || tenant?.frontendUrl || "";
   const pagePath = slugToPath(page.slug);
-  // Preview: use internal renderer (reliable, always works)
-  // The internal preview renders sections server-side without depending on external frontend
   const hasContent = !!(page.content || page.draft);
-  const previewBase = hasContent || hasSections
-    ? `/api/admin/pages/${id}/preview?sections=draft`
-    : "";
+
+  // Preview: use frontend real (1:1 com produção) when available, fallback to internal renderer
+  const previewBase = frontendBase && (hasContent || hasSections)
+    ? `${frontendBase}/api/cms-preview?secret=${encodeURIComponent(tenant?.revalidateSecret || "")}&path=${encodeURIComponent(pagePath)}`
+    : (hasContent || hasSections)
+      ? `/api/admin/pages/${id}/preview?sections=draft`
+      : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
     ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
