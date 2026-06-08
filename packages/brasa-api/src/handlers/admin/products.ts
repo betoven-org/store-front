@@ -29,8 +29,9 @@ export async function GET(req: NextRequest) {
     const dateTo = searchParams.get("dateTo") || "";
 
     const offset = (page - 1) * limit;
+    const tenantId = session.user.tenantId;
 
-    const conditions = [];
+    const conditions = [eq(products.tenantId, tenantId)];
     if (search) {
       const tsq = buildTsQuery(search);
       conditions.push(sql`(${products.searchVector} @@ ${tsq} OR similarity(${products.name}, ${search}) > 0.15)`);
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
       conditions.push(lte(products.createdAt, `${dateTo}T23:59:59.999Z`));
     }
 
-    const where = conditions.length > 0 ? and(...conditions) : undefined;
+    const where = and(...conditions);
 
     const [docs, totalResult] = await Promise.all([
       db

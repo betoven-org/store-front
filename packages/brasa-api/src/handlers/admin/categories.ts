@@ -15,9 +15,11 @@ export async function GET() {
     if (!session?.user)
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
+    const tenantId = session.user.tenantId;
     const docs = await db
       .select()
       .from(categories)
+      .where(eq(categories.tenantId, tenantId))
       .orderBy(asc(categories.name));
 
     return NextResponse.json({ docs });

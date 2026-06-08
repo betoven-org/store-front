@@ -23,8 +23,9 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status") as "draft" | "published" | null;
 
     const offset = (page - 1) * limit;
+    const tenantId = session.user.tenantId;
 
-    const conditions = [];
+    const conditions = [eq(posts.tenantId, tenantId)];
     if (search) {
       const tsq = buildTsQuery(search);
       conditions.push(sql`(${posts.searchVector} @@ ${tsq} OR similarity(${posts.title}, ${search}) > 0.15)`);
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
       conditions.push(eq(posts.status, status));
     }
 
-    const where = conditions.length > 0 ? and(...conditions) : undefined;
+    const where = and(...conditions);
 
     const [docs, totalResult] = await Promise.all([
       db
