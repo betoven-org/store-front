@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch only updated records from Supabase
     const [sbCategories, sbArticles, sbProducts] = await Promise.all([
-      sbFetchUpdated<SbCategory>("categories", since),
+      sbFetchUpdated<SbCategory>("categories", since, "created_at"),
       sbFetchUpdated<SbArticle>("articles", since),
       sbFetchUpdated<SbProduct>("products", since),
     ]);
