@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const days = parseInt(searchParams.get("days") || "7", 10);
+  const tenantId = session.user.tenantId;
 
   const now = new Date();
   const fromDate = new Date(now.getTime() - days * 86400000).toISOString();
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
     sql`${requestMetrics.path} NOT LIKE '/admin%'`,
     sql`${requestMetrics.path} NOT LIKE '/api%'`,
     eq(requestMetrics.isBot, false),
+    eq(requestMetrics.tenantId, tenantId),
   );
 
   try {
@@ -73,12 +75,12 @@ export async function GET(req: NextRequest) {
       db.execute(sql`
         (
           SELECT 'post' as type, title as name, slug, status::text, updated_at, created_at
-          FROM posts ORDER BY updated_at DESC LIMIT 8
+          FROM posts WHERE tenant_id = ${tenantId} ORDER BY updated_at DESC LIMIT 8
         )
         UNION ALL
         (
           SELECT 'product' as type, name, slug, product_status::text as status, updated_at, created_at
-          FROM products ORDER BY updated_at DESC LIMIT 8
+          FROM products WHERE tenant_id = ${tenantId} ORDER BY updated_at DESC LIMIT 8
         )
         ORDER BY updated_at DESC
         LIMIT 10
@@ -97,10 +99,12 @@ export async function GET(req: NextRequest) {
           FROM request_metrics
           WHERE created_at >= ${fromDate}
             AND is_bot = false
+            AND tenant_id = ${tenantId}
           GROUP BY path
         ) m ON m.path = '/' || p.slug
         WHERE p.status = 'published'
           AND p.published_at IS NOT NULL
+          AND p.tenant_id = ${tenantId}
         ORDER BY p.published_at DESC
         LIMIT 10
       `),

@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
   const fromDate = new Date(Date.now() - days * 86400000).toISOString();
   const toDate = new Date().toISOString();
 
+  const tenantId = session.user.tenantId;
   const baseConditions = [
+    eq(requestMetrics.tenantId, tenantId),
     gte(requestMetrics.createdAt, fromDate),
     lte(requestMetrics.createdAt, toDate),
   ];

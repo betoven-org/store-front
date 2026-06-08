@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { subscribers } from "@brasa/core/schema";
-import { desc, count, ilike, eq, or } from "drizzle-orm";
+import { desc, count, ilike, eq, or, and } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -16,12 +16,16 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const offset = (page - 1) * limit;
 
-    const where = search
+    const tenantId = session.user.tenantId;
+    const searchFilter = search
       ? or(
           ilike(subscribers.email, `%${search}%`),
           ilike(subscribers.name, `%${search}%`),
         )
       : undefined;
+    const where = searchFilter
+      ? and(eq(subscribers.tenantId, tenantId), searchFilter)
+      : eq(subscribers.tenantId, tenantId);
 
     const [docs, [total]] = await Promise.all([
       db

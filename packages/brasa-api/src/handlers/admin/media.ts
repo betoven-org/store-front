@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get("sort") || "recent";
 
     // Build WHERE conditions
-    const conditions: SQL[] = [];
+    const tenantId = session.user.tenantId;
+    const conditions: SQL[] = [eq(media.tenantId, tenantId)];
 
     if (search) {
       conditions.push(
