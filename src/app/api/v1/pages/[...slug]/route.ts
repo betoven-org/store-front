@@ -5,7 +5,8 @@ import { pages, tenants } from "@brasa/core/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
-  const { slug } = params;
+  const slugParts = params.slug as string | string[];
+  const slug = Array.isArray(slugParts) ? slugParts.join("/") : slugParts;
 
   const [page] = await db
     .select()
