@@ -626,8 +626,19 @@ export default function EditPagePage({
         setPage(updated);
       }
       setLastSaved(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
-      // Live preview: sections already updated via postMessage in handleSectionsChange
-      // No iframe reload needed
+      // Reload preview after save — server renders with real DB data
+      if (iframeRef.current) {
+        // Fade out, reload, fade in — avoids jarring flash
+        const iframe = iframeRef.current;
+        iframe.style.opacity = "0.4";
+        iframe.style.transition = "opacity 0.15s";
+        setTimeout(() => {
+          iframe.contentWindow?.location.reload();
+          iframe.addEventListener("load", () => {
+            iframe.style.opacity = "1";
+          }, { once: true });
+        }, 100);
+      }
     } catch {
       toast.error("Erro ao salvar sections");
     } finally {
