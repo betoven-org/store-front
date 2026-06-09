@@ -124,45 +124,41 @@ export default function ColecoesPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {collections.map((col) => (
-            <button
-              key={col.id}
-              type="button"
-              onClick={() => router.push(`/admin/colecoes/${col.id}`)}
-              className="group rounded-lg border border-border bg-card p-5 text-left transition-all hover:border-foreground/20 hover:shadow-sm"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl" aria-hidden="true">
-                    {col.icon || "📁"}
-                  </span>
-                  <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    {col.name}
-                  </h3>
-                </div>
-                <Badge variant={col.source === "synced" ? "brand" : "secondary"}>
-                  {col.source === "synced" ? (
-                    <>
-                      <Cloud className="size-3" />
-                      Sync
-                    </>
-                  ) : (
-                    <>
-                      <Database className="size-3" />
-                      Local
-                    </>
-                  )}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">/{col.slug}</p>
-              {col.itemCount !== undefined && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {col.itemCount} {col.itemCount === 1 ? "item" : "itens"}
-                </p>
-              )}
-            </button>
-          ))}
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-accent/40">
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Slug</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fonte</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Itens</th>
+              </tr>
+            </thead>
+            <tbody>
+              {collections.map((col) => (
+                <tr
+                  key={col.id}
+                  onClick={() => router.push(`/admin/colecoes/${col.id}`)}
+                  className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-accent/30"
+                >
+                  <td className="px-4 py-3 font-medium text-foreground">{col.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">/{col.slug}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={col.source === "synced" ? "brand" : "secondary"}>
+                      {col.source === "synced" ? (
+                        <><Cloud className="size-3" /> Sync</>
+                      ) : (
+                        <><Database className="size-3" /> Local</>
+                      )}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right text-muted-foreground">
+                    {col.itemCount ?? "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
