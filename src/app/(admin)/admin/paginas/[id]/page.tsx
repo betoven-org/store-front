@@ -625,10 +625,8 @@ export default function EditPagePage({
         setPage(updated);
       }
       setLastSaved(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
-      // Soft reload: refresh iframe src without changing previewKey (avoids flicker)
-      if (iframeRef.current) {
-        iframeRef.current.contentWindow?.location.reload();
-      }
+      // Live preview: sections already updated via postMessage in handleSectionsChange
+      // No iframe reload needed
     } catch {
       toast.error("Erro ao salvar sections");
     } finally {
