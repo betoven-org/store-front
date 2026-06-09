@@ -99,10 +99,9 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   const featured = searchParams.get("featured");
   const search = searchParams.get("search");
 
-  // ── Try collection_items first ───────────────────────────────────────────
-  const postsCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
-  });
+  // ── Collections layer disabled — migration incomplete, using legacy tables
+  // TODO: re-enable after fixing collection_items data migration (hero_image, category, author)
+  const postsCollection = null; // await db.query.collections.findFirst(...)
 
   if (postsCollection) {
     const conditions: any[] = [

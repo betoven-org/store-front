@@ -40,10 +40,8 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
   const offset = Math.max(0, Number(searchParams.get("offset") || "0"));
   const categoryId = searchParams.get("category");
 
-  // ── Try collection_items first ───────────────────────────────────────────
-  const prodCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "produtos")),
-  });
+  // ── Collections layer disabled — migration incomplete, using legacy tables
+  const prodCollection = null;
 
   if (prodCollection) {
     const conditions: any[] = [

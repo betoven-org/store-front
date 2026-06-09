@@ -75,10 +75,8 @@ function mapCollectionItemToFullPost(item: typeof collectionItems.$inferSelect) 
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const { slug } = params;
 
-  // ── Try collection_items first ───────────────────────────────────────────
-  const postsCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
-  });
+  // ── Collections layer disabled — migration incomplete, using legacy tables
+  const postsCollection = null;
 
   if (postsCollection) {
     const item = await db.query.collectionItems.findFirst({
