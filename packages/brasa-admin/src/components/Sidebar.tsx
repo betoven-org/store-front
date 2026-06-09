@@ -226,7 +226,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                 )}
 
                 {(isOpen || collapsed) && group.items.map((item) => {
-                  const active = pathname === item.href || (pathname.startsWith(item.href + "/") && item.href !== "/admin");
+                  const active = pathname === item.href || (pathname.startsWith(item.href + "/") && item.href !== "/admin" && item.href !== "/admin/colecoes");
                   return (
                     <Link
                       key={item.href}
