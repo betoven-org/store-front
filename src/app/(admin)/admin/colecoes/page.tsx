@@ -233,7 +233,9 @@ export default function ColecoesPage() {
               </tr>
             </thead>
             <tbody>
-              {collections.map((col) => (
+              {collections.map((col, idx) => {
+                const isLast = idx >= collections.length - 2;
+                return (
                 <tr
                   key={col.id}
                   onClick={() => router.push(`/admin/colecoes/${col.id}`)}
@@ -259,7 +261,7 @@ export default function ColecoesPage() {
                         <MoreVertical className="size-4" />
                       </button>
                       {menuOpen === col.id && (
-                        <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-md border border-border bg-card py-1 shadow-lg">
+                        <div className={`absolute right-0 z-20 w-44 rounded-md border border-border bg-card py-1 shadow-lg ${isLast ? "bottom-full mb-1" : "top-full mt-1"}`}>
                           <button
                             type="button"
                             onClick={() => { setMenuOpen(null); router.push(`/admin/colecoes/${col.id}/configurar`); }}
@@ -280,7 +282,8 @@ export default function ColecoesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
