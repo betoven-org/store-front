@@ -884,12 +884,14 @@ export default function EditPagePage({
   const pagePath = slugToPath(page.slug);
   const hasContent = !!(page.content || page.draft);
 
-  // Preview: use real frontend when available, fallback to internal renderer
-  const previewBase = frontendBase && (hasContent || hasSections)
+  // Preview iframe: always use internal renderer (reads fresh from DB, no cache)
+  // Real frontend is available via "Open in new tab" button
+  const previewBase = (hasContent || hasSections)
+    ? `/api/admin/pages/${id}/preview?sections=draft`
+    : "";
+  const frontendPreviewUrl = frontendBase
     ? `${frontendBase}/api/cms-preview?secret=${encodeURIComponent(tenant?.revalidateSecret || "")}&path=${encodeURIComponent(pagePath)}`
-    : (hasContent || hasSections)
-      ? `/api/admin/pages/${id}/preview?sections=draft`
-      : "";
+    : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
     ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
@@ -1269,7 +1271,7 @@ export default function EditPagePage({
             <button type="button" onClick={() => { if (iframeRef.current) iframeRef.current.src = previewUrl; }} className="rounded p-1 text-muted-foreground hover:text-foreground" title="Recarregar">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
             </button>
-            <button type="button" onClick={() => { if (previewUrl) window.open(previewUrl, "_blank"); }} className="rounded p-1 text-muted-foreground hover:text-foreground" title="Abrir em nova aba">
+            <button type="button" onClick={() => { const url = frontendPreviewUrl || previewUrl; if (url) window.open(url, "_blank"); }} className="rounded p-1 text-muted-foreground hover:text-foreground" title="Abrir no site">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
             </button>
           </div>
