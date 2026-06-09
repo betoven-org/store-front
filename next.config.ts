@@ -7,7 +7,7 @@ const cspPolicy = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://*.supabase.co https://*.public.blob.vercel-storage.com",
   "connect-src 'self' https://*.supabase.co https://api.vercel.com https://vercel.com",
-  "frame-src 'self'",
+  "frame-src 'self' https://www.youtube.com https://youtube.com https://www.google.com https://maps.google.com https://*.vercel.app https://*.medicinalnaweb.com.br",
   "frame-ancestors 'self'",
 ].join("; ");
 
