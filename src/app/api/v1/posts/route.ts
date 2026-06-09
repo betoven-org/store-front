@@ -52,34 +52,32 @@ function mapPost(row: any) {
 
 function mapCollectionItemToPost(item: typeof collectionItems.$inferSelect) {
   const d = (item.data ?? {}) as Record<string, any>;
+  const imageUrl = d.hero_image || d.heroImage || d.cover_url || d.coverUrl || null;
+  const cat = typeof d.category === "object" && d.category ? d.category : null;
+  const auth = typeof d.author === "object" && d.author ? d.author : null;
+
   return {
     id: item.id,
-    title: d.title || d.titulo || null,
+    title: d.title || null,
     slug: item.slug,
-    excerpt: d.excerpt || d.resumo || null,
-    coverUrl: d.coverUrl || d.cover_url || d.hero_image || null,
+    excerpt: d.excerpt || null,
+    coverUrl: d.cover_url || d.coverUrl || imageUrl,
     publishedAt: item.publishedAt,
     status: item.status,
     featured: item.featured,
-    readingTimeMinutes: d.readingTimeMinutes || d.reading_time_minutes || d.reading_time || null,
-    category: d.category
-      ? { id: d.category.id || null, name: d.category.name || d.category, slug: d.category.slug || null }
-      : d.categoryName
-        ? { id: null, name: d.categoryName, slug: d.categorySlug || null }
-        : null,
-    author: d.author
+    readingTimeMinutes: d.reading_time_minutes || d.readingTimeMinutes || null,
+    category: cat ? { id: cat.id || null, name: cat.name, slug: cat.slug || null } : null,
+    author: auth
       ? {
-          id: d.author.id || null,
-          name: d.author.name || d.author,
-          slug: d.author.slug || null,
-          bio: d.author.bio || null,
-          avatar: d.author.avatar ? { url: typeof d.author.avatar === "string" ? d.author.avatar : d.author.avatar.url } : null,
+          id: auth.id || null,
+          name: auth.name,
+          slug: auth.slug || null,
+          bio: auth.bio || null,
+          avatar: auth.avatar ? { url: typeof auth.avatar === "string" ? auth.avatar : auth.avatar.url } : null,
         }
-      : d.authorName
-        ? { id: null, name: d.authorName, slug: d.authorSlug || null, bio: null, avatar: null }
-        : null,
-    heroImage: d.hero_image || d.heroImage
-      ? { id: null, url: d.hero_image || d.heroImage, alt: d.title || "", sizes: { thumbnail: { url: null }, card: { url: null }, hero: { url: d.hero_image || d.heroImage } } }
+      : null,
+    heroImage: imageUrl
+      ? { id: null, url: imageUrl, alt: d.title || "", sizes: { thumbnail: { url: imageUrl }, card: { url: imageUrl }, hero: { url: imageUrl } } }
       : null,
     tags: Array.isArray(d.tags)
       ? d.tags.map((t: any) => ({ tag: typeof t === "string" ? t : t.tag }))
@@ -99,9 +97,10 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   const featured = searchParams.get("featured");
   const search = searchParams.get("search");
 
-  // ── Collections layer disabled — migration incomplete, using legacy tables
-  // TODO: re-enable after fixing collection_items data migration (hero_image, category, author)
-  const postsCollection = null; // await db.query.collections.findFirst(...)
+  // ── Try collection_items first ───────────────────────────────────────────
+  const postsCollection = await db.query.collections.findFirst({
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
+  });
 
   if (postsCollection) {
     const conditions: any[] = [

@@ -54,8 +54,10 @@ function mapCollectionItemToFullProduct(item: typeof collectionItems.$inferSelec
 export const GET = withApiKey(async ({ tenantId }, _req, params) => {
   const { slug } = params;
 
-  // ── Collections layer disabled — migration incomplete, using legacy tables
-  const prodCollection = null;
+  // ── Try collection_items first ───────────────────────────────────────────
+  const prodCollection = await db.query.collections.findFirst({
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "produtos")),
+  });
 
   if (prodCollection) {
     const item = await db.query.collectionItems.findFirst({
