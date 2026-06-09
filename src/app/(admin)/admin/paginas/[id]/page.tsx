@@ -884,13 +884,15 @@ export default function EditPagePage({
   const pagePath = slugToPath(page.slug);
   const hasContent = !!(page.content || page.draft);
 
-  // Preview iframe: always use internal renderer (reads fresh from DB, no cache)
-  // Real frontend is available via "Open in new tab" button
-  const previewBase = (hasContent || hasSections)
-    ? `/api/admin/pages/${id}/preview?sections=draft`
-    : "";
+  // Preview iframe: use real frontend /preview/ route (force-dynamic, no cache, exact production look)
+  // Falls back to internal renderer if frontendUrl not configured
+  const previewBase = frontendBase && (hasContent || hasSections)
+    ? `${frontendBase}/preview${pagePath === "/" ? "/home" : pagePath}`
+    : (hasContent || hasSections)
+      ? `/api/admin/pages/${id}/preview?sections=draft`
+      : "";
   const frontendPreviewUrl = frontendBase
-    ? `${frontendBase}/api/cms-preview?secret=${encodeURIComponent(tenant?.revalidateSecret || "")}&path=${encodeURIComponent(pagePath)}`
+    ? `${frontendBase}${pagePath}`
     : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
