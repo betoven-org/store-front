@@ -9,7 +9,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-foreground text-background",
+        default: "bg-primary text-primary-foreground",
         secondary:
           "bg-secondary text-secondary-foreground border-border",
         success:

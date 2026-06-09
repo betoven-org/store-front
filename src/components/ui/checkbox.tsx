@@ -12,7 +12,7 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
       className={cn(
         "peer relative flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-all duration-[80ms] outline-none",
         "border-[var(--border)] bg-card",
-        "data-checked:border-foreground data-checked:bg-foreground data-checked:text-background",
+        "data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground",
         "focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className

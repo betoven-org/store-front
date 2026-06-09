@@ -25,7 +25,7 @@ export default function ToggleSwitch({ checked, onChange, size = "md", disabled,
       style={{
         width: w,
         height: h,
-        background: checked ? "var(--foreground)" : "var(--border)",
+        background: checked ? "var(--primary)" : "var(--border)",
       }}
     >
       <span

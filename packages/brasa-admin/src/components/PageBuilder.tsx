@@ -27,6 +27,12 @@ type PageBuilderProps = {
   manifest: BrasaManifest;
   value: SectionBlock[];
   onChange: (blocks: SectionBlock[]) => void;
+  /** When set, the editor panel is NOT rendered inside PageBuilder.
+   *  Instead, the parent receives the selected section info via this callback
+   *  and renders <SectionEditorPanel /> wherever it wants. */
+  onSelectionChange?: (selection: { block: SectionBlock; schema: SectionSchema } | null) => void;
+  /** Hide the inline editor (when parent renders it externally) */
+  externalEditor?: boolean;
 };
 
 // ── SVG icons ─────────────────────────────────────────────────────────────────
@@ -321,7 +327,7 @@ function SortableItem({ id, title, isSelected, onSelect, onDelete }: SortableIte
 
 // ── PageBuilder ───────────────────────────────────────────────────────────────
 
-export default function PageBuilder({ manifest, value, onChange }: PageBuilderProps) {
+export default function PageBuilder({ manifest, value, onChange, onSelectionChange, externalEditor }: PageBuilderProps) {
   const [selectedId, setSelectedId] = useState<string | null>(
     value[0]?.id ?? null
   );
@@ -337,6 +343,19 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
 
   const selectedBlock = value.find((b) => b.id === selectedId) ?? null;
   const selectedSchema = selectedBlock ? schemaMap.get(selectedBlock.component) : null;
+
+  // Notify parent of selection changes (for external editor panel)
+  const prevSelRef = { current: selectedId };
+  if (onSelectionChange && prevSelRef.current !== selectedId) {
+    // Use queueMicrotask to avoid setState during render
+    queueMicrotask(() => {
+      onSelectionChange(
+        selectedBlock && selectedSchema
+          ? { block: selectedBlock, schema: selectedSchema }
+          : null,
+      );
+    });
+  }
 
   const activeBlock = activeId ? value.find((b) => b.id === activeId) ?? null : null;
   const activeSchema = activeBlock ? schemaMap.get(activeBlock.component) : null;
@@ -476,8 +495,8 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
           </button>
         </div>
 
-        {/* ── Section editor (below the list) ─────────────────────────── */}
-        {selectedBlock && selectedSchema ? (
+        {/* ── Section editor (below the list, hidden when using external editor) */}
+        {!externalEditor && selectedBlock && selectedSchema ? (
           <div className="flex flex-col gap-0 border-t border-border">
             {/* Editor header */}
             <div className="border-b border-border bg-card px-4 py-3">
@@ -595,7 +614,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
               </div>
             </div>
           </div>
-        ) : (
+        ) : !externalEditor ? (
           <div className="flex items-center justify-center border-t border-border py-6">
             <p className="text-xs text-muted-foreground">
               {value.length === 0
@@ -603,7 +622,7 @@ export default function PageBuilder({ manifest, value, onChange }: PageBuilderPr
                 : "Selecione uma secao para editar."}
             </p>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Section picker modal */}

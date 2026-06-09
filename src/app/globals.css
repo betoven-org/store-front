@@ -132,8 +132,13 @@
   svg:not([class*="text-"]) {
     color: var(--color-brand);
   }
-  input[type="checkbox"] {
-    accent-color: oklch(0.66 0.18 42);
+  input[type="checkbox"],
+  input[type="range"] {
+    accent-color: var(--primary);
+  }
+  /* Scrollbar styling */
+  * {
+    scrollbar-color: var(--border) transparent;
   }
 }
 
