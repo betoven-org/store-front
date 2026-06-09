@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Database, Cloud, FolderOpen, MoreVertical, Settings, Trash2 } from "lucide-react";
+import { Plus, FolderOpen, MoreVertical, Settings, Trash2 } from "lucide-react";
 import { AdminShell, BrasaPageLoader, FormField } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -164,11 +164,7 @@ export default function ColecoesPage() {
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">/{col.slug}</td>
                   <td className="px-4 py-3">
                     <Badge variant={col.source === "synced" ? "brand" : "secondary"}>
-                      {col.source === "synced" ? (
-                        <><Cloud className="size-3" /> Sync</>
-                      ) : (
-                        <><Database className="size-3" /> Local</>
-                      )}
+                      {col.source === "synced" ? "Sync" : "Local"}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
