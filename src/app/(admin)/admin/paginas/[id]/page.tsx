@@ -895,11 +895,12 @@ export default function EditPagePage({
   const pagePath = slugToPath(page.slug);
   const hasContent = !!(page.content || page.draft);
 
-  // Preview: always use internal renderer for draft sections (handles both CMS and campaign formats)
-  // Real frontend preview only when explicitly requested via mode=frontend
-  const previewBase = (hasContent || hasSections)
-    ? `/api/admin/pages/${id}/preview?sections=draft`
-    : "";
+  // Preview: use real frontend when available, fallback to internal renderer
+  const previewBase = frontendBase && (hasContent || hasSections)
+    ? `${frontendBase}/api/cms-preview?secret=${encodeURIComponent(tenant?.revalidateSecret || "")}&path=${encodeURIComponent(pagePath)}`
+    : (hasContent || hasSections)
+      ? `/api/admin/pages/${id}/preview?sections=draft`
+      : "";
   // Append previewKey to bust cache on save
   const previewUrl = previewBase
     ? `${previewBase}${previewBase.includes("?") ? "&" : "?"}_t=${previewKey}`
