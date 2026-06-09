@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -345,17 +345,17 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
   const selectedSchema = selectedBlock ? schemaMap.get(selectedBlock.component) : null;
 
   // Notify parent of selection changes (for external editor panel)
-  const prevSelRef = { current: selectedId };
-  if (onSelectionChange && prevSelRef.current !== selectedId) {
-    // Use queueMicrotask to avoid setState during render
-    queueMicrotask(() => {
-      onSelectionChange(
-        selectedBlock && selectedSchema
-          ? { block: selectedBlock, schema: selectedSchema }
-          : null,
-      );
-    });
-  }
+  const prevSelRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!onSelectionChange) return;
+    if (prevSelRef.current === selectedId) return;
+    prevSelRef.current = selectedId;
+    onSelectionChange(
+      selectedBlock && selectedSchema
+        ? { block: selectedBlock, schema: selectedSchema }
+        : null,
+    );
+  }, [selectedId, selectedBlock, selectedSchema, onSelectionChange]);
 
   const activeBlock = activeId ? value.find((b) => b.id === activeId) ?? null : null;
   const activeSchema = activeBlock ? schemaMap.get(activeBlock.component) : null;
