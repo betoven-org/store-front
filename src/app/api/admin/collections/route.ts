@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   try {
     const tenantId = await getTenantId();
     const body = await request.json();
-    const { name, slug, icon, source, syncConfig } = body;
+    const { name, slug, icon, source, syncConfig, fields } = body;
 
     if (!name || !slug) {
       return NextResponse.json(
@@ -82,6 +82,23 @@ export async function POST(request: NextRequest) {
         updatedAt: now,
       })
       .returning();
+
+    // If fields were provided (e.g., from Supabase import), create them
+    if (Array.isArray(fields) && fields.length > 0) {
+      const now2 = new Date().toISOString();
+      await db.insert(collectionFields).values(
+        fields.map((f: any, i: number) => ({
+          collectionId: created.id,
+          slug: f.slug,
+          name: f.name,
+          type: f.type,
+          required: f.required || false,
+          sortOrder: f.sortOrder ?? i,
+          config: f.config || null,
+          createdAt: now2,
+        })),
+      );
+    }
 
     return NextResponse.json(created, { status: 201 });
   } catch (error: unknown) {

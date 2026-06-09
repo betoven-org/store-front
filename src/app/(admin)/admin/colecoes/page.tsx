@@ -36,6 +36,12 @@ export default function ColecoesPage() {
   const [newSlug, setNewSlug] = useState("");
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [createMode, setCreateMode] = useState<"local" | "supabase">("local");
+  const [sbTables, setSbTables] = useState<{ name: string; columnCount: number }[]>([]);
+  const [sbLoading, setSbLoading] = useState(false);
+  const [sbSelected, setSbSelected] = useState("");
+  const [sbColumns, setSbColumns] = useState<{ name: string; fieldType: string; required: boolean }[]>([]);
+  const [sbColumnsLoading, setSbColumnsLoading] = useState(false);
 
   useEffect(() => {
     fetchCollections();
@@ -84,15 +90,80 @@ export default function ColecoesPage() {
     }
   }
 
+  async function loadSupabaseTables() {
+    setSbLoading(true);
+    try {
+      const res = await fetch("/api/admin/supabase-tables");
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || "Erro ao carregar tabelas");
+      }
+      const data = await res.json();
+      setSbTables(data.tables || []);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao carregar tabelas Supabase");
+    } finally {
+      setSbLoading(false);
+    }
+  }
+
+  async function loadTableColumns(table: string) {
+    setSbSelected(table);
+    setSbColumnsLoading(true);
+    // Auto-fill name/slug from table name
+    const prettyName = table.charAt(0).toUpperCase() + table.slice(1).replace(/_/g, " ");
+    setNewName(prettyName);
+    setNewSlug(table.replace(/_/g, "-"));
+    try {
+      const res = await fetch(`/api/admin/supabase-tables?table=${encodeURIComponent(table)}`);
+      if (!res.ok) throw new Error("Erro ao carregar colunas");
+      const data = await res.json();
+      setSbColumns(data.columns || []);
+    } catch {
+      toast.error("Erro ao carregar colunas da tabela");
+    } finally {
+      setSbColumnsLoading(false);
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim() || !newSlug.trim()) return;
     setCreating(true);
     try {
+      const body: Record<string, unknown> = {
+        name: newName.trim(),
+        slug: newSlug.trim(),
+        source: createMode === "supabase" ? "synced" : "local",
+      };
+
+      if (createMode === "supabase" && sbSelected) {
+        // Build syncConfig and fields from selected table columns
+        const fieldMap: Record<string, string> = {};
+        const fields = sbColumns
+          .filter((c) => !["id", "created_at", "updated_at"].includes(c.name))
+          .map((c, i) => {
+            fieldMap[c.name.replace(/_/g, "_")] = c.name;
+            return {
+              slug: c.name.replace(/_/g, "_"),
+              name: c.name.charAt(0).toUpperCase() + c.name.slice(1).replace(/_/g, " "),
+              type: c.fieldType,
+              required: c.required,
+              sortOrder: i,
+            };
+          });
+        body.syncConfig = {
+          supabaseTable: sbSelected,
+          matchColumn: "id",
+          fieldMap,
+        };
+        body.fields = fields;
+      }
+
       const res = await fetch("/api/admin/collections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim(), slug: newSlug.trim() }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
@@ -100,15 +171,23 @@ export default function ColecoesPage() {
       }
       const created = await res.json();
       toast.success("Collection criada");
-      setShowCreate(false);
-      setNewName("");
-      setNewSlug("");
-      router.push(`/admin/colecoes/${created.id}`);
+      resetCreateDialog();
+      router.push(`/admin/colecoes/${created.id}/configurar`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar collection");
     } finally {
       setCreating(false);
     }
+  }
+
+  function resetCreateDialog() {
+    setShowCreate(false);
+    setNewName("");
+    setNewSlug("");
+    setCreateMode("local");
+    setSbSelected("");
+    setSbColumns([]);
+    setSbTables([]);
   }
 
   return (
@@ -207,16 +286,70 @@ export default function ColecoesPage() {
         </div>
       )}
 
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent>
+      <Dialog open={showCreate} onOpenChange={(open) => { if (!open) resetCreateDialog(); else setShowCreate(true); }}>
+        <DialogContent className="max-w-lg">
           <form onSubmit={handleCreate}>
             <DialogHeader>
               <DialogTitle>Nova Collection</DialogTitle>
               <DialogDescription>
-                Crie uma collection para organizar conteudo estruturado.
+                Crie uma collection local ou importe de uma tabela do Supabase.
               </DialogDescription>
             </DialogHeader>
+
+            {/* Mode tabs */}
+            <div className="mt-4 flex gap-1 rounded-md bg-accent p-0.5">
+              <button
+                type="button"
+                onClick={() => setCreateMode("local")}
+                className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${createMode === "local" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Local
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCreateMode("supabase"); if (sbTables.length === 0) loadSupabaseTables(); }}
+                className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${createMode === "supabase" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Importar do Supabase
+              </button>
+            </div>
+
             <div className="mt-4 space-y-4">
+              {createMode === "supabase" && (
+                <div className="space-y-3">
+                  {sbLoading ? (
+                    <p className="text-xs text-muted-foreground py-4 text-center">Carregando tabelas...</p>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1.5">Tabela Supabase</label>
+                      <select
+                        value={sbSelected}
+                        onChange={(e) => loadTableColumns(e.target.value)}
+                        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      >
+                        <option value="">Selecione uma tabela...</option>
+                        {sbTables.map((t) => (
+                          <option key={t.name} value={t.name}>{t.name} ({t.columnCount} colunas)</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {sbColumnsLoading && <p className="text-xs text-muted-foreground">Carregando colunas...</p>}
+                  {sbColumns.length > 0 && !sbColumnsLoading && (
+                    <div className="rounded-md border border-border bg-accent/30 p-3">
+                      <p className="text-xs font-medium text-foreground mb-2">{sbColumns.length} colunas encontradas</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {sbColumns.map((c) => (
+                          <span key={c.name} className="inline-flex items-center gap-1 rounded bg-card border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                            {c.name} <span className="text-[10px] opacity-60">{c.fieldType}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <FormField
                 label="Nome"
                 name="name"
@@ -231,14 +364,14 @@ export default function ColecoesPage() {
                 name="slug"
                 type="text"
                 value={newSlug}
-                onChange={(e) => setNewSlug(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewSlug(e.target.value)}
                 placeholder="ex: depoimentos"
                 required
               />
             </div>
             <DialogFooter className="mt-4">
-              <Button type="submit" disabled={creating || !newName.trim()}>
-                {creating ? "Criando..." : "Criar Collection"}
+              <Button type="submit" disabled={creating || !newName.trim() || (createMode === "supabase" && !sbSelected)}>
+                {creating ? "Criando..." : createMode === "supabase" ? "Importar e Criar" : "Criar Collection"}
               </Button>
             </DialogFooter>
           </form>
