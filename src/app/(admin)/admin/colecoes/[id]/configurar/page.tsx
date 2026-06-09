@@ -48,6 +48,7 @@ type CollectionData = {
   icon: string | null;
   source: "local" | "synced";
   syncConfig: any;
+  pageSlugPattern: string | null;
   fields: CollectionField[];
 };
 
@@ -67,6 +68,9 @@ export default function ConfigurarCollectionPage() {
 
   // Sync config (for synced collections)
   const [syncConfig, setSyncConfig] = useState<string>("");
+
+  // Collection pages
+  const [pageSlugPattern, setPageSlugPattern] = useState("");
 
   // Fields
   const [fields, setFields] = useState<CollectionField[]>([]);
@@ -89,6 +93,7 @@ export default function ConfigurarCollectionPage() {
         setSlug(data.slug);
         setIcon(data.icon ?? "");
         setSource(data.source);
+        setPageSlugPattern(data.pageSlugPattern ?? "");
         setSyncConfig(
           data.syncConfig ? JSON.stringify(data.syncConfig, null, 2) : "",
         );
@@ -211,6 +216,7 @@ export default function ConfigurarCollectionPage() {
           icon: icon.trim() || null,
           source,
           syncConfig: parsedSyncConfig,
+          pageSlugPattern: pageSlugPattern.trim() || null,
           fields: fields
             .filter((f) => !f._deleted)
             .map((f, i) => ({
@@ -341,6 +347,53 @@ export default function ConfigurarCollectionPage() {
             />
           </div>
         )}
+
+        {/* Collection Pages */}
+        <div className="space-y-4 rounded-lg border border-border bg-card p-6">
+          <h2 className="text-sm font-semibold text-foreground">Paginas da Collection</h2>
+          <p className="text-xs text-muted-foreground">
+            Define como os itens dessa collection geram paginas no frontend.
+            A pagina de indice (listagem) e criada em Paginas com o mesmo slug base.
+            A pagina de detalhe e gerada automaticamente para cada item.
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-foreground">Padrao de URL do detalhe</label>
+            <input
+              type="text"
+              value={pageSlugPattern}
+              onChange={(e) => setPageSlugPattern(e.target.value)}
+              placeholder={`${slug}/{slug}`}
+              className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm font-mono outline-none focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Use <code className="rounded bg-accent px-1 py-0.5 text-[10px]">{"{slug}"}</code> para o slug do item.
+              Ex: <code className="rounded bg-accent px-1 py-0.5 text-[10px]">blog/{"{slug}"}</code> gera URLs como <code className="rounded bg-accent px-1 py-0.5 text-[10px]">/blog/meu-post</code>
+            </p>
+          </div>
+
+          {pageSlugPattern && (
+            <div className="rounded-md border border-border bg-accent/30 p-3 space-y-2">
+              <p className="text-xs font-medium text-foreground">Resumo do routing:</p>
+              <div className="space-y-1 text-xs text-muted-foreground">
+                <p>Indice (listagem): <code className="rounded bg-card px-1.5 py-0.5 text-[11px] font-mono">/{pageSlugPattern.split("/")[0]}</code> — crie esta pagina em Paginas</p>
+                <p>Detalhe (por item): <code className="rounded bg-card px-1.5 py-0.5 text-[11px] font-mono">/{pageSlugPattern}</code> — template automatico</p>
+              </div>
+              {activeFields.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-foreground mb-1">Campos disponiveis para binding no template:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {activeFields.map((f) => (
+                      <code key={f.slug} className="rounded bg-card border border-border px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                        {`{{${f.slug}}}`}
+                      </code>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Fields Manager */}
         <div className="space-y-4 rounded-lg border border-border bg-card p-6">
