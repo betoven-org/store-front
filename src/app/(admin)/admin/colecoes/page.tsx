@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Database, Cloud, FolderOpen } from "lucide-react";
+import { Plus, Database, Cloud, FolderOpen, MoreVertical, Settings, Trash2 } from "lucide-react";
 import { AdminShell, BrasaPageLoader, FormField } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,8 @@ export default function ColecoesPage() {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     fetchCollections();
@@ -64,6 +66,22 @@ export default function ColecoesPage() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, ""),
     );
+  }
+
+  async function handleDelete(col: Collection) {
+    if (!confirm(`Excluir "${col.name}"? Todos os itens e campos serao removidos permanentemente.`)) return;
+    setDeleting(col.id);
+    try {
+      const res = await fetch(`/api/admin/collections/${col.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Erro ao excluir");
+      toast.success(`"${col.name}" excluida`);
+      setCollections((prev) => prev.filter((c) => c.id !== col.id));
+    } catch {
+      toast.error("Erro ao excluir collection");
+    } finally {
+      setDeleting(null);
+      setMenuOpen(null);
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -132,6 +150,7 @@ export default function ColecoesPage() {
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Slug</th>
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fonte</th>
                 <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Itens</th>
+                <th className="w-10"></th>
               </tr>
             </thead>
             <tbody>
@@ -154,6 +173,36 @@ export default function ColecoesPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
                     {col.itemCount ?? "—"}
+                  </td>
+                  <td className="px-2 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative inline-block">
+                      <button
+                        type="button"
+                        onClick={() => setMenuOpen(menuOpen === col.id ? null : col.id)}
+                        className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      >
+                        <MoreVertical className="size-4" />
+                      </button>
+                      {menuOpen === col.id && (
+                        <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-md border border-border bg-card py-1 shadow-lg">
+                          <button
+                            type="button"
+                            onClick={() => { setMenuOpen(null); router.push(`/admin/colecoes/${col.id}/configurar`); }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors"
+                          >
+                            <Settings className="size-3.5" /> Configurar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(col)}
+                            disabled={deleting === col.id}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="size-3.5" /> {deleting === col.id ? "Excluindo..." : "Excluir"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
