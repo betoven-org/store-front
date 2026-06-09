@@ -72,9 +72,9 @@
   --popover: #ffffff;
   --popover-foreground: oklch(0.22 0.012 60);
 
-  /* Primary (dark ink — matches design CTA buttons) */
-  --primary: oklch(0.22 0.012 60);
-  --primary-foreground: oklch(0.985 0.004 80);
+  /* Primary (brand orange — used for buttons, checkboxes, toggles, sliders) */
+  --primary: oklch(0.66 0.18 42);
+  --primary-foreground: #ffffff;
 
   /* Secondary/muted */
   --secondary: oklch(0.975 0.006 80);
