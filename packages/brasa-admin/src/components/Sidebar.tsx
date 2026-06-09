@@ -101,6 +101,12 @@ function findActiveGroup(pathname: string, groups: NavGroup[]): string | null {
   return null;
 }
 
+// Module-level cache — persists across re-mounts (no re-fetch on navigation)
+const collectionsCache: { data: CollectionNav[]; loading: boolean } = {
+  data: [],
+  loading: false,
+};
+
 type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -110,14 +116,22 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
-  const [collectionsNav, setCollectionsNav] = useState<CollectionNav[]>([]);
+  const [collectionsNav, setCollectionsNav] = useState<CollectionNav[]>(collectionsCache.data);
 
-  // Fetch collections for dynamic sidebar
+  // Fetch collections once — cached at module level to survive re-mounts
   useEffect(() => {
+    if (collectionsCache.data.length > 0) return;
+    if (collectionsCache.loading) return;
+    collectionsCache.loading = true;
     fetch("/api/admin/collections")
       .then((r) => (r.ok ? r.json() : { docs: [] }))
-      .then((data) => setCollectionsNav(data.docs || []))
-      .catch(() => {});
+      .then((data) => {
+        const docs = data.docs || [];
+        collectionsCache.data = docs;
+        collectionsCache.loading = false;
+        setCollectionsNav(docs);
+      })
+      .catch(() => { collectionsCache.loading = false; });
   }, []);
 
   // Build dynamic nav groups: Conteúdo (collections) + static groups
