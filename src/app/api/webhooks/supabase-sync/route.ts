@@ -10,6 +10,11 @@ import {
   getCollectionFieldTypes,
   type SyncConfig,
 } from "@/lib/collection-sync";
+import {
+  upsertLandingPage,
+  deleteLandingPage,
+  type SbLandingPage,
+} from "@/lib/landing-page-sync";
 
 // ── Auth ────────────────────────────────────────────────────────────────────────
 
@@ -58,6 +63,34 @@ export async function POST(request: NextRequest) {
 
     const payload: WebhookPayload = await request.json();
     const { type, table, record, old_record } = payload;
+
+    // ── Landing pages → CMS pages at campanhas/{slug} ──────────────────────
+    if (table === "landing_pages") {
+      if (type === "DELETE" && old_record?.slug) {
+        await deleteLandingPage(old_record.slug as string, tenantId);
+        revalidateTag("pages");
+        return NextResponse.json({
+          received: true,
+          table,
+          type,
+          action: "deleted",
+        });
+      }
+
+      if (record) {
+        const action = await upsertLandingPage(
+          record as unknown as SbLandingPage,
+          tenantId,
+        );
+        revalidateTag("pages");
+        return NextResponse.json({
+          received: true,
+          table,
+          type,
+          action,
+        });
+      }
+    }
 
     // Find synced collection matching this Supabase table
     const collection = await findSyncedCollection(table, tenantId);

@@ -1,13 +1,14 @@
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import {
-  categories, authors, posts, tags, media, products, productCategories, subscribers, pages,
+  categories, authors, posts, tags, media, products, productCategories, subscribers,
 } from "@brasa/core/schema";
 import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { generateSlug } from "@brasa/core/slug";
 import { headers } from "next/headers";
 import { siteSettings } from "@brasa/core/schema";
+import { upsertLandingPage, type SbLandingPage } from "@/lib/landing-page-sync";
 
 async function getSbConfig() {
   let url = process.env.SUPABASE_URL;
@@ -77,60 +78,6 @@ type SbProduct = {
 type SbSubscriber = {
   id: string; name: string | null; email: string; active: boolean; created_at: string;
 };
-type SbLandingPage = {
-  id: string; slug: string; title: string; excerpt: string | null;
-  content: string | null; key_takeaways: string[] | null;
-  faq: { pergunta: string; resposta: string }[] | null;
-  clinical_references: unknown[] | null;
-  cover_image_url: string | null; cover_image_alt: string | null;
-  og_image_url: string | null; meta_title: string | null; meta_description: string | null;
-  og_title: string | null; og_description: string | null;
-  hero_cta_label: string | null; hero_cta_url: string | null;
-  related_links: { label: string; url: string }[] | null;
-  status: string; created_at: string; updated_at: string;
-  published_at: string | null;
-};
-
-function landingPageToSections(lp: SbLandingPage) {
-  const sections: { id: string; component: string; props: Record<string, unknown> }[] = [];
-
-  // Hero
-  sections.push({
-    id: "lp-hero",
-    component: "Hero",
-    props: {
-      title: lp.title,
-      subtitle: lp.excerpt || "",
-      ...(lp.cover_image_url ? { backgroundImage: lp.cover_image_url, dark: true } : {}),
-      align: "centro",
-      ...(lp.hero_cta_label ? { cta: { label: lp.hero_cta_label, href: lp.hero_cta_url || "#" } } : {}),
-    },
-  });
-
-  // Main content
-  if (lp.content) {
-    sections.push({
-      id: "lp-content",
-      component: "RichContent",
-      props: { content: lp.content, maxWidth: "medium" },
-    });
-  }
-
-  // FAQ
-  if (lp.faq && lp.faq.length > 0) {
-    sections.push({
-      id: "lp-faq",
-      component: "FAQ",
-      props: {
-        title: "Perguntas Frequentes",
-        items: lp.faq.map((f) => ({ question: f.pergunta, answer: f.resposta })),
-      },
-    });
-  }
-
-  return sections;
-}
-
 async function getOrCreateMedia(url: string, alt: string): Promise<number> {
   const [existing] = await db.select({ id: media.id }).from(media).where(eq(media.supabaseUrl, url)).limit(1);
   if (existing) return existing.id;
@@ -340,32 +287,9 @@ export async function POST() {
         if (sbLandingPages.length > 0) {
           send({ step: "landing_pages", label: `Sincronizando ${sbLandingPages.length} landing pages...`, progress: 96 });
           for (const lp of sbLandingPages) {
-            const pageSlug = `campanhas/${lp.slug}`;
-            const sections = landingPageToSections(lp);
-            const sectionsJson = JSON.stringify(sections);
-
-            const [existing] = await db.select({ id: pages.id }).from(pages).where(eq(pages.slug, pageSlug)).limit(1);
-            const pageData = {
-              title: lp.title,
-              sections: sectionsJson,
-              draftSections: sectionsJson,
-              metaTitle: lp.meta_title,
-              metaDescription: lp.meta_description,
-              ogTitle: lp.og_title,
-              ogDescription: lp.og_description,
-              ogImageUrl: lp.og_image_url,
-              updatedAt: lp.updated_at,
-            };
-
-            if (existing) {
-              await db.update(pages).set(pageData).where(eq(pages.id, existing.id));
-              lpUpdated++;
-            } else {
-              await db.insert(pages).values({
-                ...pageData, slug: pageSlug, createdAt: lp.created_at,
-              });
-              lpCreated++;
-            }
+            const action = await upsertLandingPage(lp, 1);
+            if (action === "created") lpCreated++;
+            else lpUpdated++;
           }
           send({ step: "landing_pages_done", label: `Landing pages: ${lpCreated} novas, ${lpUpdated} atualizadas`, progress: 99 });
         }
