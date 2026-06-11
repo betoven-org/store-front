@@ -61,7 +61,7 @@ export default function ColecoesPage() {
     }
   }
 
-  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleNameChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const name = e.target.value;
     setNewName(name);
     setNewSlug(
@@ -367,7 +367,7 @@ export default function ColecoesPage() {
                 name="slug"
                 type="text"
                 value={newSlug}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewSlug(e.target.value)}
+                onChange={(e) => setNewSlug(e.target.value)}
                 placeholder="ex: depoimentos"
                 required
               />

@@ -33,7 +33,11 @@ export async function GET(
 
     const url = new URL(request.url);
     const limit = Math.min(Number(url.searchParams.get("limit") || "20"), 100);
-    const offset = Number(url.searchParams.get("offset") || "0");
+    // A UI manda `page` (1-based); `offset` continua suportado como fallback
+    const pageParam = url.searchParams.get("page");
+    const offset = pageParam
+      ? (Math.max(Number(pageParam) || 1, 1) - 1) * limit
+      : Number(url.searchParams.get("offset") || "0");
     const status = url.searchParams.get("status");
     const search = url.searchParams.get("search");
     const sort = url.searchParams.get("sort") || "createdAt:desc";

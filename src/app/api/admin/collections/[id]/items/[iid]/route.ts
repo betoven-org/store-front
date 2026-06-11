@@ -156,6 +156,9 @@ export async function PUT(
   }
 }
 
+// Aceita PATCH com a mesma semantica de update parcial
+export { PUT as PATCH };
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string; iid: string }> }

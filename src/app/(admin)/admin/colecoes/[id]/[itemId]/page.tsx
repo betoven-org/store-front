@@ -4,8 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Save } from "lucide-react";
-import { AdminShell, FormField, BrasaPageLoader, ToggleSwitch } from "@brasa/admin";
+import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import {
+  AdminShell,
+  FormField,
+  BrasaPageLoader,
+  ToggleSwitch,
+  DeleteConfirm,
+} from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 
 type CollectionField = {
@@ -49,6 +55,8 @@ export default function ItemEditorPage() {
   const [featured, setFeatured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -120,6 +128,26 @@ export default function ItemEditorPage() {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(
+        `/api/admin/collections/${collectionId}/items/${itemId}`,
+        { method: "DELETE" },
+      );
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || "Erro ao excluir item");
+      }
+      toast.success("Item excluido");
+      router.push(`/admin/colecoes/${collectionId}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir");
+      setDeleting(false);
+      setShowDelete(false);
     }
   }
 
@@ -219,9 +247,9 @@ export default function ItemEditorPage() {
           )}
         </div>
 
-        {/* Save */}
+        {/* Save / Delete */}
         <div className="flex items-center gap-3">
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || deleting}>
             <Save className="size-4" />
             {saving ? "Salvando..." : isNew ? "Criar Item" : "Salvar Alteracoes"}
           </Button>
@@ -231,8 +259,28 @@ export default function ItemEditorPage() {
           >
             Cancelar
           </Link>
+          {!isNew && (
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={saving || deleting}
+              onClick={() => setShowDelete(true)}
+              className="ml-auto"
+            >
+              <Trash2 className="size-4" />
+              {deleting ? "Excluindo..." : "Excluir"}
+            </Button>
+          )}
         </div>
       </form>
+
+      <DeleteConfirm
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        onConfirm={handleDelete}
+        title="Excluir este item?"
+        description="Esta acao nao pode ser desfeita. O item sera movido para a lixeira."
+      />
     </AdminShell>
   );
 }

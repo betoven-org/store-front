@@ -10,7 +10,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session?.user)
+  if (!session?.user || session.user.role !== "admin")
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
   try {

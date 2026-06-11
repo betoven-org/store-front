@@ -10,7 +10,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string; fid: string }> }
 ) {
   const session = await auth();
-  if (!session?.user)
+  if (!session?.user || session.user.role !== "admin")
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
   try {
@@ -46,6 +46,7 @@ export async function PUT(
     const updates: Record<string, unknown> = {};
 
     if (body.name !== undefined) updates.name = body.name;
+    if (body.slug !== undefined) updates.slug = body.slug;
     if (body.type !== undefined) updates.type = body.type;
     if (body.required !== undefined) updates.required = body.required;
     if (body.config !== undefined) updates.config = body.config;
@@ -62,7 +63,18 @@ export async function PUT(
       .returning();
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code: string }).code === "23505"
+    ) {
+      return NextResponse.json(
+        { error: "Ja existe um campo com esse slug nesta colecao" },
+        { status: 409 }
+      );
+    }
     console.error("Collection field update error:", error);
     return NextResponse.json(
       { error: "Erro ao atualizar campo" },
@@ -71,12 +83,15 @@ export async function PUT(
   }
 }
 
+// Aceita PATCH com a mesma semantica de update parcial
+export { PUT as PATCH };
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string; fid: string }> }
 ) {
   const session = await auth();
-  if (!session?.user)
+  if (!session?.user || session.user.role !== "admin")
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
   try {
@@ -107,6 +122,8 @@ export async function DELETE(
     if (!existing)
       return NextResponse.json({ error: "Campo nao encontrado" }, { status: 404 });
 
+    // Hard delete do campo. Os valores correspondentes em collection_items.data
+    // ficam orfaos (nao sao limpos dos itens) — comportamento aceito.
     await db
       .delete(collectionFields)
       .where(and(eq(collectionFields.id, fieldId), eq(collectionFields.collectionId, collectionId)));
