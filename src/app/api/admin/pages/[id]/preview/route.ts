@@ -381,17 +381,33 @@ function renderSection(
         <button class="wpp-btn">${esc(p.buttonText || "Iniciar conversa")}</button>
       </section>`;
 
+    case "Header":
+      return `<header class="preview-header">
+        <div class="preview-header-inner">
+          <div class="preview-header-logo">${esc(data.siteName)}</div>
+          <nav class="preview-header-nav">
+            ${p.showCategories !== false ? data.categories.slice(0, 7).map((c: any) => `<a href="#" class="preview-header-link">${esc(c.name)}</a>`).join("") : ""}
+          </nav>
+          <div class="preview-header-actions">
+            ${p.showSearch !== false ? `<span class="preview-header-search">Buscar</span>` : ""}
+          </div>
+        </div>
+      </header>`;
+
     case "Footer":
-      return `<footer class="section-footer">
-        ${p.showNewsletter !== false ? `<div class="footer-newsletter"><h4>Newsletter</h4><div class="newsletter-form"><input type="email" placeholder="seu@email.com" /><button>Assinar</button></div></div>` : ""}
-        ${p.showSocial !== false ? `<div class="footer-social"><span class="social-icon">f</span><span class="social-icon">ig</span><span class="social-icon">yt</span></div>` : ""}
-        <p class="footer-copy">© ${new Date().getFullYear()} ${esc(data.siteName)} — Todos os direitos reservados</p>
-        ${p.showPrivacy !== false ? `<a href="#" class="footer-link">Politica de Privacidade</a>` : ""}
+      return `<footer class="preview-footer">
+        <div class="preview-footer-inner">
+          ${p.showNewsletter !== false ? `<div class="preview-footer-newsletter"><h4>Receba novidades</h4><div class="preview-footer-form"><input type="email" placeholder="seu@email.com" disabled /><button disabled>Assinar</button></div></div>` : ""}
+          <div class="preview-footer-bottom">
+            <p>© ${new Date().getFullYear()} ${esc(data.siteName)} — Todos os direitos reservados</p>
+            ${p.showPrivacy !== false ? `<a href="#">Politica de Privacidade</a>` : ""}
+          </div>
+        </div>
       </footer>`;
 
     default:
       return `<section class="section-unknown">
-        <div class="unknown-header"><span class="section-badge">${index + 1}</span> ${esc(s.component)}</div>
+        <div class="unknown-header"><span class="section-badge">${index + 1}</span> ${esc(s.component ?? "Section")}</div>
         <div class="unknown-props">${Object.entries(p).map(([k, v]) => `<span class="prop-pill"><b>${esc(k)}</b>: ${esc(typeof v === "object" ? JSON.stringify(v) : String(v))}</span>`).join("")}</div>
       </section>`;
   }
@@ -472,6 +488,30 @@ img { max-width: 100%; height: auto; display: block; }
 .section-wpp h2 { font-size: 1.4rem; margin-bottom: 8px; }
 .section-wpp p { margin-bottom: 16px; opacity: 0.9; }
 .wpp-btn { padding: 12px 28px; border: none; border-radius: 24px; background: #25d366; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+/* Header */
+.preview-header { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 50; }
+.preview-header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; gap: 24px; }
+.preview-header-logo { font-size: 18px; font-weight: 700; color: #0d61ac; font-family: 'Inter', sans-serif; }
+.preview-header-nav { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; justify-content: center; }
+.preview-header-link { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; color: #374151; text-decoration: none; transition: background 0.15s; }
+.preview-header-link:hover { background: #f3f4f6; }
+.preview-header-actions { display: flex; align-items: center; gap: 12px; }
+.preview-header-search { font-size: 12px; color: #9ca3af; padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 6px; }
+
+/* Footer */
+.preview-footer { background: #111827; color: #d1d5db; padding: 48px 24px 24px; margin-top: 0; }
+.preview-footer-inner { max-width: 1200px; margin: 0 auto; }
+.preview-footer-newsletter { text-align: center; margin-bottom: 32px; }
+.preview-footer-newsletter h4 { color: #fff; margin-bottom: 12px; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; }
+.preview-footer-form { display: flex; gap: 8px; justify-content: center; max-width: 400px; margin: 0 auto; }
+.preview-footer-form input { flex: 1; padding: 8px 14px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: #d1d5db; font-size: 13px; }
+.preview-footer-form button { padding: 8px 16px; background: #0d61ac; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; }
+.preview-footer-bottom { text-align: center; padding-top: 24px; border-top: 1px solid #1f2937; }
+.preview-footer-bottom p { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+.preview-footer-bottom a { font-size: 12px; color: #6b7280; text-decoration: none; }
+.preview-footer-bottom a:hover { color: #9ca3af; }
+
+/* Legacy footer (keep for compat) */
 .section-footer { background: #f9fafb; padding: 40px 24px; text-align: center; border-top: 1px solid #e5e7eb; margin-top: 24px; }
 .footer-newsletter { margin-bottom: 20px; }
 .footer-newsletter h4 { margin-bottom: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; }

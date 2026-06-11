@@ -346,7 +346,7 @@ export default function EditPagePage({
   }
 
   // Fetch tenant directly — context may not propagate due to bundle duplication in monorepo
-  const [tenant, setTenantLocal] = useState<{ frontendUrl: string | null; revalidateSecret: string | null } | null>(null);
+  const [tenant, setTenantLocal] = useState<{ frontendUrl: string | null; previewUrl?: string | null; revalidateSecret: string | null } | null>(null);
   const [manifest, setManifest] = useState<BrasaManifest | null>(null);
   useEffect(() => {
     fetch("/api/admin/tenant-info")
