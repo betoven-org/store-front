@@ -1,7 +1,7 @@
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import {
-  categories, authors, posts, tags, media, products, productCategories, subscribers,
+  categories, authors, posts, tags, media, products, productCategories, subscribers, pages,
 } from "@brasa/core/schema";
 import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -77,6 +77,59 @@ type SbProduct = {
 type SbSubscriber = {
   id: string; name: string | null; email: string; active: boolean; created_at: string;
 };
+type SbLandingPage = {
+  id: string; slug: string; title: string; excerpt: string | null;
+  content: string | null; key_takeaways: string[] | null;
+  faq: { pergunta: string; resposta: string }[] | null;
+  clinical_references: unknown[] | null;
+  cover_image_url: string | null; cover_image_alt: string | null;
+  og_image_url: string | null; meta_title: string | null; meta_description: string | null;
+  og_title: string | null; og_description: string | null;
+  hero_cta_label: string | null; hero_cta_url: string | null;
+  related_links: { label: string; url: string }[] | null;
+  status: string; created_at: string; updated_at: string;
+  published_at: string | null;
+};
+
+function landingPageToSections(lp: SbLandingPage) {
+  const sections: { id: string; component: string; props: Record<string, unknown> }[] = [];
+
+  // Hero
+  sections.push({
+    id: "lp-hero",
+    component: "Hero",
+    props: {
+      title: lp.title,
+      subtitle: lp.excerpt || "",
+      ...(lp.cover_image_url ? { backgroundImage: lp.cover_image_url, dark: true } : {}),
+      align: "centro",
+      ...(lp.hero_cta_label ? { cta: { label: lp.hero_cta_label, href: lp.hero_cta_url || "#" } } : {}),
+    },
+  });
+
+  // Main content
+  if (lp.content) {
+    sections.push({
+      id: "lp-content",
+      component: "RichContent",
+      props: { content: lp.content, maxWidth: "medium" },
+    });
+  }
+
+  // FAQ
+  if (lp.faq && lp.faq.length > 0) {
+    sections.push({
+      id: "lp-faq",
+      component: "FAQ",
+      props: {
+        title: "Perguntas Frequentes",
+        items: lp.faq.map((f) => ({ question: f.pergunta, answer: f.resposta })),
+      },
+    });
+  }
+
+  return sections;
+}
 
 async function getOrCreateMedia(url: string, alt: string): Promise<number> {
   const [existing] = await db.select({ id: media.id }).from(media).where(eq(media.supabaseUrl, url)).limit(1);
@@ -113,7 +166,7 @@ export async function POST() {
         // Step 1: Fetch from Supabase
         send({ step: "fetch", label: "Buscando dados do Supabase...", progress: 5 });
 
-        const [sbCategories, sbTags, sbArticles, sbArticleTags, sbProducts, sbSubscribers] =
+        const [sbCategories, sbTags, sbArticles, sbArticleTags, sbProducts, sbSubscribers, sbLandingPages] =
           await Promise.all([
             sbFetchAll<SbCategory>("categories"),
             sbFetchAll<SbTag>("tags"),
@@ -121,9 +174,10 @@ export async function POST() {
             sbFetchAll<SbArticleTag>("article_tags", "article_id"),
             sbFetchAll<SbProduct>("products"),
             sbFetchAll<SbSubscriber>("newsletter_subscribers"),
+            sbFetchAll<SbLandingPage>("landing_pages").catch(() => [] as SbLandingPage[]),
           ]);
 
-        const totalItems = sbCategories.length + sbArticles.length + sbProducts.length;
+        const totalItems = sbCategories.length + sbArticles.length + sbProducts.length + sbLandingPages.length;
         send({ step: "fetch_done", label: `${totalItems} itens encontrados`, progress: 15 });
 
         const now = new Date().toISOString();
@@ -217,10 +271,23 @@ export async function POST() {
           let imageId: number | null = null;
           if (sp.cover_image_url) imageId = await getOrCreateMedia(sp.cover_image_url, sp.cover_image_alt || sp.title);
           const content = sp.content ? { type: "doc", _html: sp.content } : null;
-          const status: "draft" | "published" = sp.status === "published" ? "published" : "draft";
+          const status: "draft" | "published" = (sp.status === "published" || sp.status === "seo_done") ? "published" : "draft";
+
+          // Auto-generate description from content when excerpt is missing
+          let description: string | null = sp.excerpt;
+          if (!description && sp.content) {
+            const plain = sp.content
+              .replace(/#{1,6}\s+/g, "")          // strip headings
+              .replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1") // strip bold/italic
+              .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // strip links
+              .replace(/[>\-*_~`]/g, "")           // strip md chars
+              .replace(/\n+/g, " ")                // collapse newlines
+              .trim();
+            description = plain.length > 200 ? plain.slice(0, 197) + "..." : plain;
+          }
 
           const productData: Record<string, unknown> = {
-            name: sp.title, description: sp.excerpt, content,
+            name: sp.title, description, content,
             composition: sp.composition || null,
             usageInstructions: sp.usage_instructions || null,
             whoCanUse: sp.who_can_use || null,
@@ -266,7 +333,42 @@ export async function POST() {
             subCreated++;
           }
         }
-        send({ step: "subscribers_done", label: `Inscritos: ${subCreated} novos, ${subUpdated} atualizados`, progress: 99 });
+        send({ step: "subscribers_done", label: `Inscritos: ${subCreated} novos, ${subUpdated} atualizados`, progress: 95 });
+
+        // Step 7: Landing Pages → CMS Pages at campanhas/{slug}
+        let lpCreated = 0, lpUpdated = 0;
+        if (sbLandingPages.length > 0) {
+          send({ step: "landing_pages", label: `Sincronizando ${sbLandingPages.length} landing pages...`, progress: 96 });
+          for (const lp of sbLandingPages) {
+            const pageSlug = `campanhas/${lp.slug}`;
+            const sections = landingPageToSections(lp);
+            const sectionsJson = JSON.stringify(sections);
+
+            const [existing] = await db.select({ id: pages.id }).from(pages).where(eq(pages.slug, pageSlug)).limit(1);
+            const pageData = {
+              title: lp.title,
+              sections: sectionsJson,
+              draftSections: sectionsJson,
+              metaTitle: lp.meta_title,
+              metaDescription: lp.meta_description,
+              ogTitle: lp.og_title,
+              ogDescription: lp.og_description,
+              ogImageUrl: lp.og_image_url,
+              updatedAt: lp.updated_at,
+            };
+
+            if (existing) {
+              await db.update(pages).set(pageData).where(eq(pages.id, existing.id));
+              lpUpdated++;
+            } else {
+              await db.insert(pages).values({
+                ...pageData, slug: pageSlug, createdAt: lp.created_at,
+              });
+              lpCreated++;
+            }
+          }
+          send({ step: "landing_pages_done", label: `Landing pages: ${lpCreated} novas, ${lpUpdated} atualizadas`, progress: 99 });
+        }
 
         send({
           step: "done", label: "Sincronizacao concluida", progress: 100,
@@ -276,6 +378,7 @@ export async function POST() {
             tags: tagsCreated,
             products: { created: prodCreated, updated: prodUpdated },
             subscribers: { created: subCreated, updated: subUpdated },
+            landingPages: { created: lpCreated, updated: lpUpdated },
           },
         });
       } catch (error) {
