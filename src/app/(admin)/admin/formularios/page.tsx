@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminShell } from "@brasa/admin";
+import { MoreVertical, Trash2 } from "lucide-react";
+import { AdminShell, DeleteConfirm } from "@brasa/admin";
 
 type FormField = {
   name: string;
@@ -24,12 +26,15 @@ type Form = {
 };
 
 export default function FormulariosPage() {
+  const router = useRouter();
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [creating, setCreating] = useState(false);
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Form | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/forms")
@@ -70,15 +75,29 @@ export default function FormulariosPage() {
       });
       if (!res.ok) throw new Error("Erro ao criar");
       const row = await res.json();
-      setForms((prev) => [row, ...prev]);
       setShowCreate(false);
       setName("");
       setSlug("");
       toast.success("Formulário criado");
+      router.push(`/admin/formularios/${row.id}`);
     } catch {
       toast.error("Erro ao criar formulário");
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleDelete(form: Form) {
+    try {
+      const res = await fetch(`/api/admin/forms/${form.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || "Erro ao excluir");
+      }
+      setForms((prev) => prev.filter((f) => f.id !== form.id));
+      toast.success("Formulário excluído");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir formulário");
     }
   }
 
@@ -164,7 +183,16 @@ export default function FormulariosPage() {
             {forms.map((form) => (
               <div
                 key={form.id}
-                className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3"
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/admin/formularios/${form.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/admin/formularios/${form.id}`);
+                  }
+                }}
+                className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/20 hover:bg-accent/30"
               >
                 <div>
                   <p className="text-sm font-medium text-foreground">{form.name}</p>
@@ -185,12 +213,61 @@ export default function FormulariosPage() {
                   >
                     {form.active ? "Ativo" : "Inativo"}
                   </span>
+
+                  {/* Kebab menu */}
+                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => setMenuOpen(menuOpen === form.id ? null : form.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      aria-label={`Ações de ${form.name}`}
+                      aria-haspopup="menu"
+                      aria-expanded={menuOpen === form.id}
+                    >
+                      <MoreVertical className="size-4" />
+                    </button>
+                    {menuOpen === form.id && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setMenuOpen(null)}
+                        />
+                        <div
+                          role="menu"
+                          className="absolute right-0 top-full z-50 mt-1 w-36 rounded-md border border-border bg-card py-1 shadow-lg"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuOpen(null);
+                              setDeleteTarget(form);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-destructive transition-colors hover:bg-destructive/10"
+                          >
+                            <Trash2 className="size-3.5" />
+                            Excluir
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <DeleteConfirm
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) handleDelete(deleteTarget);
+        }}
+        title={deleteTarget ? `Excluir "${deleteTarget.name}"?` : "Excluir formulário?"}
+        description="Esta ação não pode ser desfeita. O formulário e todas as respostas serão permanentemente removidos."
+      />
     </AdminShell>
   );
 }

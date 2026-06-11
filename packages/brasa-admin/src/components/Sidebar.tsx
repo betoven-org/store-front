@@ -9,6 +9,7 @@ import {
   BarChart3, UserCog, Database, CreditCard, Code, HelpCircle,
   PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
   ChevronsUpDown, Trash2, ArrowRightLeft, FileText, FolderOpen,
+  ClipboardList,
 } from "lucide-react";
 
 type NavItemDef = {
@@ -55,6 +56,7 @@ const staticGroups: NavGroup[] = [
       { href: "/admin/global-sections", label: "Sections Globais", icon: <Layers className="size-[15px]" /> },
       { href: "/admin/midias", label: "Mídias", icon: <Image className="size-[15px]" /> },
       { href: "/admin/redirects", label: "Redirects", icon: <ArrowRightLeft className="size-[15px]" /> },
+      { href: "/admin/formularios", label: "Formulários", icon: <ClipboardList className="size-[15px]" /> },
       { href: "/admin/lixeira", label: "Lixeira", icon: <Trash2 className="size-[15px]" /> },
     ],
   },
