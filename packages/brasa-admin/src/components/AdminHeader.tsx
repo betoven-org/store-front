@@ -302,6 +302,9 @@ export default function AdminHeader({ title, onToggleSidebar, extra }: AdminHead
 }
 
 function DevEnvButton() {
+  // Ferramenta de desenvolvimento — não aparece em produção
+  if (process.env.NODE_ENV !== "development") return null;
+
   const [open, setOpen] = useState(false);
   const [envs, setEnvs] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
