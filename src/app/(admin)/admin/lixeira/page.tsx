@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AdminShell , BrasaPageLoader } from "@brasa/admin";
+import { AdminShell, BrasaPageLoader, EmptyState, ErrorState } from "@brasa/admin";
+import { Trash2 } from "lucide-react";
 
 type TrashPage = {
   id: number;
@@ -92,14 +93,17 @@ export default function LixeiraPage() {
 
       <div className="overflow-visible rounded-lg border border-border bg-card">
         {error ? (
-          <div className="flex items-center gap-2 p-6 text-sm text-destructive">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z" />
-            </svg>
-            {error}
-          </div>
+          <ErrorState
+            title="Erro ao carregar lixeira"
+            description={error}
+            onRetry={() => { setError(null); fetchTrash(); }}
+          />
         ) : pages.length === 0 ? (
-          <p className="p-6 text-sm text-muted-foreground">Nenhuma pagina na lixeira.</p>
+          <EmptyState
+            icon={<Trash2 className="size-6" aria-hidden="true" />}
+            title="Lixeira vazia"
+            description="Nenhuma página foi excluída ainda."
+          />
         ) : (
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border bg-background">

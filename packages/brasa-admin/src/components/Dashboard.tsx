@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import EmptyState from "./EmptyState";
+import ErrorState from "./ErrorState";
+import Skeleton from "./Skeleton";
 
 type CmsStats = {
   posts: number;
@@ -219,7 +222,7 @@ export default function Dashboard() {
                 </a>
               ))
             : Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{ ...card, height: 72 }} />
+                <Skeleton key={i} className="h-[72px]" />
               ))}
         </div>
       </div>
@@ -252,11 +255,17 @@ export default function Dashboard() {
       </div>
 
       {analyticsLoading ? (
-        <div style={{ color: "#9ca3af", fontSize: 13, padding: "24px 0" }}>Carregando analytics...</div>
-      ) : analyticsError || !analytics ? (
-        <div style={{ color: "#9ca3af", fontSize: 13, padding: "24px 0", background: "#f9fafb", borderRadius: 8, textAlign: "center" }}>
-          Sem dados de analytics. Verifique VERCEL_API_TOKEN e VERCEL_PROJECT_ID.
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-[72px]" />
+          ))}
         </div>
+      ) : analyticsError || !analytics ? (
+        <ErrorState
+          title="Sem dados de analytics"
+          description="Verifique VERCEL_API_TOKEN e VERCEL_PROJECT_ID nas configurações."
+          onRetry={fetchAnalytics}
+        />
       ) : (
         <>
           {/* Summary */}
