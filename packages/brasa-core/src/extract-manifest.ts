@@ -94,6 +94,7 @@ async function main() {
         group: definition.group,
         path: sectionPath,
         props: definition.props,
+        ...(definition.loader ? { loader: definition.loader } : {}),
       };
 
       sections.push(schema);

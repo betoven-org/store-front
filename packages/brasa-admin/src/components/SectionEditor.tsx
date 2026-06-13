@@ -39,10 +39,16 @@ type FieldSchema = {
   options?: string[];
 };
 
+export type LoaderInfo = {
+  fn: string;
+  title?: string;
+};
+
 export type SectionEditorProps = {
   schema: Record<string, FieldSchema>;
   values: Record<string, unknown>;
   onChange: (values: Record<string, unknown>) => void;
+  loader?: LoaderInfo;
 };
 
 // ---------------------------------------------------------------------------
@@ -595,10 +601,25 @@ function GroupSection({
 // SectionEditor (public export)
 // ---------------------------------------------------------------------------
 
+function LoaderBadge({ loader }: { loader: LoaderInfo }) {
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <path d="M232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-192,0a88,88,0,1,0,88-88A88.1,88.1,0,0,0,40,128Zm136-8H136V76a8,8,0,0,0-16,0v52a8,8,0,0,0,8,8h48a8,8,0,0,0,0-16Z" />
+      </svg>
+      <span>
+        <strong>Dados dinamicos</strong>
+        {loader.title ? ` — ${loader.title}` : ` — ${loader.fn}`}
+      </span>
+    </div>
+  );
+}
+
 export default function SectionEditor({
   schema,
   values,
   onChange,
+  loader,
 }: SectionEditorProps) {
   const handleFieldChange = useCallback(
     (key: string, fieldValue: unknown) => {
@@ -615,6 +636,7 @@ export default function SectionEditor({
     const entries = groups.get("__ungrouped__") ?? [];
     return (
       <div className="space-y-3">
+        {loader && <LoaderBadge loader={loader} />}
         {entries.map(([key, field]) => (
           <FieldRenderer
             key={key}
@@ -631,6 +653,7 @@ export default function SectionEditor({
   // Multiple groups — render each as a collapsible section
   return (
     <div className="space-y-3">
+      {loader && <LoaderBadge loader={loader} />}
       {Array.from(groups.entries()).map(([groupName, entries]) => {
         const isUngrouped = groupName === "__ungrouped__";
 

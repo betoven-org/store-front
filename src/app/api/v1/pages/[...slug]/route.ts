@@ -5,6 +5,8 @@ import { pages, tenants } from "@brasa/core/schema";
 import { db as appDb } from "@/db";
 import { collections, collectionItems, collectionFields } from "@/db/schema";
 import { eq, and, isNull, sql } from "drizzle-orm";
+import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
+import { resolveSections } from "@/lib/loaders/resolver";
 
 // ── Resolve {{field}} bindings in sections with collection item data ────────
 
@@ -69,24 +71,28 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
     .where(and(eq(pages.tenantId, tenantId), eq(pages.slug, slug), isNull(pages.deletedAt)))
     .limit(1);
 
-  // Fetch global sections (used by both page and collection detail)
+  // Fetch global sections and manifest (used by both page and collection detail)
   const [tenant] = await db
-    .select({ globalSections: tenants.globalSections })
+    .select({ globalSections: tenants.globalSections, manifest: tenants.manifest })
     .from(tenants)
     .where(eq(tenants.id, tenantId))
     .limit(1);
 
   const globals = tenant?.globalSections as { header?: any; footer?: any } | null;
+  const manifest = (tenant?.manifest || { sections: [] }) as BrasaManifest;
 
   if (page) {
-    const pageSections = (draft ? (page.draftSections ?? page.sections) : page.sections) as any[] | null;
+    const pageSections = (draft ? (page.draftSections ?? page.sections) : page.sections) as SectionBlock[] | null;
     const filteredSections = (pageSections ?? []).filter(
-      (s: any) => s?.component !== "Header" && s?.component !== "Footer"
+      (s) => s?.component !== "Header" && s?.component !== "Footer"
     );
+
+    // Resolve loaders for sections that declare them
+    const resolved = await resolveSections(filteredSections, manifest, { tenantId });
 
     const sections = [
       ...(globals?.header ? [globals.header] : []),
-      ...filteredSections,
+      ...resolved,
       ...(globals?.footer ? [globals.footer] : []),
     ];
 
@@ -162,14 +168,17 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
     }
 
     // Resolve {{field}} bindings in template sections
-    const resolvedSections = resolveBindings(templateSections, itemData) as any[];
-    const filteredSections = resolvedSections.filter(
-      (s: any) => s?.component !== "Header" && s?.component !== "Footer"
+    const boundSections = resolveBindings(templateSections, itemData) as SectionBlock[];
+    const filteredSections = boundSections.filter(
+      (s) => s?.component !== "Header" && s?.component !== "Footer"
     );
+
+    // Resolve loaders for sections that declare them
+    const resolved = await resolveSections(filteredSections, manifest, { tenantId });
 
     const sections = [
       ...(globals?.header ? [globals.header] : []),
-      ...filteredSections,
+      ...resolved,
       ...(globals?.footer ? [globals.footer] : []),
     ];
 

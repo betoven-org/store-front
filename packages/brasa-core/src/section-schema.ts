@@ -27,10 +27,11 @@
  * ```
  */
 
-import type { FieldSchema, SectionSchema } from "./manifest";
+import type { FieldSchema, LoaderSchema, SectionSchema } from "./manifest";
 
 // Re-export widget types for convenience
 export type { ImageWidget, RichText, Color, VideoWidget } from "./manifest";
+export type { LoaderSchema } from "./manifest";
 
 export type SectionDefinition = Omit<SectionSchema, "path"> & {
   /** Thumbnail image URL for the section picker */

@@ -60,6 +60,20 @@ export type FieldSchema = {
   options?: string[];
 };
 
+// ── Loader Schema ────────────────────────────────────────────────────────────
+
+export type LoaderSchema = {
+  /** Registered loader function name (e.g. "loadPosts", "loadProducts") */
+  fn: string;
+  /** Human-readable label for the editor */
+  title?: string;
+  /** Props passed to the loader, derived from section props.
+   *  Keys are loader param names, values are section prop keys or static values. */
+  propsMap?: Record<string, string>;
+  /** Cache tags for on-demand revalidation */
+  cacheTags?: string[];
+};
+
 // ── Section Schema ───────────────────────────────────────────────────────────
 
 export type SectionSchema = {
@@ -77,6 +91,8 @@ export type SectionSchema = {
   path: string;
   /** Props schema */
   props: Record<string, FieldSchema>;
+  /** Loader configuration — declares what data this section needs */
+  loader?: LoaderSchema;
 };
 
 // ── Manifest ─────────────────────────────────────────────────────────────────
@@ -116,6 +132,8 @@ export type SectionBlock = {
   };
   /** Deferred loading — section loads on scroll (lazy) */
   deferred?: boolean;
+  /** Loader overrides — editor can customize loader params per instance */
+  loaderProps?: Record<string, unknown>;
 };
 
 export type PageContent = SectionBlock[];

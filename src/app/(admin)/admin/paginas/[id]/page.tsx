@@ -1229,6 +1229,7 @@ export default function EditPagePage({
               <SectionEditor
                 schema={selectedSection.schema.props}
                 values={selectedSection.block.props}
+                loader={selectedSection.schema.loader ? { fn: selectedSection.schema.loader.fn, title: selectedSection.schema.loader.title } : undefined}
                 onChange={(newProps: Record<string, unknown>) => {
                   const updated = sectionBlocks.map((b) =>
                     b.id === selectedSection.block.id ? { ...b, props: newProps } : b
