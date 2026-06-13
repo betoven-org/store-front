@@ -7,6 +7,7 @@ import {
   collectionFieldTypeEnum,
 } from "@/db/schema";
 import { eq, and, asc, inArray } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET(
@@ -67,7 +68,7 @@ export async function PUT(
       return NextResponse.json({ error: "ID invalido" }, { status: 400 });
 
     const [existing] = await db
-      .select({ id: collections.id })
+      .select({ id: collections.id, slug: collections.slug })
       .from(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)))
       .limit(1);
@@ -228,6 +229,10 @@ export async function PUT(
       .where(eq(collectionFields.collectionId, collectionId))
       .orderBy(asc(collectionFields.sortOrder));
 
+    const slug = (updated as { slug?: string })?.slug || existing.slug;
+    revalidateTag("collections");
+    revalidateTag(`collection:${slug}`);
+
     return NextResponse.json({ ...updated, fields });
   } catch (error) {
     console.error("Collection update error:", error);
@@ -254,19 +259,22 @@ export async function DELETE(
     if (isNaN(collectionId))
       return NextResponse.json({ error: "ID invalido" }, { status: 400 });
 
-    const [existing] = await db
-      .select({ id: collections.id })
+    const [existingDel] = await db
+      .select({ id: collections.id, slug: collections.slug })
       .from(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)))
       .limit(1);
 
-    if (!existing)
+    if (!existingDel)
       return NextResponse.json({ error: "Colecao nao encontrada" }, { status: 404 });
 
     // cascade delete handles fields and items via FK onDelete: "cascade"
     await db
       .delete(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)));
+
+    revalidateTag("collections");
+    revalidateTag(`collection:${existingDel.slug}`);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

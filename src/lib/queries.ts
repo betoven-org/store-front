@@ -11,6 +11,11 @@ import {
 } from "@brasa/core/schema";
 import { eq, and, ne, desc, asc, ilike, or, count, sql } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
+import {
+  CACHE_TTL_VOLATILE,
+  CACHE_TTL_EDITORIAL,
+  CACHE_TTL_STABLE,
+} from "@/lib/cache-config";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
@@ -125,7 +130,7 @@ const _getSiteSettings = unstable_cache(
     };
   },
   ["site-settings"],
-  { revalidate: 3600, tags: ["settings"] },
+  { revalidate: CACHE_TTL_STABLE, tags: ["settings"] },
 );
 
 export async function getSiteSettings() {
@@ -154,7 +159,7 @@ const _getFeaturedPost = unstable_cache(
     return mapPost(rows[0]);
   },
   ["featured-post"],
-  { revalidate: 300, tags: ["posts"] },
+  { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
 );
 
 export async function getFeaturedPost() {
@@ -202,7 +207,7 @@ export async function getLatestPosts(limit = 9, page = 1) {
       };
     },
     ["latest-posts", String(tenantId), String(limit), String(page)],
-    { revalidate: 300, tags: ["posts"] },
+    { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
   )(tenantId);
 }
 
@@ -223,7 +228,7 @@ const _getRecentPosts = unstable_cache(
     return { docs: rows.map(mapPost) };
   },
   ["recent-posts"],
-  { revalidate: 300, tags: ["posts"] },
+  { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
 );
 
 export async function getRecentPosts(limit = 5) {
@@ -248,7 +253,7 @@ export async function getPostBySlug(slug: string) {
       return mapPost(row);
     },
     ["post-by-slug", String(tenantId), slug],
-    { revalidate: 600, tags: ["posts"] },
+    { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
   )(tenantId);
 }
 
@@ -304,7 +309,7 @@ export async function getPostsByCategory(
       };
     },
     ["posts-by-category", String(tenantId), categorySlug, String(limit), String(page)],
-    { revalidate: 300, tags: ["posts", "categories"] },
+    { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts", "categories"] },
   )(tenantId);
 }
 
@@ -340,7 +345,7 @@ export async function getPostsByCategorySlug(
       return { docs: rows.map(mapPost) };
     },
     ["posts-by-cat-slug", String(tenantId), categorySlug, String(limit)],
-    { revalidate: 300, tags: ["posts"] },
+    { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
   )(tenantId);
 }
 
@@ -376,7 +381,7 @@ export async function getRelatedPosts(
       };
     },
     ["related-posts", String(tenantId), String(categoryId), String(excludePostId)],
-    { revalidate: 300, tags: ["posts"] },
+    { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
   )(tenantId);
 }
 
@@ -443,7 +448,7 @@ export async function searchPosts(
       };
     },
     ["search-posts", String(tenantId), query, categorySlug ?? "", String(limit), String(page)],
-    { revalidate: 120, tags: ["posts"] },
+    { revalidate: CACHE_TTL_VOLATILE, tags: ["posts"] },
   )(tenantId);
 }
 
@@ -495,7 +500,7 @@ export async function getPostsByAuthor(
       };
     },
     ["posts-by-author", String(tenantId), String(authorId), String(limit), String(page)],
-    { revalidate: 300, tags: ["posts"] },
+    { revalidate: CACHE_TTL_EDITORIAL, tags: ["posts"] },
   )(tenantId);
 }
 
@@ -514,7 +519,7 @@ export async function getAuthorBySlug(slug: string) {
       };
     },
     ["author-by-slug", String(tenantId), slug],
-    { revalidate: 600, tags: ["authors"] },
+    { revalidate: CACHE_TTL_STABLE, tags: ["authors"] },
   )(tenantId);
 }
 
@@ -527,7 +532,7 @@ const _getCategories = unstable_cache(
     return { docs: rows };
   },
   ["categories"],
-  { revalidate: 3600, tags: ["categories"] },
+  { revalidate: CACHE_TTL_STABLE, tags: ["categories"] },
 );
 
 export async function getCategories() {
@@ -545,7 +550,7 @@ const _getPageBySlug = unstable_cache(
     return page ?? null;
   },
   ["page-by-slug"],
-  { revalidate: 3600, tags: ["pages"] },
+  { revalidate: CACHE_TTL_EDITORIAL, tags: ["pages"] },
 );
 
 export async function getPageBySlug(slug: string) {
@@ -576,7 +581,7 @@ const _getCategoriesWithCount = unstable_cache(
     return rows;
   },
   ["categories-with-count"],
-  { revalidate: 600, tags: ["posts", "categories"] },
+  { revalidate: CACHE_TTL_STABLE, tags: ["posts", "categories"] },
 );
 
 export async function getCategoriesWithCount() {

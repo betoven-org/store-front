@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { collections, collectionItems } from "@/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET(
@@ -24,7 +25,7 @@ export async function GET(
 
     // Verify collection belongs to tenant
     const [collection] = await db
-      .select({ id: collections.id })
+      .select({ id: collections.id, slug: collections.slug })
       .from(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)))
       .limit(1);
@@ -77,7 +78,7 @@ export async function PUT(
 
     // Verify collection belongs to tenant
     const [collection] = await db
-      .select({ id: collections.id })
+      .select({ id: collections.id, slug: collections.slug })
       .from(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)))
       .limit(1);
@@ -135,6 +136,8 @@ export async function PUT(
       )
       .returning();
 
+    revalidateTag(`collection:${collection.slug}`);
+
     return NextResponse.json(updated);
   } catch (error: unknown) {
     if (
@@ -178,7 +181,7 @@ export async function DELETE(
 
     // Verify collection belongs to tenant
     const [collection] = await db
-      .select({ id: collections.id })
+      .select({ id: collections.id, slug: collections.slug })
       .from(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)))
       .limit(1);
@@ -213,6 +216,8 @@ export async function DELETE(
           eq(collectionItems.tenantId, tenantId)
         )
       );
+
+    revalidateTag(`collection:${collection.slug}`);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages } from "@brasa/core/schema";
 import { and, eq, isNotNull } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function POST(
@@ -34,6 +35,8 @@ export async function POST(
       .update(pages)
       .set({ deletedAt: null })
       .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)));
+
+    revalidateTag("pages");
 
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -73,6 +76,8 @@ export async function DELETE(
     await db
       .delete(pages)
       .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)));
+
+    revalidateTag("pages");
 
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { collections, collectionFields, collectionItems } from "@/db/schema";
 import { eq, and, asc, sql, isNull } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET() {
@@ -99,6 +100,8 @@ export async function POST(request: NextRequest) {
         })),
       );
     }
+
+    revalidateTag("collections");
 
     return NextResponse.json(created, { status: 201 });
   } catch (error: unknown) {

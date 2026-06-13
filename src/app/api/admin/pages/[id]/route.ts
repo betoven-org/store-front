@@ -3,8 +3,10 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages } from "@brasa/core/schema";
 import { and, eq, isNull } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { parseBody, updatePageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 export async function GET(
   _request: NextRequest,
@@ -143,10 +145,22 @@ export async function DELETE(
     if (!existing)
       return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
 
+    const [deleted] = await db
+      .select({ slug: pages.slug })
+      .from(pages)
+      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
+      .limit(1);
+
     await db
       .update(pages)
       .set({ deletedAt: new Date().toISOString() })
       .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)));
+
+    revalidateTag("pages");
+    notifyFrontend(tenantId, {
+      paths: [`/${deleted?.slug === "home" ? "" : deleted?.slug || ""}`],
+      tags: ["pages"],
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

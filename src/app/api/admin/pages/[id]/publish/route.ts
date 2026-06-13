@@ -3,7 +3,9 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages, pageVersions } from "@brasa/core/schema";
 import { and, eq, count } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 export async function POST(
   request: Request,
@@ -86,6 +88,14 @@ export async function POST(
   await db.update(pages).set(updateData).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId)));
 
   const [updated] = await db.select().from(pages).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId))).limit(1);
+
+  // Invalidate cache so the site reflects changes immediately
+  revalidateTag("pages");
+  const pageSlug = updated?.slug === "home" ? "" : updated?.slug;
+  notifyFrontend(tenantId, {
+    paths: [`/${pageSlug || ""}`],
+    tags: ["pages"],
+  });
 
   // Notify Slack on publish (best-effort, non-blocking)
   if (process.env.SLACK_WEBHOOK_URL) {

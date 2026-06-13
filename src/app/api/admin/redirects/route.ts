@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { redirects } from "@brasa/core/schema";
 import { and, eq, desc } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET() {
@@ -38,6 +39,8 @@ export async function POST(req: NextRequest) {
     .values({ tenantId, from, to, type })
     .returning();
 
+  revalidateTag("redirects");
+
   return NextResponse.json(row, { status: 201 });
 }
 
@@ -53,6 +56,8 @@ export async function DELETE(req: NextRequest) {
   await db
     .delete(redirects)
     .where(and(eq(redirects.id, id), eq(redirects.tenantId, tenantId)));
+
+  revalidateTag("redirects");
 
   return NextResponse.json({ deleted: true });
 }

@@ -3,7 +3,9 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages, pageVersions } from "@brasa/core/schema";
 import { and, eq, count } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 export async function GET(
   request: Request,
@@ -118,6 +120,12 @@ export async function POST(
     .from(pages)
     .where(and(eq(pages.id, numPageId), eq(pages.tenantId, tenantId)))
     .limit(1);
+
+  revalidateTag("pages");
+  notifyFrontend(tenantId, {
+    paths: [`/${updated?.slug === "home" ? "" : updated?.slug || ""}`],
+    tags: ["pages"],
+  });
 
   return NextResponse.json(updated);
 }

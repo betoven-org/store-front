@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { forms, formSubmissions } from "@brasa/core/schema";
 import { and, eq, ne } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { parseBody } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
@@ -126,6 +127,8 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
       .where(and(eq(forms.id, formId), eq(forms.tenantId, tenantId)))
       .returning();
 
+    revalidateTag("forms");
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error("[PUT /api/admin/forms/:id]", error);
@@ -164,6 +167,8 @@ export async function DELETE(_req: NextRequest, ctx: RouteContext) {
       .where(and(eq(formSubmissions.formId, formId), eq(formSubmissions.tenantId, tenantId)));
 
     await db.delete(forms).where(and(eq(forms.id, formId), eq(forms.tenantId, tenantId)));
+
+    revalidateTag("forms");
 
     return NextResponse.json({ success: true });
   } catch (error) {

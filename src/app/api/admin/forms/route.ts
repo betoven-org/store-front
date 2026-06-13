@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { forms, formSubmissions } from "@brasa/core/schema";
 import { and, eq, desc, count } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET() {
@@ -37,6 +38,8 @@ export async function POST(req: NextRequest) {
     .insert(forms)
     .values({ tenantId, name, slug, fields: formFields, successMessage, notifyEmail })
     .returning();
+
+  revalidateTag("forms");
 
   return NextResponse.json(row, { status: 201 });
 }

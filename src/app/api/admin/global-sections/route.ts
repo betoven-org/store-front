@@ -3,7 +3,9 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { tenants } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 export async function GET() {
   const session = await auth();
@@ -74,6 +76,10 @@ export async function PATCH(request: NextRequest) {
     .set({ globalSections: merged })
     .where(eq(tenants.id, tenantId))
     .returning({ globalSections: tenants.globalSections });
+
+  revalidateTag("settings");
+  revalidateTag("pages");
+  notifyFrontend(tenantId, { paths: ["/"], tags: ["settings", "pages"] });
 
   return NextResponse.json(updated.globalSections);
 }

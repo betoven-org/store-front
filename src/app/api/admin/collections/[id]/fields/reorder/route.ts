@@ -3,6 +3,7 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { collections, collectionFields } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 
 export async function PUT(
@@ -23,7 +24,7 @@ export async function PUT(
 
     // Verify collection belongs to tenant
     const [collection] = await db
-      .select({ id: collections.id })
+      .select({ id: collections.id, slug: collections.slug })
       .from(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)))
       .limit(1);
@@ -55,6 +56,8 @@ export async function PUT(
     );
 
     await Promise.all(updates);
+
+    revalidateTag(`collection:${collection.slug}`);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

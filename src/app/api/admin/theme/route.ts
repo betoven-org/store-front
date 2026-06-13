@@ -3,7 +3,9 @@ import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { siteSettings } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 export type ThemeTokens = {
   colors: {
@@ -94,6 +96,9 @@ export async function PATCH(req: NextRequest) {
     .update(siteSettings)
     .set({ theme: body, updatedAt: new Date().toISOString() })
     .where(eq(siteSettings.tenantId, tenantId));
+
+  revalidateTag("settings");
+  notifyFrontend(tenantId, { paths: ["/"], tags: ["settings"] });
 
   return NextResponse.json(body);
 }
