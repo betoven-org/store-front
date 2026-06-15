@@ -84,11 +84,12 @@ export async function GET(req: NextRequest) {
   }
 
   const { url: sbUrl, key: sbKey } = await getSbConfig();
+  const baseUrl = sbUrl.endsWith("/") ? sbUrl : `${sbUrl}/`;
   const table = req.nextUrl.searchParams.get("table");
 
   // ── List tables ───────────────────────────────────────────────────────────
   if (!table) {
-    const res = await fetch(sbUrl, {
+    const res = await fetch(baseUrl, {
       headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
     });
     if (!res.ok) {
@@ -109,7 +110,7 @@ export async function GET(req: NextRequest) {
 
   // ── Introspect a single table ─────────────────────────────────────────────
   // Fetch a sample row
-  const sampleRes = await fetch(`${sbUrl}/${table}?limit=1&order=id.desc.nullslast`, {
+  const sampleRes = await fetch(`${baseUrl}${table}?limit=1&order=id.desc.nullslast`, {
     headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
   });
 
@@ -124,7 +125,7 @@ export async function GET(req: NextRequest) {
   const sample: Record<string, unknown> = rows[0] || {};
 
   // Fetch column definitions via PostgREST OpenAPI
-  const swaggerRes = await fetch(sbUrl, {
+  const swaggerRes = await fetch(baseUrl, {
     headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
   });
   const swagger = await swaggerRes.json();
