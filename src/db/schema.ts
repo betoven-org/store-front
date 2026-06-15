@@ -606,3 +606,114 @@ export const collectionItemsRelations = relations(collectionItems, ({ one }) => 
     references: [collections.id],
   }),
 }));
+
+// ── Matchers (Targeting Engine) ─────────────────────────────────────────────
+
+export const matcherTypeEnum = pgEnum("matcher_type", [
+  "device",
+  "random",
+  "date",
+  "cron",
+  "pathname",
+  "cookie",
+  "queryString",
+  "host",
+  "userAgent",
+  "location",
+  "multi",
+  "negate",
+]);
+
+export const matchers = pgTable("matchers", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: matcherTypeEnum("type").notNull(),
+  config: jsonb("config").notNull().default({}),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+// ── Feature Flags ───────────────────────────────────────────────────────────
+
+export const flagTypeEnum = pgEnum("flag_type", ["boolean", "multivariate"]);
+
+export const flags = pgTable("flags", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  key: varchar("key", { length: 100 }).notNull(),
+  type: flagTypeEnum("type").notNull().default("boolean"),
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const flagVariants = pgTable("flag_variants", {
+  id: serial("id").primaryKey(),
+  flagId: integer("flag_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  value: jsonb("value").notNull(),
+  matcherId: integer("matcher_id"),
+  weight: integer("weight").default(100).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const flagsRelations = relations(flags, ({ many }) => ({
+  variants: many(flagVariants),
+}));
+
+export const flagVariantsRelations = relations(flagVariants, ({ one }) => ({
+  flag: one(flags, { fields: [flagVariants.flagId], references: [flags.id] }),
+  matcher: one(matchers, { fields: [flagVariants.matcherId], references: [matchers.id] }),
+}));
+
+// ── Experiments (A/B Testing) ───────────────────────────────────────────────
+
+export const experimentStatusEnum = pgEnum("experiment_status", [
+  "draft",
+  "running",
+  "paused",
+  "completed",
+]);
+
+export const experimentTypeEnum = pgEnum("experiment_type", [
+  "page",
+  "section",
+  "image",
+  "message",
+]);
+
+export const experiments = pgTable("experiments", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  type: experimentTypeEnum("type").notNull(),
+  flagId: integer("flag_id").notNull(),
+  status: experimentStatusEnum("status").notNull().default("draft"),
+  goal: varchar("goal", { length: 50 }),
+  startedAt: timestamp("started_at", { mode: "string" }),
+  endedAt: timestamp("ended_at", { mode: "string" }),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const experimentResults = pgTable("experiment_results", {
+  id: serial("id").primaryKey(),
+  experimentId: integer("experiment_id").notNull(),
+  variantId: integer("variant_id").notNull(),
+  impressions: integer("impressions").default(0).notNull(),
+  conversions: integer("conversions").default(0).notNull(),
+  recordedAt: timestamp("recorded_at", { mode: "string" }).notNull(),
+});
+
+export const experimentsRelations = relations(experiments, ({ one, many }) => ({
+  flag: one(flags, { fields: [experiments.flagId], references: [flags.id] }),
+  results: many(experimentResults),
+}));
+
+export const experimentResultsRelations = relations(experimentResults, ({ one }) => ({
+  experiment: one(experiments, { fields: [experimentResults.experimentId], references: [experiments.id] }),
+  variant: one(flagVariants, { fields: [experimentResults.variantId], references: [flagVariants.id] }),
+}));
