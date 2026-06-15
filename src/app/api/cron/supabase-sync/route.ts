@@ -12,6 +12,10 @@ import {
   type SyncConfig,
   type SyncResult,
 } from "@/lib/collection-sync";
+import {
+  upsertLandingPage,
+  type SbLandingPage,
+} from "@/lib/landing-page-sync";
 
 // ── Supabase paginated fetch ─────────────────────────────────────────────────
 
@@ -82,17 +86,38 @@ export async function GET(req: NextRequest) {
         ),
       );
 
-    if (syncedCollections.length === 0) {
-      return NextResponse.json({
-        synced: 0,
-        message: "Nenhuma colecao sincronizada encontrada",
-      });
-    }
+    // No early return — landing_pages sync runs even without synced collections
 
     // Get Supabase connection config
     const { url: sbUrl, key: sbKey } = await getSbConfig();
     const syncStart = new Date().toISOString();
     const results: SyncResult[] = [];
+
+    // ── Sync landing_pages → CMS pages ────────────────────────────────────
+    let landingPagesSynced = 0;
+    try {
+      const [settings] = await db
+        .select({ lastSyncAt: siteSettings.lastSyncAt })
+        .from(siteSettings)
+        .where(eq(siteSettings.tenantId, tenantId))
+        .limit(1);
+
+      const lpSince = settings?.lastSyncAt || "2000-01-01T00:00:00.000Z";
+      const lpRows = await sbFetchUpdated("landing_pages", lpSince, sbUrl, sbKey);
+
+      for (const row of lpRows) {
+        await upsertLandingPage(row as unknown as SbLandingPage, tenantId);
+        landingPagesSynced++;
+      }
+
+      if (landingPagesSynced > 0) {
+        revalidateTag("pages");
+        notifyFrontend(tenantId, { tags: ["pages"] });
+      }
+    } catch (err) {
+      // landing_pages table might not exist — skip silently
+      console.error("[CRON] landing_pages sync error:", err);
+    }
 
     for (const collection of syncedCollections) {
       const syncConfig = collection.syncConfig as SyncConfig | null;
@@ -168,10 +193,11 @@ export async function GET(req: NextRequest) {
     const totalSynced = results.reduce(
       (sum, r) => sum + r.created + r.updated,
       0,
-    );
+    ) + landingPagesSynced;
 
     return NextResponse.json({
       synced: totalSynced,
+      landingPages: landingPagesSynced,
       collections: results,
     });
   } catch (error) {
