@@ -24,7 +24,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
-    "manifest:gen": "tsx packages/brasa-core/src/extract-manifest.ts"
+    "manifest:gen": "tsx packages/brasa-core/src/extract-manifest.ts",
+    "dev:tunnel": "bash scripts/dev-tunnel.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
