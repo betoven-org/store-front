@@ -1,5 +1,6 @@
 import { db } from "@brasa/core/db";
 import { subscriptions } from "@brasa/core/schema";
+import { notifyFrontend } from "@brasa/core/revalidate";
 import { siteSettings, collections } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -155,6 +156,7 @@ export async function GET(req: NextRequest) {
 
       // Revalidate cache for this collection
       revalidateTag(`collection:${collection.slug}`);
+      notifyFrontend(tenantId, { tags: [`collection:${collection.slug}`] });
     }
 
     // Also update the global lastSyncAt in siteSettings for backward compat

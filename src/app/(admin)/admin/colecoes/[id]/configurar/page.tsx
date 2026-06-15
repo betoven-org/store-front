@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -12,6 +12,10 @@ import {
   GripVertical,
   ChevronDown,
   ChevronUp,
+  Zap,
+  Loader2,
+  RefreshCw,
+  X,
 } from "lucide-react";
 import { AdminShell, FormField, BrasaPageLoader, ToggleSwitch } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
@@ -52,6 +56,33 @@ type CollectionData = {
   fields: CollectionField[];
 };
 
+type IntrospectColumn = {
+  name: string;
+  type: string;
+  cmsType: string;
+};
+
+type IntrospectResult = {
+  table: string;
+  columns: IntrospectColumn[];
+  sample: Record<string, unknown>;
+  suggestedMatchColumn: string;
+  suggestedFieldMap: Record<string, string>;
+  suggestedFields: Array<{
+    slug: string;
+    name: string;
+    type: string;
+    required: boolean;
+    sortOrder: number;
+  }>;
+};
+
+type FieldMapEntry = {
+  supabaseCol: string;
+  cmsField: string;
+  enabled: boolean;
+};
+
 export default function ConfigurarCollectionPage() {
   const router = useRouter();
   const params = useParams();
@@ -68,6 +99,16 @@ export default function ConfigurarCollectionPage() {
 
   // Sync config (for synced collections)
   const [syncConfig, setSyncConfig] = useState<string>("");
+
+  // Auto-detect state
+  const [sbTables, setSbTables] = useState<string[]>([]);
+  const [sbTablesLoading, setSbTablesLoading] = useState(false);
+  const [selectedTable, setSelectedTable] = useState("");
+  const [matchColumn, setMatchColumn] = useState("id");
+  const [fieldMapEntries, setFieldMapEntries] = useState<FieldMapEntry[]>([]);
+  const [introspecting, setIntrospecting] = useState(false);
+  const [introspectResult, setIntrospectResult] = useState<IntrospectResult | null>(null);
+  const [useAutoDetect, setUseAutoDetect] = useState(false);
 
   // Collection pages
   const [pageSlugPattern, setPageSlugPattern] = useState("");
@@ -114,6 +155,135 @@ export default function ConfigurarCollectionPage() {
     }
     load();
   }, [collectionId]);
+
+  // ── Auto-detect helpers ─────────────────────────────────────────────────
+
+  const loadSupabaseTables = useCallback(async () => {
+    setSbTablesLoading(true);
+    try {
+      const res = await fetch("/api/admin/integrations/supabase/introspect");
+      if (!res.ok) throw new Error("Erro ao listar tabelas");
+      const data = await res.json();
+      setSbTables(data.tables || []);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao conectar ao Supabase");
+    } finally {
+      setSbTablesLoading(false);
+    }
+  }, []);
+
+  // Load tables when switching to synced + auto-detect mode
+  useEffect(() => {
+    if (source === "synced" && useAutoDetect && sbTables.length === 0 && !sbTablesLoading) {
+      loadSupabaseTables();
+    }
+  }, [source, useAutoDetect, sbTables.length, sbTablesLoading, loadSupabaseTables]);
+
+  // Initialize auto-detect state from existing syncConfig
+  useEffect(() => {
+    if (source === "synced" && syncConfig.trim()) {
+      try {
+        const parsed = JSON.parse(syncConfig);
+        if (parsed.supabaseTable) {
+          setSelectedTable(parsed.supabaseTable);
+          setMatchColumn(parsed.matchColumn || "id");
+          if (parsed.fieldMap) {
+            setFieldMapEntries(
+              Object.entries(parsed.fieldMap).map(([supabaseCol, cmsField]) => ({
+                supabaseCol,
+                cmsField: cmsField as string,
+                enabled: true,
+              })),
+            );
+            setUseAutoDetect(true);
+          }
+        }
+      } catch {
+        // Invalid JSON — keep textarea mode
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleIntrospect(table: string) {
+    setIntrospecting(true);
+    try {
+      const res = await fetch(
+        `/api/admin/integrations/supabase/introspect?table=${encodeURIComponent(table)}`,
+      );
+      if (!res.ok) throw new Error("Erro ao introspect tabela");
+      const data: IntrospectResult = await res.json();
+      setIntrospectResult(data);
+      setMatchColumn(data.suggestedMatchColumn);
+
+      // Build fieldMap entries from suggestion
+      setFieldMapEntries(
+        Object.entries(data.suggestedFieldMap).map(([supabaseCol, cmsField]) => ({
+          supabaseCol,
+          cmsField,
+          enabled: true,
+        })),
+      );
+
+      // Auto-create collection fields from suggestion (only new ones)
+      const existingSlugs = new Set(fields.filter((f) => !f._deleted).map((f) => f.slug));
+      const newFields: CollectionField[] = data.suggestedFields
+        .filter((sf) => !existingSlugs.has(sf.slug))
+        .map((sf, i) => ({
+          slug: sf.slug,
+          name: sf.name,
+          type: sf.type,
+          required: sf.required,
+          sortOrder: fields.length + i,
+          config: null,
+          _isNew: true,
+          _deleted: false,
+        }));
+
+      if (newFields.length > 0) {
+        setFields((prev) => [...prev, ...newFields]);
+        toast.success(`${newFields.length} campo(s) criado(s) automaticamente`);
+      }
+
+      // Update the JSON syncConfig for save
+      const config = {
+        supabaseTable: table,
+        matchColumn: data.suggestedMatchColumn,
+        fieldMap: data.suggestedFieldMap,
+      };
+      setSyncConfig(JSON.stringify(config, null, 2));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro na introspecao");
+    } finally {
+      setIntrospecting(false);
+    }
+  }
+
+  function updateFieldMapEntry(index: number, key: keyof FieldMapEntry, value: string | boolean) {
+    setFieldMapEntries((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [key]: value };
+      return next;
+    });
+    // Rebuild syncConfig JSON
+    const updated = fieldMapEntries.map((e, i) =>
+      i === index ? { ...e, [key]: value } : e,
+    );
+    const fieldMap: Record<string, string> = {};
+    for (const entry of updated) {
+      if (entry.enabled) fieldMap[entry.supabaseCol] = entry.cmsField;
+    }
+    const config = { supabaseTable: selectedTable, matchColumn, fieldMap };
+    setSyncConfig(JSON.stringify(config, null, 2));
+  }
+
+  function rebuildSyncConfigJson() {
+    const fieldMap: Record<string, string> = {};
+    for (const entry of fieldMapEntries) {
+      if (entry.enabled) fieldMap[entry.supabaseCol] = entry.cmsField;
+    }
+    const config = { supabaseTable: selectedTable, matchColumn, fieldMap };
+    setSyncConfig(JSON.stringify(config, null, 2));
+  }
 
   function handleNewFieldNameChange(val: string) {
     setNewFieldName(val);
@@ -324,19 +494,192 @@ export default function ConfigurarCollectionPage() {
         {/* Sync Config (only for synced) */}
         {source === "synced" && (
           <div className="space-y-4 rounded-lg border border-border bg-card p-6">
-            <h2 className="text-sm font-semibold text-foreground">
-              Configuracao de Sync
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              JSON com supabaseTable, matchColumn e fieldMap para sincronizacao
-              automatica.
-            </p>
-            <textarea
-              value={syncConfig}
-              onChange={(e) => setSyncConfig(e.target.value)}
-              rows={8}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs outline-none focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10 resize-y"
-              placeholder={`{
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground">
+                Configuracao de Sync
+              </h2>
+              {!useAutoDetect ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUseAutoDetect(true)}
+                >
+                  <Zap className="size-3" />
+                  Auto-detectar
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUseAutoDetect(false)}
+                  className="text-muted-foreground"
+                >
+                  Editar JSON
+                </Button>
+              )}
+            </div>
+
+            {useAutoDetect ? (
+              <div className="space-y-4">
+                {/* Table selector */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-foreground">
+                    Tabela do Supabase
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedTable}
+                      onChange={(e) => setSelectedTable(e.target.value)}
+                      className="h-9 flex-1 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10"
+                      disabled={sbTablesLoading}
+                    >
+                      <option value="">
+                        {sbTablesLoading ? "Carregando tabelas..." : "Selecione uma tabela"}
+                      </option>
+                      {sbTables.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => loadSupabaseTables()}
+                      disabled={sbTablesLoading}
+                      className="shrink-0"
+                    >
+                      <RefreshCw className={`size-3.5 ${sbTablesLoading ? "animate-spin" : ""}`} />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => selectedTable && handleIntrospect(selectedTable)}
+                      disabled={!selectedTable || introspecting}
+                      className="shrink-0"
+                    >
+                      {introspecting ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Zap className="size-3.5" />
+                      )}
+                      Detectar
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Match column */}
+                {fieldMapEntries.length > 0 && (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-foreground">
+                        Coluna de identificacao (matchColumn)
+                      </label>
+                      <select
+                        value={matchColumn}
+                        onChange={(e) => {
+                          setMatchColumn(e.target.value);
+                          // Defer rebuild
+                          setTimeout(rebuildSyncConfigJson, 0);
+                        }}
+                        className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10"
+                      >
+                        {introspectResult?.columns.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.name} ({c.type})
+                          </option>
+                        ))}
+                        {!introspectResult && (
+                          <option value={matchColumn}>{matchColumn}</option>
+                        )}
+                      </select>
+                      <p className="text-[11px] text-muted-foreground">
+                        Coluna usada para identificar registros unicos (geralmente <code className="rounded bg-accent px-1 py-0.5 text-[10px]">id</code> ou <code className="rounded bg-accent px-1 py-0.5 text-[10px]">slug</code>).
+                      </p>
+                    </div>
+
+                    {/* Field mapping table */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-foreground">
+                        Mapeamento de campos ({fieldMapEntries.filter((e) => e.enabled).length} ativos)
+                      </label>
+                      <div className="rounded-md border border-border overflow-hidden">
+                        <div className="grid grid-cols-[auto_1fr_8px_1fr_auto] gap-0 text-[11px] font-medium text-muted-foreground bg-accent/50 px-3 py-1.5 border-b border-border">
+                          <span className="w-6" />
+                          <span>Supabase</span>
+                          <span />
+                          <span>CMS Field</span>
+                          <span className="w-8 text-center">Tipo</span>
+                        </div>
+                        <div className="divide-y divide-border">
+                          {fieldMapEntries.map((entry, i) => (
+                            <div
+                              key={entry.supabaseCol}
+                              className={`grid grid-cols-[auto_1fr_8px_1fr_auto] gap-0 items-center px-3 py-1.5 text-sm ${
+                                !entry.enabled ? "opacity-40" : ""
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={entry.enabled}
+                                onChange={(e) =>
+                                  updateFieldMapEntry(i, "enabled", e.target.checked)
+                                }
+                                className="size-3.5 rounded border-border mr-2"
+                              />
+                              <span className="font-mono text-xs text-muted-foreground truncate">
+                                {entry.supabaseCol}
+                              </span>
+                              <span className="text-center text-muted-foreground/40">→</span>
+                              <input
+                                type="text"
+                                value={entry.cmsField}
+                                onChange={(e) =>
+                                  updateFieldMapEntry(i, "cmsField", e.target.value)
+                                }
+                                disabled={!entry.enabled}
+                                className="h-7 rounded border border-border bg-background px-2 font-mono text-xs outline-none focus:border-foreground/30 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted-foreground text-center w-8 ml-1">
+                                {introspectResult?.columns.find(
+                                  (c) => c.name === entry.supabaseCol,
+                                )?.cmsType || "text"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Sample data preview */}
+                {introspectResult?.sample && Object.keys(introspectResult.sample).length > 0 && (
+                  <details className="group">
+                    <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground select-none">
+                      Ver amostra de dados
+                    </summary>
+                    <pre className="mt-2 rounded-md bg-accent/30 p-3 text-[11px] font-mono text-muted-foreground overflow-x-auto max-h-48 overflow-y-auto">
+                      {JSON.stringify(introspectResult.sample, null, 2)}
+                    </pre>
+                  </details>
+                )}
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  JSON com supabaseTable, matchColumn e fieldMap para sincronizacao
+                  automatica.
+                </p>
+                <textarea
+                  value={syncConfig}
+                  onChange={(e) => setSyncConfig(e.target.value)}
+                  rows={8}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs outline-none focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10 resize-y"
+                  placeholder={`{
   "supabaseTable": "products",
   "matchColumn": "slug",
   "fieldMap": {
@@ -344,7 +687,9 @@ export default function ConfigurarCollectionPage() {
     "description": "description"
   }
 }`}
-            />
+                />
+              </>
+            )}
           </div>
         )}
 

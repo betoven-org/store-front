@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@brasa/core/db";
 import { subscriptions } from "@brasa/core/schema";
+import { notifyFrontend } from "@brasa/core/revalidate";
 import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
       if (type === "DELETE" && old_record?.slug) {
         await deleteLandingPage(old_record.slug as string, tenantId);
         revalidateTag("pages");
+        notifyFrontend(tenantId, { tags: ["pages"], paths: [`/campanhas/${old_record.slug}`] });
         return NextResponse.json({
           received: true,
           table,
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
           tenantId,
         );
         revalidateTag("pages");
+        notifyFrontend(tenantId, { tags: ["pages"], paths: [`/campanhas/${record.slug}`] });
         return NextResponse.json({
           received: true,
           table,
@@ -113,6 +116,7 @@ export async function POST(request: NextRequest) {
 
     // Revalidate cache using collection slug as tag
     revalidateTag(`collection:${collection.slug}`);
+    notifyFrontend(tenantId, { tags: [`collection:${collection.slug}`] });
 
     return NextResponse.json({
       received: true,
