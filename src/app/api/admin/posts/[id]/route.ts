@@ -48,6 +48,15 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
         heroImageId: posts.heroImageId,
         heroImageUrl: media.url,
         heroImageAlt: media.alt,
+        metaTitle: posts.metaTitle,
+        metaDescription: posts.metaDescription,
+        ogTitle: posts.ogTitle,
+        ogDescription: posts.ogDescription,
+        ogImageUrl: posts.ogImageUrl,
+        focusKeyword: posts.focusKeyword,
+        canonicalUrl: posts.canonicalUrl,
+        noindex: posts.noindex,
+        nofollow: posts.nofollow,
       })
       .from(posts)
       .leftJoin(categories, eq(posts.categoryId, categories.id))

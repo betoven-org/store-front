@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { AdminShell, FormField, RichTextEditor, ImageUpload, DeleteConfirm , BrasaPageLoader , BrasaLoader } from "@brasa/admin";
+import { AdminShell, FormField, RichTextEditor, ImageUpload, DeleteConfirm, BrasaPageLoader, BrasaLoader, SeoPreview } from "@brasa/admin";
 import Link from "next/link";
 
 type SelectOption = { value: string; label: string };
@@ -21,6 +21,15 @@ type PostData = {
   heroImageUrl: string | null;
   coverUrl: string | null;
   tags: { id: number; tag: string }[];
+  metaTitle: string | null;
+  metaDescription: string | null;
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImageUrl: string | null;
+  focusKeyword: string | null;
+  canonicalUrl: string | null;
+  noindex: boolean | null;
+  nofollow: boolean | null;
 };
 
 export default function EditPostPage({
@@ -42,6 +51,18 @@ export default function EditPostPage({
   const [coverUrl, setCoverUrl] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [content, setContent] = useState<unknown>(null);
+
+  // SEO fields
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [ogTitle, setOgTitle] = useState("");
+  const [ogDescription, setOgDescription] = useState("");
+  const [ogImageUrl, setOgImageUrl] = useState("");
+  const [focusKeyword, setFocusKeyword] = useState("");
+  const [canonicalUrl, setCanonicalUrl] = useState("");
+  const [noindex, setNoindex] = useState(false);
+  const [nofollow, setNofollow] = useState(false);
+  const [seoOpen, setSeoOpen] = useState(false);
 
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [authors, setAuthors] = useState<SelectOption[]>([]);
@@ -100,6 +121,15 @@ export default function EditPostPage({
         setCoverUrl(post.coverUrl || "");
         setTagsInput(post.tags?.map((t) => t.tag).join(", ") || "");
         setContent(post.content);
+        setMetaTitle(post.metaTitle || "");
+        setMetaDescription(post.metaDescription || "");
+        setOgTitle(post.ogTitle || "");
+        setOgDescription(post.ogDescription || "");
+        setOgImageUrl(post.ogImageUrl || "");
+        setFocusKeyword(post.focusKeyword || "");
+        setCanonicalUrl(post.canonicalUrl || "");
+        setNoindex(post.noindex || false);
+        setNofollow(post.nofollow || false);
       } catch {
         router.push("/admin/posts");
       } finally {
@@ -148,6 +178,15 @@ export default function EditPostPage({
         heroImageId: heroImageId || null,
         coverUrl: coverUrl.trim() || null,
         tags: parsedTags,
+        metaTitle: metaTitle.trim() || null,
+        metaDescription: metaDescription.trim() || null,
+        ogTitle: ogTitle.trim() || null,
+        ogDescription: ogDescription.trim() || null,
+        ogImageUrl: ogImageUrl.trim() || null,
+        focusKeyword: focusKeyword.trim() || null,
+        canonicalUrl: canonicalUrl.trim() || null,
+        noindex,
+        nofollow,
       };
 
       const res = await fetch(`/api/admin/posts/${id}`, {
@@ -355,6 +394,70 @@ export default function EditPostPage({
             <p className="mb-2 text-xs text-destructive">{errors.content}</p>
           )}
           <RichTextEditor content={content} onChange={setContent} />
+        </div>
+
+        {/* SEO */}
+        <div className="rounded-lg border border-border bg-card">
+          <button
+            type="button"
+            onClick={() => setSeoOpen(!seoOpen)}
+            className="w-full flex items-center justify-between p-6"
+          >
+            <h2 className="text-base font-semibold text-foreground">SEO</h2>
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className={`text-muted-foreground transition-transform ${seoOpen ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {seoOpen && (
+            <div className="px-6 pb-6 space-y-4 border-t border-border pt-4">
+              <FormField label="Meta Title" name="metaTitle" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Titulo no Google" description={`${metaTitle.length}/60`} ai="seo" aiContext={title} />
+              <FormField label="Meta Description" name="metaDescription" type="textarea" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Descricao no Google" description={`${metaDescription.length}/160`} ai="seo" aiContext={title} />
+              <FormField label="Focus Keyword" name="focusKeyword" value={focusKeyword} onChange={(e) => setFocusKeyword(e.target.value)} placeholder="Palavra-chave principal" />
+              <FormField label="Canonical URL" name="canonicalUrl" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="https://..." description="Deixe vazio para usar a URL padrao" />
+
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Open Graph</span>
+                <div className="flex-1 border-t border-border" />
+              </div>
+
+              <FormField label="OG Title" name="ogTitle" value={ogTitle} onChange={(e) => setOgTitle(e.target.value)} placeholder="Titulo redes sociais" ai="rewrite" aiContext={title} />
+              <FormField label="OG Description" name="ogDescription" type="textarea" value={ogDescription} onChange={(e) => setOgDescription(e.target.value)} placeholder="Descricao redes sociais" ai="rewrite" aiContext={metaDescription || excerpt} />
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">OG Image</label>
+                <ImageUpload
+                  value={null}
+                  previewUrl={ogImageUrl || null}
+                  onChange={(_id, url) => setOgImageUrl(url || "")}
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Indexacao</span>
+                <div className="flex-1 border-t border-border" />
+              </div>
+
+              <FormField label="Noindex" name="noindex" type="checkbox" value={noindex} onChange={(e) => setNoindex((e.target as HTMLInputElement).checked)} description="Impede que o Google indexe esta pagina" />
+              <FormField label="Nofollow" name="nofollow" type="checkbox" value={nofollow} onChange={(e) => setNofollow((e.target as HTMLInputElement).checked)} description="Impede que o Google siga os links desta pagina" />
+
+              <SeoPreview
+                data={{
+                  title,
+                  metaTitle,
+                  metaDescription,
+                  ogTitle,
+                  ogDescription,
+                  ogImage: ogImageUrl || heroImageUrl || undefined,
+                  url: `blog/${id}`,
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between">

@@ -457,7 +457,7 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
                       <SortableItem
                         key={block.id}
                         id={block.id}
-                        title={schema?.title ?? block.component}
+                        title={`${schema?.title ?? block.component}${block.deferred ? " [lazy]" : ""}`}
                         isSelected={selectedId === block.id}
                         onSelect={() => setSelectedId(block.id)}
                         onDelete={() => deleteBlock(block.id)}

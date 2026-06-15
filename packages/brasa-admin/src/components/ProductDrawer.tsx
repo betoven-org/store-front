@@ -7,6 +7,7 @@ import BrasaLoader from "./BrasaLoader";
 import FormField from "./FormField";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "./ImageUpload";
+import SeoPreview from "./SeoPreview";
 import { Button } from "@/components/ui/button";
 
 type SelectOption = { value: string; label: string };
@@ -326,8 +327,17 @@ export default function ProductDrawer({ productId, onClose, onSaved }: Props) {
               <div className="rounded-md border bg-muted/20 p-4">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">SEO</p>
                 <div className="space-y-4">
-                  <FormField label="Título da página" name="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Título que aparece na aba do navegador e no Google" description={`${seoTitle.length}/70 caracteres`} />
-                  <FormField label="Meta descrição" name="seoDescription" type="textarea" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="Descrição que aparece nos resultados do Google" description={`${seoDescription.length}/160 caracteres`} />
+                  <FormField label="Meta Title" name="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Titulo no Google" description={`${seoTitle.length}/60`} ai="seo" aiContext={name} />
+                  <FormField label="Meta Description" name="seoDescription" type="textarea" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="Descricao no Google" description={`${seoDescription.length}/160`} ai="seo" aiContext={`${name} - ${description}`} />
+                  <SeoPreview
+                    data={{
+                      title: name,
+                      metaTitle: seoTitle,
+                      metaDescription: seoDescription,
+                      ogImage: imageUrl || undefined,
+                      url: `produto/${productId}`,
+                    }}
+                  />
                 </div>
               </div>
 

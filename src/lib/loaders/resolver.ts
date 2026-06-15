@@ -23,6 +23,11 @@ export async function resolveSections(
 
   const resolved = await Promise.all(
     sections.map(async (block): Promise<ResolvedSection> => {
+      // Deferred sections skip loader resolution — data fetched on scroll via separate endpoint
+      if (block.deferred) {
+        return { ...block, loaderData: null };
+      }
+
       const schema = schemaMap.get(block.component);
 
       if (!schema?.loader) {

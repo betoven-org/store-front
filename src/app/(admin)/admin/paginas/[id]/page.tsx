@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, PageBuilder, SectionEditor, BrasaPageLoader, BrasaLoader } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, PageBuilder, SectionEditor, BrasaPageLoader, BrasaLoader, SeoPreview } from "@brasa/admin";
 import type { BrasaManifest, SectionBlock, SectionSchema } from "@brasa/core/manifest";
 
 type EditState = {
@@ -1126,27 +1126,14 @@ export default function EditPagePage({
 
             {activeTab === "seo" && (
               <div className="p-5 space-y-5">
-                {/* Google preview */}
-                <div className="rounded-md border border-border bg-background p-3">
-                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Google</p>
-                  <p className="text-sm font-medium text-[#1a0dab] leading-tight truncate">
-                    {editState.metaTitle || editState.title || "Título"}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-success font-mono truncate">
-                    {frontendBase || "meusite.com"}{slugToPath(page.slug)}
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
-                    {editState.metaDescription || "Sem descrição"}
-                  </p>
-                </div>
-                <FormField label="Meta Title" name="metaTitle" value={editState.metaTitle ?? ""} onChange={handleChange} placeholder="Título no Google" description={`${(editState.metaTitle ?? "").length}/60`} />
-                <FormField label="Meta Description" name="metaDescription" type="textarea" value={editState.metaDescription ?? ""} onChange={handleChange} placeholder="Descrição no Google" description={`${(editState.metaDescription ?? "").length}/160`} />
+                <FormField label="Meta Title" name="metaTitle" value={editState.metaTitle ?? ""} onChange={handleChange} placeholder="Titulo no Google" description={`${(editState.metaTitle ?? "").length}/60`} ai="seo" aiContext={editState.title} />
+                <FormField label="Meta Description" name="metaDescription" type="textarea" value={editState.metaDescription ?? ""} onChange={handleChange} placeholder="Descricao no Google" description={`${(editState.metaDescription ?? "").length}/160`} ai="seo" aiContext={editState.title} />
                 <div className="flex items-center gap-3 pt-1">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Open Graph</span>
                   <div className="flex-1 border-t border-border" />
                 </div>
-                <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Título redes sociais" ai="rewrite" aiContext={editState.title} />
-                <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descrição redes sociais" ai="rewrite" aiContext={editState.metaDescription} />
+                <FormField label="OG Title" name="ogTitle" value={editState.ogTitle ?? ""} onChange={handleChange} placeholder="Titulo redes sociais" ai="rewrite" aiContext={editState.title} />
+                <FormField label="OG Description" name="ogDescription" type="textarea" value={editState.ogDescription ?? ""} onChange={handleChange} placeholder="Descricao redes sociais" ai="rewrite" aiContext={editState.metaDescription} />
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-foreground">OG Image</label>
                   <ImageUpload
@@ -1164,6 +1151,17 @@ export default function EditPagePage({
                     }}
                   />
                 </div>
+                <SeoPreview
+                  data={{
+                    title: editState.title,
+                    metaTitle: editState.metaTitle ?? "",
+                    metaDescription: editState.metaDescription ?? "",
+                    ogTitle: editState.ogTitle ?? "",
+                    ogDescription: editState.ogDescription ?? "",
+                    ogImage: ogImagePreview || editState.ogImageUrl || undefined,
+                    url: `${frontendBase || "meusite.com"}${slugToPath(page.slug)}`,
+                  }}
+                />
               </div>
             )}
 
