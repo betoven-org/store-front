@@ -106,6 +106,8 @@ const INTEGRATIONS: Integration[] = [
       { key: "account", label: "Account name", placeholder: "minhaloja" },
       { key: "environment", label: "Environment", placeholder: "vtexcommercestable.com.br" },
       { key: "salesChannel", label: "Sales Channel", placeholder: "1" },
+      { key: "appKey", label: "App Key", placeholder: "vtexappkey-minhaloja-XXXXXX", secret: true },
+      { key: "appToken", label: "App Token", placeholder: "XXXXXXXXXXXX", secret: true },
     ],
   },
   {
@@ -192,7 +194,11 @@ export default function IntegracoesPage() {
       const res = await fetch("/api/admin/integrations/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ integration: int.key, config: formValues, enabled: true }),
+        body: JSON.stringify({
+          integration: int.key,
+          config: int.type === "commerce" ? { ...formValues, platform: int.key } : formValues,
+          enabled: true,
+        }),
       });
       if (!res.ok) throw new Error();
       setConfigs((prev) => ({ ...prev, [int.key]: { enabled: true, config: formValues } }));
