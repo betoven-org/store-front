@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCommerceAdapter } from "@/lib/commerce";
+import { withApiKey } from "@/lib/api-key";
+import { getCommerceAdapterAsync } from "@/lib/commerce";
 
 /**
  * GET /api/v1/commerce/products/:slug
  * Returns product details from the configured e-commerce platform.
  */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> },
-) {
-  const adapter = getCommerceAdapter();
+export const GET = withApiKey(async ({ tenantId }, req: NextRequest, routeParams) => {
+  const adapter = await getCommerceAdapterAsync(tenantId);
   if (!adapter) {
     return NextResponse.json(
       { error: "Nenhuma plataforma de e-commerce configurada" },
@@ -17,7 +15,7 @@ export async function GET(
     );
   }
 
-  const { slug } = await params;
+  const slug = routeParams.slug as string;
 
   try {
     const result = await adapter.getProduct(slug);
@@ -33,4 +31,4 @@ export async function GET(
       { status: 500 },
     );
   }
-}
+});

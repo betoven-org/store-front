@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCommerceAdapter } from "@/lib/commerce";
+import { withApiKey } from "@/lib/api-key";
+import { getCommerceAdapterAsync } from "@/lib/commerce";
 
 /**
  * GET /api/v1/commerce/products?q=&category=&page=&limit=&sort=
  * Returns products from the configured e-commerce platform.
+ * Config loaded from tenant_integrations DB (VTEX keys from CMS admin).
  */
-export async function GET(req: NextRequest) {
-  const adapter = getCommerceAdapter();
+export const GET = withApiKey(async ({ tenantId }, req: NextRequest) => {
+  const adapter = await getCommerceAdapterAsync(tenantId);
   if (!adapter) {
     return NextResponse.json(
       { error: "Nenhuma plataforma de e-commerce configurada" },
@@ -32,4 +34,4 @@ export async function GET(req: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

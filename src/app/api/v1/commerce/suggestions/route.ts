@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCommerceAdapter } from "@/lib/commerce";
+import { withApiKey } from "@/lib/api-key";
+import { getCommerceAdapterAsync } from "@/lib/commerce";
 
 /**
  * GET /api/v1/commerce/suggestions?q=
  * Returns search suggestions from the configured e-commerce platform.
  */
-export async function GET(req: NextRequest) {
-  const adapter = getCommerceAdapter();
+export const GET = withApiKey(async ({ tenantId }, req: NextRequest) => {
+  const adapter = await getCommerceAdapterAsync(tenantId);
   if (!adapter) {
     return NextResponse.json({ suggestions: [] });
   }
@@ -22,4 +23,4 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json({ suggestions: [] });
   }
-}
+});
