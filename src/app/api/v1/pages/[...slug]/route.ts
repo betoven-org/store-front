@@ -85,10 +85,16 @@ async function resolveDecoRefs(sections: any[], tenantId: number): Promise<any[]
           const result = await adapter.searchProducts({
             query: loaderProps.term || loaderProps.query || "",
             category: loaderProps.category,
-            limit: loaderProps.count || 12,
+            limit: (loaderProps.count || 12) + 10, // fetch extra to compensate for filtering
             sort: loaderProps.sort || "",
           });
-          resolvedProps[key] = result.products || [];
+          // Filter out unavailable products (price = 0 or no InStock offer)
+          const available = (result.products || []).filter((p: any) => {
+            const price = p.offers?.lowPrice;
+            const hasStock = p.offers?.offers?.some((o: any) => o.availability === "InStock" && o.price > 0);
+            return price > 0 || hasStock;
+          });
+          resolvedProps[key] = available.slice(0, loaderProps.count || 12);
         } else if (ref.__resolveType.includes("productDetailsPage")) {
           // Skip — resolved at PDP level
           resolvedProps[key] = null;
