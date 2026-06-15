@@ -7,6 +7,7 @@ import { collections, collectionItems, collectionFields } from "@/db/schema";
 import { eq, and, isNull, sql } from "drizzle-orm";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 import { resolveSections } from "@/lib/loaders/resolver";
+import { getCommerceAdapterAsync } from "@/lib/commerce";
 
 // ── Resolve {{field}} bindings in sections with collection item data ────────
 
@@ -60,6 +61,50 @@ function matchPattern(pattern: string, slug: string): string | null {
   return itemSlug;
 }
 
+// ── Resolve deco.cx __resolveType references in section props ────────────────
+// Converts deco loader references (e.g. vtex/loaders/intelligentSearch/productList.ts)
+// into actual VTEX API calls using our commerce adapter.
+
+async function resolveDecoRefs(sections: any[], tenantId: number): Promise<any[]> {
+  const adapter = await getCommerceAdapterAsync(tenantId);
+  if (!adapter) return sections;
+
+  return Promise.all(sections.map(async (section) => {
+    if (!section?.props) return section;
+
+    const resolvedProps = { ...section.props };
+
+    for (const [key, val] of Object.entries(resolvedProps)) {
+      if (!val || typeof val !== "object" || !(val as any).__resolveType) continue;
+
+      const ref = val as { __resolveType: string; props?: Record<string, any> };
+      const loaderProps = ref.props || {};
+
+      try {
+        if (ref.__resolveType.includes("productList")) {
+          const result = await adapter.searchProducts({
+            query: loaderProps.term || loaderProps.query || "",
+            category: loaderProps.category,
+            limit: loaderProps.count || 12,
+            sort: loaderProps.sort || "",
+          });
+          resolvedProps[key] = result.products || [];
+        } else if (ref.__resolveType.includes("productDetailsPage")) {
+          // Skip — resolved at PDP level
+          resolvedProps[key] = null;
+        } else {
+          // Unknown loader — leave as-is
+        }
+      } catch (err) {
+        console.error(`[resolveDecoRefs] Failed ${ref.__resolveType}:`, err);
+        resolvedProps[key] = null;
+      }
+    }
+
+    return { ...section, props: resolvedProps };
+  }));
+}
+
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const slugParts = params.slug as string | string[];
   const slug = Array.isArray(slugParts) ? slugParts.join("/") : slugParts;
@@ -90,9 +135,12 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
     // Resolve loaders for sections that declare them
     const resolved = await resolveSections(filteredSections, manifest, { tenantId });
 
+    // Resolve deco.cx __resolveType references (migrated pages from deco)
+    const fullyResolved = await resolveDecoRefs(resolved, tenantId);
+
     const sections = [
       ...(globals?.header ? [globals.header] : []),
-      ...resolved,
+      ...fullyResolved,
       ...(globals?.footer ? [globals.footer] : []),
     ];
 
