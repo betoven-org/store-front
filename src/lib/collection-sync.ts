@@ -184,10 +184,8 @@ export async function syncRecord(opts: {
 
     if (!existing) return { action: "skipped" };
 
-    // Soft-delete
     await db
-      .update(collectionItems)
-      .set({ deletedAt: new Date().toISOString() })
+      .delete(collectionItems)
       .where(eq(collectionItems.id, existing.id));
 
     return { action: "deleted" };
