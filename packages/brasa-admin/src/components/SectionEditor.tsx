@@ -24,7 +24,8 @@ type FieldFormat =
   | "select"
   | "hidden"
   | "icon"
-  | "map";
+  | "map"
+  | "secret";
 
 type FieldSchema = {
   type: FieldType;
@@ -280,6 +281,66 @@ function StringField({ fieldKey, schema, value, onChange }: FieldRendererProps) 
             aria-label={`Valor hex de ${schema.title ?? fieldKey}`}
           />
         </div>
+      </FieldWrapper>
+    );
+  }
+
+  if (format === "code") {
+    return (
+      <FieldWrapper>
+        <FieldLabel
+          htmlFor={id}
+          title={schema.title ?? fieldKey}
+          required={schema.required}
+          description={schema.description}
+        />
+        <textarea
+          id={id}
+          value={strVal}
+          placeholder={placeholder ?? "// Code..."}
+          required={schema.required}
+          rows={10}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${inputCls} resize-y font-mono text-xs leading-relaxed`}
+          spellCheck={false}
+        />
+      </FieldWrapper>
+    );
+  }
+
+  if (format === "icon") {
+    const ICONS = [
+      "star", "heart", "check", "x", "arrow-right", "arrow-left",
+      "search", "settings", "home", "user", "mail", "phone",
+      "calendar", "clock", "map-pin", "globe", "shield", "zap",
+      "trending-up", "award", "gift", "truck", "package", "tag",
+      "percent", "credit-card", "lock", "unlock", "eye", "bell",
+    ];
+    return (
+      <FieldWrapper>
+        <FieldLabel
+          htmlFor={id}
+          title={schema.title ?? fieldKey}
+          required={schema.required}
+          description={schema.description}
+        />
+        <select
+          id={id}
+          value={strVal}
+          required={schema.required}
+          onChange={(e) => onChange(e.target.value)}
+          className={inputCls}
+        >
+          <option value="">Selecione icone...</option>
+          {ICONS.map((icon) => (
+            <option key={icon} value={icon}>{icon}</option>
+          ))}
+        </select>
+        {strVal && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Selecionado: <code className="rounded bg-muted px-1 py-0.5">{strVal}</code>
+          </p>
+        )}
       </FieldWrapper>
     );
   }
