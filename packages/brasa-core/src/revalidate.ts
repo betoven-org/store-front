@@ -24,18 +24,21 @@ export async function notifyFrontend(
     if (!tenant?.frontendUrl || !tenant?.revalidateSecret) return;
 
     const url = `${tenant.frontendUrl}/api/revalidate`;
+    const headers = {
+      "Content-Type": "application/json",
+      "x-revalidate-secret": tenant.revalidateSecret,
+    };
 
-    // Fire-and-forget — don't await in production to avoid blocking
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-revalidate-secret": tenant.revalidateSecret,
-      },
-      body: JSON.stringify(payload),
-    }).catch((err) => {
-      console.error(`[revalidate] Failed to notify ${url}:`, err.message);
-    });
+    // Send one request per tag (frontends expect { tag: "string" })
+    for (const tag of payload.tags ?? []) {
+      fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ tag }),
+      }).catch((err) => {
+        console.error(`[revalidate] Failed to notify ${url} tag=${tag}:`, err.message);
+      });
+    }
   } catch (err) {
     console.error("[revalidate] Error:", err);
   }
