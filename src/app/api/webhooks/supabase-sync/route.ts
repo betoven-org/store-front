@@ -65,65 +65,65 @@ export async function POST(request: NextRequest) {
     const payload: WebhookPayload = await request.json();
     const { type, table, record, old_record } = payload;
 
+    const tags: string[] = [];
+    const paths: string[] = [];
+    let pageAction: string | null = null;
+    let collectionAction: string | null = null;
+    let collectionSlug: string | null = null;
+
     // ── Landing pages → CMS pages at campanhas/{slug} ──────────────────────
     if (table === "landing_pages") {
       if (type === "DELETE" && old_record?.slug) {
         await deleteLandingPage(old_record.slug as string, tenantId);
-        revalidateTag("pages");
-        notifyFrontend(tenantId, { tags: ["pages"], paths: [`/campanhas/${old_record.slug}`] });
-        return NextResponse.json({
-          received: true,
-          table,
-          type,
-          action: "deleted",
-        });
-      }
-
-      if (record) {
-        const action = await upsertLandingPage(
+        pageAction = "deleted";
+        paths.push(`/campanhas/${old_record.slug}`);
+      } else if (record) {
+        pageAction = await upsertLandingPage(
           record as unknown as SbLandingPage,
           tenantId,
         );
-        revalidateTag("pages");
-        notifyFrontend(tenantId, { tags: ["pages"], paths: [`/campanhas/${record.slug}`] });
-        return NextResponse.json({
-          received: true,
-          table,
-          type,
-          action,
-        });
+        paths.push(`/campanhas/${record.slug}`);
       }
+      tags.push("pages");
     }
 
-    // Find synced collection matching this Supabase table
+    // ── Collection sync (runs for ALL tables, including landing_pages) ─────
     const collection = await findSyncedCollection(table, tenantId);
-    if (!collection) {
+    if (collection) {
+      const syncConfig = collection.syncConfig as SyncConfig;
+      const fieldTypes = await getCollectionFieldTypes(collection.id);
+
+      const { action } = await syncRecord({
+        type,
+        record,
+        oldRecord: old_record,
+        collectionId: collection.id,
+        syncConfig,
+        fieldTypes,
+        tenantId,
+      });
+
+      collectionAction = action;
+      collectionSlug = collection.slug;
+      tags.push(`collection:${collection.slug}`);
+    }
+
+    // ── Revalidate ─────────────────────────────────────────────────────────
+    if (tags.length > 0) {
+      for (const tag of tags) revalidateTag(tag);
+      notifyFrontend(tenantId, { tags, paths: paths.length > 0 ? paths : undefined });
+    }
+
+    if (!pageAction && !collectionAction) {
       return NextResponse.json({ ignored: true, table }, { status: 200 });
     }
-
-    const syncConfig = collection.syncConfig as SyncConfig;
-    const fieldTypes = await getCollectionFieldTypes(collection.id);
-
-    const { action } = await syncRecord({
-      type,
-      record,
-      oldRecord: old_record,
-      collectionId: collection.id,
-      syncConfig,
-      fieldTypes,
-      tenantId,
-    });
-
-    // Revalidate cache using collection slug as tag
-    revalidateTag(`collection:${collection.slug}`);
-    notifyFrontend(tenantId, { tags: [`collection:${collection.slug}`] });
 
     return NextResponse.json({
       received: true,
       table,
       type,
-      collection: collection.slug,
-      action,
+      ...(pageAction && { pageAction }),
+      ...(collectionSlug && { collection: collectionSlug, collectionAction }),
     });
   } catch (error) {
     console.error("[Webhook supabase-sync]", error);
