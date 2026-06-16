@@ -1,11 +1,46 @@
 import { NextResponse } from "next/server";
 import { withApiKey } from "@/lib/api-key";
-import { db } from "@brasa/core/db";
+import { db as legacyDb } from "@brasa/core/db";
 import { productCategories } from "@brasa/core/schema";
-import { eq, asc } from "drizzle-orm";
+import { db } from "@/db";
+import { collections, collectionItems } from "@/db/schema";
+import { eq, and, asc, isNull, desc } from "drizzle-orm";
 
 export const GET = withApiKey(async ({ tenantId }) => {
-  const rows = await db.query.productCategories.findMany({
+  // ── Try "categorias" collection first (matches products.category_id source) ─
+  const catCollection = await db.query.collections.findFirst({
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias")),
+  });
+
+  if (catCollection) {
+    const items = await db.query.collectionItems.findMany({
+      where: and(
+        eq(collectionItems.tenantId, tenantId),
+        eq(collectionItems.collectionId, catCollection.id),
+        eq(collectionItems.status, "published"),
+        isNull(collectionItems.deletedAt),
+      ),
+      orderBy: [asc(collectionItems.slug)],
+    });
+
+    return NextResponse.json({
+      docs: items.map((item) => {
+        const d = (item.data ?? {}) as Record<string, any>;
+        return {
+          id: item.id,
+          name: d.name || null,
+          slug: item.slug,
+          description: d.description || null,
+          parentId: null,
+          sortOrder: 0,
+          image: null,
+        };
+      }),
+    });
+  }
+
+  // ── Fallback: legacy product_categories table ──────────────────────────────
+  const rows = await legacyDb.query.productCategories.findMany({
     where: eq(productCategories.tenantId, tenantId),
     orderBy: [asc(productCategories.sortOrder), asc(productCategories.name)],
     with: { image: true },
