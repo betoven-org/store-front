@@ -74,21 +74,76 @@ export async function findSyncedCollection(
   });
 }
 
-// ── Get field type map for a collection ──────────────────────────────────────
+// ── Field metadata for a collection ──────────────────────────────────────────
 
-async function getFieldTypes(
+export type FieldMeta = { type: string; config: Record<string, unknown> | null };
+
+async function getFieldMeta(
   collectionId: number,
-): Promise<Map<string, string>> {
+): Promise<Map<string, FieldMeta>> {
   const fields = await db
-    .select({ slug: collectionFields.slug, type: collectionFields.type })
+    .select({
+      slug: collectionFields.slug,
+      type: collectionFields.type,
+      config: collectionFields.config,
+    })
     .from(collectionFields)
     .where(eq(collectionFields.collectionId, collectionId));
 
-  const map = new Map<string, string>();
+  const map = new Map<string, FieldMeta>();
   for (const f of fields) {
-    map.set(f.slug, f.type);
+    map.set(f.slug, {
+      type: f.type,
+      config: f.config as Record<string, unknown> | null,
+    });
   }
   return map;
+}
+
+// ── Resolve a reference field to { id, name, slug } ─────────────────────────
+
+async function resolveReference(
+  externalId: string,
+  collectionSlug: string,
+  tenantId: number,
+): Promise<Record<string, unknown> | null> {
+  const [refCollection] = await db
+    .select({ id: collections.id })
+    .from(collections)
+    .where(
+      and(
+        eq(collections.tenantId, tenantId),
+        eq(collections.slug, collectionSlug),
+      ),
+    )
+    .limit(1);
+
+  if (!refCollection) return null;
+
+  const [item] = await db
+    .select({
+      id: collectionItems.id,
+      slug: collectionItems.slug,
+      data: collectionItems.data,
+    })
+    .from(collectionItems)
+    .where(
+      and(
+        eq(collectionItems.collectionId, refCollection.id),
+        eq(collectionItems.tenantId, tenantId),
+        eq(collectionItems.externalId, externalId),
+      ),
+    )
+    .limit(1);
+
+  if (!item) return null;
+
+  const d = (item.data ?? {}) as Record<string, unknown>;
+  return {
+    id: item.id,
+    name: d.name || d.nome || null,
+    slug: item.slug,
+  };
 }
 
 // ── Map Supabase record to collection item data ──────────────────────────────
@@ -96,7 +151,7 @@ async function getFieldTypes(
 async function mapRecordToData(
   record: Record<string, unknown>,
   fieldMap: Record<string, string>,
-  fieldTypes: Map<string, string>,
+  fieldMeta: Map<string, FieldMeta>,
   tenantId: number,
 ): Promise<Record<string, unknown>> {
   const data: Record<string, unknown> = {};
@@ -108,7 +163,8 @@ async function mapRecordToData(
       continue;
     }
 
-    const fieldType = fieldTypes.get(collectionField);
+    const meta = fieldMeta.get(collectionField);
+    const fieldType = meta?.type;
 
     // For image fields, create/find media entry and store the media ID
     if (fieldType === "image" && typeof value === "string" && value.length > 0) {
@@ -121,7 +177,17 @@ async function mapRecordToData(
       continue;
     }
 
-    // For json fields, wrap HTML content
+    // For reference fields, resolve to { id, name, slug } object
+    if (fieldType === "reference" && meta?.config) {
+      const refSlug = meta.config.collectionSlug as string | undefined;
+      if (refSlug) {
+        const resolved = await resolveReference(String(value), refSlug, tenantId);
+        data[collectionField] = resolved;
+        continue;
+      }
+    }
+
+    // For json fields, wrap HTML content (strings only — parsed objects pass through)
     if (fieldType === "json" && typeof value === "string") {
       data[collectionField] = { type: "doc", _html: value };
       continue;
@@ -156,7 +222,7 @@ export async function syncRecord(opts: {
   oldRecord: Record<string, unknown> | null;
   collectionId: number;
   syncConfig: SyncConfig;
-  fieldTypes: Map<string, string>;
+  fieldTypes: Map<string, FieldMeta>;
   tenantId: number;
 }): Promise<{ action: "created" | "updated" | "deleted" | "skipped" }> {
   const { type, record, oldRecord, collectionId, syncConfig, fieldTypes, tenantId } = opts;
@@ -200,8 +266,9 @@ export async function syncRecord(opts: {
   const mappedData = await mapRecordToData(record, fieldMap, fieldTypes, tenantId);
   const slug = deriveSlug(record);
   const now = new Date().toISOString();
+  const rawStatus = record["status"] as string | undefined;
   const status: "draft" | "published" =
-    record["status"] === "published" ? "published" : "draft";
+    rawStatus === "published" || rawStatus === "seo_done" ? "published" : "draft";
 
   const [existing] = await db
     .select({ id: collectionItems.id })
@@ -222,6 +289,7 @@ export async function syncRecord(opts: {
         slug,
         data: mappedData,
         status,
+        featured: record["featured"] === true,
         publishedAt:
           status === "published"
             ? (record["published_at"] as string) ||
@@ -236,6 +304,8 @@ export async function syncRecord(opts: {
     return { action: "updated" };
   }
 
+  const isFeatured = record["featured"] === true;
+
   await db.insert(collectionItems).values({
     tenantId,
     collectionId,
@@ -243,7 +313,7 @@ export async function syncRecord(opts: {
     data: mappedData,
     status,
     externalId,
-    featured: false,
+    featured: isFeatured,
     publishedAt:
       status === "published"
         ? (record["published_at"] as string) ||
@@ -266,7 +336,7 @@ export async function syncBatch(opts: {
   tenantId: number;
 }): Promise<SyncResult> {
   const { records, collectionId, syncConfig, tenantId } = opts;
-  const fieldTypes = await getFieldTypes(collectionId);
+  const fieldTypes = await getFieldMeta(collectionId);
 
   const result: SyncResult = {
     collectionSlug: "",
@@ -293,6 +363,6 @@ export async function syncBatch(opts: {
   return result;
 }
 
-// ── Get field types (exported for webhook handler) ───────────────────────────
+// ── Get field metadata (exported for webhook handler) ────────────────────────
 
-export { getFieldTypes as getCollectionFieldTypes };
+export { getFieldMeta as getCollectionFieldTypes };

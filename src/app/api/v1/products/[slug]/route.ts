@@ -6,10 +6,66 @@ import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
 import { eq, and, inArray, isNull } from "drizzle-orm";
 
+// ── Resolve a single media ID to URL ─────────────────────────────────────────
+
+async function resolveMediaId(
+  mediaId: string,
+): Promise<{ url: string; alt: string } | null> {
+  if (!/^\d+$/.test(mediaId)) return null;
+  const [row] = await legacyDb
+    .select({ url: media.url, alt: media.alt })
+    .from(media)
+    .where(eq(media.id, Number(mediaId)))
+    .limit(1);
+  return row ? { url: row.url, alt: row.alt || "" } : null;
+}
+
+// ── Resolve category UUID to { id, name, slug } ─────────────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveCategoryUuid(
+  uuid: string,
+  tenantId: number,
+): Promise<{ id: number; name: string; slug: string } | null> {
+  const catCollection = await db.query.collections.findFirst({
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias-produto")),
+  });
+  if (!catCollection) return null;
+
+  const item = await db.query.collectionItems.findFirst({
+    where: and(
+      eq(collectionItems.collectionId, catCollection.id),
+      eq(collectionItems.tenantId, tenantId),
+      eq(collectionItems.externalId, uuid),
+    ),
+  });
+  if (!item) return null;
+
+  const cd = (item.data ?? {}) as Record<string, any>;
+  return { id: item.id, name: cd.name || "", slug: item.slug };
+}
+
 // ── Transform collection item data → legacy single product format ──────────
 
-function mapCollectionItemToFullProduct(item: typeof collectionItems.$inferSelect) {
+async function mapCollectionItemToFullProduct(item: typeof collectionItems.$inferSelect, tenantId: number) {
   const d = (item.data ?? {}) as Record<string, any>;
+
+  // Resolve image (could be media ID or URL)
+  const imgVal = d.image || d.hero_image;
+  let imageObj: Record<string, any> | null = null;
+  if (typeof imgVal === "string" && /^\d+$/.test(imgVal)) {
+    const resolved = await resolveMediaId(imgVal);
+    if (resolved) imageObj = { url: resolved.url, alt: resolved.alt || d.name || "", cardUrl: null, heroUrl: null };
+  } else if (imgVal) {
+    imageObj = {
+      url: typeof imgVal === "string" ? imgVal : (imgVal?.url || null),
+      alt: imgVal?.alt || d.name || "",
+      cardUrl: imgVal?.cardUrl || null,
+      heroUrl: imgVal?.heroUrl || null,
+    };
+  }
+
   return {
     id: item.id,
     name: d.name || d.nome || null,
@@ -28,19 +84,14 @@ function mapCollectionItemToFullProduct(item: typeof collectionItems.$inferSelec
     seoTitle: d.seoTitle || d.seo_title || null,
     seoDescription: d.seoDescription || d.seo_description || null,
     publishedAt: item.publishedAt,
-    category: d.category
-      ? { id: d.category.id || null, name: d.category.name || d.category, slug: d.category.slug || null }
-      : d.categoryName
-        ? { id: null, name: d.categoryName, slug: d.categorySlug || null }
-        : null,
-    image: d.image || d.hero_image
-      ? {
-          url: typeof (d.image || d.hero_image) === "string" ? (d.image || d.hero_image) : (d.image?.url || d.hero_image),
-          alt: d.image?.alt || d.name || "",
-          cardUrl: d.image?.cardUrl || null,
-          heroUrl: d.image?.heroUrl || null,
-        }
-      : null,
+    category: typeof d.category === "string" && UUID_RE.test(d.category)
+      ? await resolveCategoryUuid(d.category, tenantId)
+      : d.category && typeof d.category === "object"
+        ? { id: d.category.id || null, name: d.category.name || null, slug: d.category.slug || null }
+        : d.categoryName
+          ? { id: null, name: d.categoryName, slug: d.categorySlug || null }
+          : null,
+    image: imageObj,
     gallery: Array.isArray(d.gallery)
       ? d.gallery.map((g: any) => ({
           id: g.id || null,
@@ -71,7 +122,7 @@ export const GET = withApiKey(async ({ tenantId }, _req, params) => {
     });
 
     if (item) {
-      return NextResponse.json(mapCollectionItemToFullProduct(item));
+      return NextResponse.json(await mapCollectionItemToFullProduct(item, tenantId));
     }
 
     // Not found in collection — fall through to legacy

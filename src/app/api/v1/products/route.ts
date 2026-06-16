@@ -1,15 +1,106 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withApiKey } from "@/lib/api-key";
 import { db as legacyDb } from "@brasa/core/db";
-import { products } from "@brasa/core/schema";
+import { products, media } from "@brasa/core/schema";
 import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
-import { eq, desc, and, isNull, sql } from "drizzle-orm";
+import { eq, desc, and, isNull, inArray, sql } from "drizzle-orm";
+
+// ── Resolve media IDs to URLs (batch) ────────────────────────────────────────
+
+async function resolveMediaUrls(
+  items: (typeof collectionItems.$inferSelect)[],
+): Promise<Map<string, { url: string; alt: string }>> {
+  const ids: number[] = [];
+  for (const item of items) {
+    const d = (item.data ?? {}) as Record<string, any>;
+    const imgVal = d.image || d.hero_image;
+    if (typeof imgVal === "string" && /^\d+$/.test(imgVal)) {
+      ids.push(Number(imgVal));
+    }
+  }
+  if (ids.length === 0) return new Map();
+
+  const rows = await legacyDb
+    .select({ id: media.id, url: media.url, alt: media.alt })
+    .from(media)
+    .where(inArray(media.id, [...new Set(ids)]));
+
+  const map = new Map<string, { url: string; alt: string }>();
+  for (const r of rows) {
+    map.set(String(r.id), { url: r.url, alt: r.alt || "" });
+  }
+  return map;
+}
+
+// ── Resolve category UUIDs to { id, name, slug } (batch) ────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveCategoryUuids(
+  items: (typeof collectionItems.$inferSelect)[],
+  tenantId: number,
+): Promise<Map<string, { id: number; name: string; slug: string }>> {
+  const uuids: string[] = [];
+  for (const item of items) {
+    const d = (item.data ?? {}) as Record<string, any>;
+    const cat = d.category;
+    if (typeof cat === "string" && UUID_RE.test(cat)) uuids.push(cat);
+  }
+  if (uuids.length === 0) return new Map();
+
+  const catCollection = await db.query.collections.findFirst({
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias-produto")),
+  });
+  if (!catCollection) return new Map();
+
+  const catItems = await db.query.collectionItems.findMany({
+    where: and(
+      eq(collectionItems.collectionId, catCollection.id),
+      eq(collectionItems.tenantId, tenantId),
+      inArray(collectionItems.externalId, [...new Set(uuids)]),
+    ),
+  });
+
+  const map = new Map<string, { id: number; name: string; slug: string }>();
+  for (const ci of catItems) {
+    const cd = (ci.data ?? {}) as Record<string, any>;
+    map.set(ci.externalId!, { id: ci.id, name: cd.name || "", slug: ci.slug });
+  }
+  return map;
+}
+
+// ── Build category object from data ─────────────────────────────────────────
+
+function buildCategory(
+  d: Record<string, any>,
+  catMap: Map<string, { id: number; name: string; slug: string }>,
+) {
+  const cat = d.category;
+  if (!cat) return d.categoryName ? { id: null, name: d.categoryName, slug: d.categorySlug || null } : null;
+  // Already resolved object
+  if (typeof cat === "object") return { id: cat.id || null, name: cat.name || null, slug: cat.slug || null };
+  // Raw UUID string — resolve from map
+  if (typeof cat === "string" && UUID_RE.test(cat)) {
+    const resolved = catMap.get(cat);
+    return resolved || null;
+  }
+  return null;
+}
 
 // ── Transform collection item data → legacy product list format ────────────
 
-function mapCollectionItemToProduct(item: typeof collectionItems.$inferSelect) {
+function mapCollectionItemToProduct(
+  item: typeof collectionItems.$inferSelect,
+  mediaMap: Map<string, { url: string; alt: string }>,
+  catMap: Map<string, { id: number; name: string; slug: string }>,
+) {
   const d = (item.data ?? {}) as Record<string, any>;
+  const imgVal = d.image || d.hero_image;
+  const resolved = typeof imgVal === "string" && /^\d+$/.test(imgVal)
+    ? mediaMap.get(imgVal)
+    : null;
+
   return {
     id: item.id,
     name: d.name || d.nome || null,
@@ -19,18 +110,16 @@ function mapCollectionItemToProduct(item: typeof collectionItems.$inferSelect) {
     isKit: d.isKit || d.is_kit || false,
     featured: item.featured,
     publishedAt: item.publishedAt,
-    category: d.category
-      ? { id: d.category.id || null, name: d.category.name || d.category, slug: d.category.slug || null }
-      : d.categoryName
-        ? { id: null, name: d.categoryName, slug: d.categorySlug || null }
+    category: buildCategory(d, catMap),
+    image: resolved
+      ? { url: resolved.url, alt: resolved.alt || d.name || "", thumbnailUrl: null }
+      : imgVal
+        ? {
+            url: typeof imgVal === "string" ? imgVal : (imgVal?.url || null),
+            alt: imgVal?.alt || d.name || "",
+            thumbnailUrl: imgVal?.thumbnailUrl || null,
+          }
         : null,
-    image: d.image || d.hero_image
-      ? {
-          url: typeof (d.image || d.hero_image) === "string" ? (d.image || d.hero_image) : (d.image?.url || d.hero_image),
-          alt: d.image?.alt || d.name || "",
-          thumbnailUrl: d.image?.thumbnailUrl || null,
-        }
-      : null,
   };
 }
 
@@ -69,8 +158,13 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
       offset,
     });
 
+    const [mediaMap, catMap] = await Promise.all([
+      resolveMediaUrls(items),
+      resolveCategoryUuids(items, tenantId),
+    ]);
+
     return NextResponse.json({
-      docs: items.map(mapCollectionItemToProduct),
+      docs: items.map((item) => mapCollectionItemToProduct(item, mediaMap, catMap)),
     });
   }
 
