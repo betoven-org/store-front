@@ -50,7 +50,7 @@ async function resolveCategoryUuids(
   if (uuids.length === 0) return new Map();
 
   const catCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias-produto")),
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias")),
   });
   if (!catCollection) return new Map();
 

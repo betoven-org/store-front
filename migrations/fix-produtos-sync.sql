@@ -80,7 +80,7 @@ desired_fields (slug, name, type, required, sort_order, config) AS (
     ('benefits',           'Beneficios',          'json'::collection_field_type,      false, 7,  NULL),
     ('differentials',      'Diferenciais',        'json'::collection_field_type,      false, 8,  NULL),
     ('faq',                'FAQ',                 'json'::collection_field_type,      false, 9,  NULL),
-    ('category',           'Categoria',           'reference'::collection_field_type, false, 10, '{"collectionSlug":"categorias-produto"}'::jsonb),
+    ('category',           'Categoria',           'reference'::collection_field_type, false, 10, '{"collectionSlug":"categorias"}'::jsonb),
     ('image',              'Imagem',              'image'::collection_field_type,     false, 11, NULL),
     ('gallery_images',     'Galeria',             'json'::collection_field_type,      false, 12, NULL),
     ('seo_title',          'SEO Title',           'text'::collection_field_type,      false, 13, NULL),

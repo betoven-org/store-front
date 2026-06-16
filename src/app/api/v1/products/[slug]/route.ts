@@ -29,7 +29,7 @@ async function resolveCategoryUuid(
   tenantId: number,
 ): Promise<{ id: number; name: string; slug: string } | null> {
   const catCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias-produto")),
+    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "categorias")),
   });
   if (!catCollection) return null;
 
