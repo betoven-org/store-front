@@ -47,7 +47,13 @@ export function isNeonConnectionError(err: unknown): boolean {
     msg.includes("connection reset") ||
     msg.includes("connection timeout") ||
     msg.includes("tcp provider") ||
-    msg.includes("enotfound")
+    msg.includes("enotfound") ||
+    msg.includes("exceeded") ||
+    msg.includes("quota") ||
+    msg.includes("http status 402") ||
+    msg.includes("http status 429") ||
+    msg.includes("too many") ||
+    msg.includes("server error")
   );
 }
 
