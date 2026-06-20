@@ -35,25 +35,29 @@ export function markNeonUp(): void {
 
 export function isNeonConnectionError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
+  // Drizzle wraps NeonDbError in cause — check both
   const msg = err.message.toLowerCase();
+  const causeMsg =
+    err.cause instanceof Error ? err.cause.message.toLowerCase() : "";
+  const full = `${msg} ${causeMsg}`;
   return (
-    msg.includes("fetch failed") ||
-    msg.includes("econnrefused") ||
-    msg.includes("etimedout") ||
-    msg.includes("socket hang up") ||
-    msg.includes("network") ||
-    msg.includes("getaddrinfo") ||
-    msg.includes("connection refused") ||
-    msg.includes("connection reset") ||
-    msg.includes("connection timeout") ||
-    msg.includes("tcp provider") ||
-    msg.includes("enotfound") ||
-    msg.includes("exceeded") ||
-    msg.includes("quota") ||
-    msg.includes("http status 402") ||
-    msg.includes("http status 429") ||
-    msg.includes("too many") ||
-    msg.includes("server error")
+    full.includes("fetch failed") ||
+    full.includes("econnrefused") ||
+    full.includes("etimedout") ||
+    full.includes("socket hang up") ||
+    full.includes("network") ||
+    full.includes("getaddrinfo") ||
+    full.includes("connection refused") ||
+    full.includes("connection reset") ||
+    full.includes("connection timeout") ||
+    full.includes("tcp provider") ||
+    full.includes("enotfound") ||
+    full.includes("exceeded") ||
+    full.includes("quota") ||
+    full.includes("http status 402") ||
+    full.includes("http status 429") ||
+    full.includes("too many") ||
+    full.includes("server error")
   );
 }
 
