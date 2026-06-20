@@ -300,9 +300,25 @@ async function postsFallback(
 
   if (!result) return null;
 
-  const docs = result.data.map((row) => {
-    const item = supabaseRowToCollectionItem(row as Record<string, unknown>, config.fieldMap);
-    return mapCollectionItemToPost(item as any);
+  const docs = result.data.map((row: any) => {
+    const imageUrl = row.cover_image_url || null;
+    return {
+      id: row.id,
+      title: row.title || null,
+      slug: row.slug,
+      excerpt: row.excerpt || null,
+      coverUrl: imageUrl,
+      publishedAt: row.published_at || row.published_date || row.created_at,
+      status: row.status || "published",
+      featured: row.featured || false,
+      readingTimeMinutes: row.reading_time_minutes || null,
+      category: null,
+      author: row.author_name ? { id: null, name: row.author_name, slug: null, bio: null, avatar: null } : null,
+      heroImage: imageUrl
+        ? { id: null, url: imageUrl, alt: row.cover_image_alt || row.title || "", sizes: { thumbnail: { url: imageUrl }, card: { url: imageUrl }, hero: { url: imageUrl } } }
+        : null,
+      tags: [],
+    };
   });
 
   const totalDocs = result.count;

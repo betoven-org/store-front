@@ -194,13 +194,59 @@ async function postBySlugFallback(
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const item = supabaseRowToCollectionItem(
-    result.data[0] as Record<string, unknown>,
-    config.fieldMap,
-  );
+  const row = result.data[0] as Record<string, any>;
+
+  // Resolve category UUID → name from Supabase
+  let category = null;
+  if (row.category_id) {
+    const catConfig = getCachedSyncConfig(tenantId, "categorias");
+    if (catConfig) {
+      const catResult = await querySupabase(catConfig.supabaseTable, {
+        filters: { id: `eq.${row.category_id}` },
+        limit: 1,
+      });
+      if (catResult?.data?.[0]) {
+        const c = catResult.data[0] as Record<string, any>;
+        category = { id: c.id, name: c.name, slug: c.slug };
+      }
+    }
+  }
+
+  // Wrap raw content in TipTap format for the storefront renderer
+  const rawContent = row.content;
+  const content = typeof rawContent === "string" ? { type: "doc", _html: rawContent } : rawContent;
+
+  const imageUrl = row.cover_image_url || row.embalagem_mockup || null;
 
   return NextResponse.json({
-    ...mapCollectionItemToFullPost(item as any),
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    excerpt: row.excerpt,
+    content,
+    coverUrl: imageUrl,
+    publishedAt: row.published_at || row.published_date || row.created_at,
+    status: row.status,
+    featured: row.featured || false,
+    readingTimeMinutes: row.reading_time_minutes || null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    metaTitle: row.meta_title || null,
+    metaDescription: row.meta_description || null,
+    ogTitle: row.og_title || null,
+    ogDescription: row.og_description || null,
+    ogImageUrl: row.og_image_url || null,
+    canonicalUrl: row.canonical_url || null,
+    noindex: row.noindex ?? false,
+    nofollow: row.nofollow ?? false,
+    category,
+    author: row.author_name
+      ? { id: null, name: row.author_name, slug: null, bio: null, avatar: null }
+      : null,
+    heroImage: imageUrl
+      ? { id: null, url: imageUrl, alt: row.cover_image_alt || row.title || "", sizes: { thumbnail: { url: imageUrl }, card: { url: imageUrl }, hero: { url: imageUrl } } }
+      : null,
+    tags: [],
     _fallback: "supabase",
   });
 }

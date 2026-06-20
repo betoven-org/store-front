@@ -224,12 +224,16 @@ async function productBySlugFallback(
 
   const row = result.data[0] as Record<string, any>;
 
+  // Wrap raw content in TipTap format for the storefront renderer
+  const rawContent = row.content;
+  const content = typeof rawContent === "string" ? { type: "doc", _html: rawContent } : rawContent;
+
   return NextResponse.json({
     id: row.id,
     name: row.title || row.name || null,
     slug: row.slug,
     description: row.excerpt || row.description || null,
-    content: row.content || null,
+    content,
     composition: row.composition || null,
     usageInstructions: row.usage_instructions || null,
     whoCanUse: row.who_can_use || null,
