@@ -5,6 +5,11 @@ import { posts } from "@brasa/core/schema";
 import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
+import {
+  isNeonDown, isNeonConnectionError, markNeonDown,
+  cacheSyncConfig, getCachedSyncConfig, type CachedSyncConfig,
+  querySupabase, supabaseRowToCollectionItem,
+} from "@/lib/neon-fallback";
 
 function mapMedia(m: any) {
   if (!m) return null;
@@ -75,84 +80,127 @@ function mapCollectionItemToFullPost(item: typeof collectionItems.$inferSelect) 
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const { slug } = params;
 
-  // ── Try collection_items first ───────────────────────────────────────────
-  const postsCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
-  });
+  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  if (isNeonDown()) {
+    const fb = await postBySlugFallback(tenantId, slug, draft);
+    if (fb) return fb;
+  }
 
-  if (postsCollection) {
-    const item = await db.query.collectionItems.findFirst({
-      where: and(
-        eq(collectionItems.tenantId, tenantId),
-        eq(collectionItems.collectionId, postsCollection.id),
-        eq(collectionItems.slug, slug),
-        isNull(collectionItems.deletedAt),
-      ),
+  try {
+    // ── Try collection_items first ─────────────────────────────────────────
+    const postsCollection = await db.query.collections.findFirst({
+      where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
     });
 
-    if (item && (draft || item.status === "published")) {
-      return NextResponse.json(mapCollectionItemToFullPost(item));
+    if (postsCollection?.syncConfig && postsCollection.source === "synced") {
+      cacheSyncConfig(tenantId, "posts", postsCollection.syncConfig as CachedSyncConfig);
     }
 
-    if (item && !draft && item.status !== "published") {
+    if (postsCollection) {
+      const item = await db.query.collectionItems.findFirst({
+        where: and(
+          eq(collectionItems.tenantId, tenantId),
+          eq(collectionItems.collectionId, postsCollection.id),
+          eq(collectionItems.slug, slug),
+          isNull(collectionItems.deletedAt),
+        ),
+      });
+
+      if (item && (draft || item.status === "published")) {
+        return NextResponse.json(mapCollectionItemToFullPost(item));
+      }
+
+      if (item && !draft && item.status !== "published") {
+        return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      }
+    }
+
+    // ── Fallback: legacy posts table ───────────────────────────────────────
+
+    const row = await legacyDb.query.posts.findFirst({
+      where: and(eq(posts.tenantId, tenantId), eq(posts.slug, slug)),
+      with: {
+        category: true,
+        author: { with: { avatar: true } },
+        heroImage: true,
+        tags: true,
+      },
+    });
+
+    if (!row || (!draft && row.status !== "published")) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    // Item not found in collection — fall through to legacy
+    return NextResponse.json({
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      excerpt: row.excerpt,
+      content: row.content,
+      coverUrl: row.coverUrl,
+      publishedAt: row.publishedAt,
+      status: row.status,
+      featured: row.featured,
+      readingTimeMinutes: row.readingTimeMinutes,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      metaTitle: row.metaTitle,
+      metaDescription: row.metaDescription,
+      ogTitle: row.ogTitle,
+      ogDescription: row.ogDescription,
+      ogImageUrl: row.ogImageUrl,
+      canonicalUrl: row.canonicalUrl,
+      noindex: row.noindex,
+      nofollow: row.nofollow,
+      category: row.category
+        ? { id: row.category.id, name: row.category.name, slug: row.category.slug }
+        : null,
+      author: row.author
+        ? {
+            id: row.author.id,
+            name: row.author.name,
+            slug: row.author.slug,
+            bio: row.author.bio,
+            avatar: row.author.avatar ? { url: row.author.avatar.url } : null,
+          }
+        : null,
+      heroImage: mapMedia(row.heroImage),
+      tags: (row.tags ?? []).map((t: any) => ({ tag: t.tag })),
+    });
+  } catch (err) {
+    if (!isNeonConnectionError(err)) throw err;
+    markNeonDown();
+    const fb = await postBySlugFallback(tenantId, slug, draft);
+    if (fb) return fb;
+    return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
+});
 
-  // ── Fallback: legacy posts table ─────────────────────────────────────────
+// ── Supabase fallback for single post ───────────────────────────────────────
 
-  const row = await legacyDb.query.posts.findFirst({
-    where: and(eq(posts.tenantId, tenantId), eq(posts.slug, slug)),
-    with: {
-      category: true,
-      author: { with: { avatar: true } },
-      heroImage: true,
-      tags: true,
-    },
-  });
+async function postBySlugFallback(
+  tenantId: number,
+  slug: string,
+  draft: boolean,
+): Promise<NextResponse | null> {
+  const config = getCachedSyncConfig(tenantId, "posts");
+  if (!config) return null;
 
-  if (!row || (!draft && row.status !== "published")) {
+  const filters: Record<string, string> = { slug: `eq.${slug}` };
+  if (!draft) filters.status = "eq.published";
+
+  const result = await querySupabase(config.supabaseTable, { filters, limit: 1 });
+  if (!result || result.data.length === 0) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
+  const item = supabaseRowToCollectionItem(
+    result.data[0] as Record<string, unknown>,
+    config.fieldMap,
+  );
+
   return NextResponse.json({
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    excerpt: row.excerpt,
-    content: row.content,
-    coverUrl: row.coverUrl,
-    publishedAt: row.publishedAt,
-    status: row.status,
-    featured: row.featured,
-    readingTimeMinutes: row.readingTimeMinutes,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    // SEO fields
-    metaTitle: row.metaTitle,
-    metaDescription: row.metaDescription,
-    ogTitle: row.ogTitle,
-    ogDescription: row.ogDescription,
-    ogImageUrl: row.ogImageUrl,
-    canonicalUrl: row.canonicalUrl,
-    noindex: row.noindex,
-    nofollow: row.nofollow,
-    // Relations
-    category: row.category
-      ? { id: row.category.id, name: row.category.name, slug: row.category.slug }
-      : null,
-    author: row.author
-      ? {
-          id: row.author.id,
-          name: row.author.name,
-          slug: row.author.slug,
-          bio: row.author.bio,
-          avatar: row.author.avatar ? { url: row.author.avatar.url } : null,
-        }
-      : null,
-    heroImage: mapMedia(row.heroImage),
-    tags: (row.tags ?? []).map((t: any) => ({ tag: t.tag })),
+    ...mapCollectionItemToFullPost(item as any),
+    _fallback: "supabase",
   });
-});
+}

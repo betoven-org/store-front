@@ -5,6 +5,11 @@ import { posts, categories, authors, media, tags } from "@brasa/core/schema";
 import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
 import { eq, desc, and, ilike, or, sql, count, isNull } from "drizzle-orm";
+import {
+  isNeonDown, isNeonConnectionError, markNeonDown,
+  cacheSyncConfig, getCachedSyncConfig, type CachedSyncConfig,
+  querySupabase, supabaseRowToCollectionItem, findSupabaseColumn,
+} from "@/lib/neon-fallback";
 
 function mapMedia(m: any) {
   if (!m) return null;
@@ -97,64 +102,152 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   const featured = searchParams.get("featured");
   const search = searchParams.get("search");
 
-  // ── Try collection_items first ───────────────────────────────────────────
-  const postsCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
-  });
+  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  if (isNeonDown()) {
+    const fb = await postsFallback(tenantId, { limit, page, offset, featured, search, draft });
+    if (fb) return fb;
+  }
 
-  if (postsCollection) {
-    const conditions: any[] = [
-      eq(collectionItems.tenantId, tenantId),
-      eq(collectionItems.collectionId, postsCollection.id),
-      isNull(collectionItems.deletedAt),
-    ];
+  try {
+    // ── Try collection_items first ─────────────────────────────────────────
+    const postsCollection = await db.query.collections.findFirst({
+      where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
+    });
+
+    // Cache sync config for Supabase fallback
+    if (postsCollection?.syncConfig && postsCollection.source === "synced") {
+      cacheSyncConfig(tenantId, "posts", postsCollection.syncConfig as CachedSyncConfig);
+    }
+
+    if (postsCollection) {
+      const conditions: any[] = [
+        eq(collectionItems.tenantId, tenantId),
+        eq(collectionItems.collectionId, postsCollection.id),
+        isNull(collectionItems.deletedAt),
+      ];
+
+      if (!draft) {
+        conditions.push(eq(collectionItems.status, "published"));
+      }
+
+      if (featured === "true") {
+        conditions.push(eq(collectionItems.featured, true));
+      }
+
+      if (categorySlug) {
+        conditions.push(
+          or(
+            sql`${collectionItems.data}->>'categorySlug' = ${categorySlug}`,
+            sql`${collectionItems.data}->'category'->>'slug' = ${categorySlug}`,
+          ),
+        );
+      }
+
+      if (search) {
+        conditions.push(
+          or(
+            sql`${collectionItems.data}->>'title' ILIKE ${"%" + search + "%"}`,
+            sql`${collectionItems.data}->>'excerpt' ILIKE ${"%" + search + "%"}`,
+            ilike(collectionItems.slug, `%${search}%`),
+          ),
+        );
+      }
+
+      const whereClause = and(...conditions);
+
+      const [{ total }] = await db
+        .select({ total: count() })
+        .from(collectionItems)
+        .where(whereClause);
+
+      const totalDocs = Number(total);
+      const totalPages = Math.ceil(totalDocs / limit);
+
+      const items = await db.query.collectionItems.findMany({
+        where: whereClause,
+        orderBy: [desc(collectionItems.publishedAt)],
+        limit,
+        offset,
+      });
+
+      const docs = items.map(mapCollectionItemToPost);
+
+      return NextResponse.json({
+        docs,
+        totalDocs,
+        totalPages,
+        page,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      });
+    }
+
+    // ── Fallback: legacy posts table ───────────────────────────────────────
+
+    const conditions: any[] = [eq(posts.tenantId, tenantId)];
 
     if (!draft) {
-      conditions.push(eq(collectionItems.status, "published"));
+      conditions.push(eq(posts.status, "published"));
     }
 
     if (featured === "true") {
-      conditions.push(eq(collectionItems.featured, true));
+      conditions.push(eq(posts.featured, true));
+    }
+
+    if (authorId) {
+      conditions.push(eq(posts.authorId, Number(authorId)));
     }
 
     if (categorySlug) {
-      // Filter by category in jsonb data
-      conditions.push(
-        or(
-          sql`${collectionItems.data}->>'categorySlug' = ${categorySlug}`,
-          sql`${collectionItems.data}->'category'->>'slug' = ${categorySlug}`,
-        ),
-      );
+      const categoryRow = await legacyDb.query.categories.findFirst({
+        where: and(eq(categories.tenantId, tenantId), eq(categories.slug, categorySlug)),
+      });
+      if (categoryRow) {
+        conditions.push(eq(posts.categoryId, categoryRow.id));
+      } else {
+        return NextResponse.json({
+          docs: [],
+          totalDocs: 0,
+          totalPages: 0,
+          page,
+          limit,
+          hasNextPage: false,
+          hasPrevPage: false,
+        });
+      }
     }
 
     if (search) {
       conditions.push(
-        or(
-          sql`${collectionItems.data}->>'title' ILIKE ${"%" + search + "%"}`,
-          sql`${collectionItems.data}->>'excerpt' ILIKE ${"%" + search + "%"}`,
-          ilike(collectionItems.slug, `%${search}%`),
-        ),
+        or(ilike(posts.title, `%${search}%`), ilike(posts.excerpt, `%${search}%`)),
       );
     }
 
     const whereClause = and(...conditions);
 
-    const [{ total }] = await db
+    const [{ total }] = await legacyDb
       .select({ total: count() })
-      .from(collectionItems)
+      .from(posts)
       .where(whereClause);
 
     const totalDocs = Number(total);
     const totalPages = Math.ceil(totalDocs / limit);
 
-    const items = await db.query.collectionItems.findMany({
+    const rows = await legacyDb.query.posts.findMany({
       where: whereClause,
-      orderBy: [desc(collectionItems.publishedAt)],
+      with: {
+        category: true,
+        author: { with: { avatar: true } },
+        heroImage: true,
+        tags: true,
+      },
+      orderBy: [desc(posts.publishedAt)],
       limit,
       offset,
     });
 
-    const docs = items.map(mapCollectionItemToPost);
+    const docs = rows.map(mapPost);
 
     return NextResponse.json({
       docs,
@@ -165,81 +258,64 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
     });
+  } catch (err) {
+    if (!isNeonConnectionError(err)) throw err;
+    markNeonDown();
+    const fb = await postsFallback(tenantId, { limit, page, offset, featured, search, draft });
+    if (fb) return fb;
+    return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
+  }
+});
+
+// ── Supabase fallback for posts list ────────────────────────────────────────
+
+async function postsFallback(
+  tenantId: number,
+  opts: { limit: number; page: number; offset: number; featured: string | null; search: string | null; draft: boolean },
+): Promise<NextResponse | null> {
+  const config = getCachedSyncConfig(tenantId, "posts");
+  if (!config) return null;
+
+  const filters: Record<string, string> = {};
+  if (!opts.draft) filters.status = "eq.published";
+  if (opts.featured === "true") filters.featured = "eq.true";
+
+  let orClause: string | undefined;
+  if (opts.search) {
+    const titleCol = findSupabaseColumn(config.fieldMap, "title");
+    const excerptCol = findSupabaseColumn(config.fieldMap, "excerpt");
+    const parts: string[] = [];
+    if (titleCol) parts.push(`${titleCol}.ilike.%${opts.search}%`);
+    if (excerptCol) parts.push(`${excerptCol}.ilike.%${opts.search}%`);
+    if (parts.length > 0) orClause = `(${parts.join(",")})`;
   }
 
-  // ── Fallback: legacy posts table ─────────────────────────────────────────
-
-  const conditions: any[] = [eq(posts.tenantId, tenantId)];
-
-  if (!draft) {
-    conditions.push(eq(posts.status, "published"));
-  }
-
-  if (featured === "true") {
-    conditions.push(eq(posts.featured, true));
-  }
-
-  if (authorId) {
-    conditions.push(eq(posts.authorId, Number(authorId)));
-  }
-
-  if (categorySlug) {
-    const categoryRow = await legacyDb.query.categories.findFirst({
-      where: and(eq(categories.tenantId, tenantId), eq(categories.slug, categorySlug)),
-    });
-    if (categoryRow) {
-      conditions.push(eq(posts.categoryId, categoryRow.id));
-    } else {
-      return NextResponse.json({
-        docs: [],
-        totalDocs: 0,
-        totalPages: 0,
-        page,
-        limit,
-        hasNextPage: false,
-        hasPrevPage: false,
-      });
-    }
-  }
-
-  if (search) {
-    conditions.push(
-      or(ilike(posts.title, `%${search}%`), ilike(posts.excerpt, `%${search}%`)),
-    );
-  }
-
-  const whereClause = and(...conditions);
-
-  const [{ total }] = await legacyDb
-    .select({ total: count() })
-    .from(posts)
-    .where(whereClause);
-
-  const totalDocs = Number(total);
-  const totalPages = Math.ceil(totalDocs / limit);
-
-  const rows = await legacyDb.query.posts.findMany({
-    where: whereClause,
-    with: {
-      category: true,
-      author: { with: { avatar: true } },
-      heroImage: true,
-      tags: true,
-    },
-    orderBy: [desc(posts.publishedAt)],
-    limit,
-    offset,
+  const result = await querySupabase(config.supabaseTable, {
+    filters,
+    or: orClause,
+    order: "created_at.desc",
+    limit: opts.limit,
+    offset: opts.offset,
   });
 
-  const docs = rows.map(mapPost);
+  if (!result) return null;
+
+  const docs = result.data.map((row) => {
+    const item = supabaseRowToCollectionItem(row as Record<string, unknown>, config.fieldMap);
+    return mapCollectionItemToPost(item as any);
+  });
+
+  const totalDocs = result.count;
+  const totalPages = Math.ceil(totalDocs / opts.limit);
 
   return NextResponse.json({
     docs,
     totalDocs,
     totalPages,
-    page,
-    limit,
-    hasNextPage: page < totalPages,
-    hasPrevPage: page > 1,
+    page: opts.page,
+    limit: opts.limit,
+    hasNextPage: opts.page < totalPages,
+    hasPrevPage: opts.page > 1,
+    _fallback: "supabase",
   });
-});
+}

@@ -2,27 +2,76 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@brasa/core/db";
 import { tenants } from "@brasa/core/schema";
 import { eq } from "drizzle-orm";
+import {
+  isNeonDown,
+  isNeonConnectionError,
+  markNeonDown,
+  markNeonUp,
+  warmSyncConfigs,
+  isTenantWarmed,
+} from "./neon-fallback";
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 min
 const keyCache = new Map<string, { tenantId: number; revalidateSecret: string | null; ts: number }>();
 
 async function resolveApiKey(apiKey: string) {
   const cached = keyCache.get(apiKey);
+
+  // Neon down → use stale cache (any age)
+  if (isNeonDown() && cached) {
+    return cached;
+  }
+
+  // Cache still fresh
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
     return cached;
   }
 
-  const [tenant] = await db
-    .select({ id: tenants.id, revalidateSecret: tenants.revalidateSecret })
-    .from(tenants)
-    .where(eq(tenants.apiKey, apiKey))
-    .limit(1);
+  try {
+    const [tenant] = await db
+      .select({ id: tenants.id, revalidateSecret: tenants.revalidateSecret })
+      .from(tenants)
+      .where(eq(tenants.apiKey, apiKey))
+      .limit(1);
 
-  if (!tenant) return null;
+    if (!tenant) return null;
 
-  const entry = { tenantId: tenant.id, revalidateSecret: tenant.revalidateSecret, ts: Date.now() };
-  keyCache.set(apiKey, entry);
-  return entry;
+    markNeonUp();
+
+    // Warm sync config cache on first success per tenant
+    if (!isTenantWarmed(tenant.id)) {
+      warmSyncConfigsForTenant(tenant.id);
+    }
+
+    const entry = { tenantId: tenant.id, revalidateSecret: tenant.revalidateSecret, ts: Date.now() };
+    keyCache.set(apiKey, entry);
+    return entry;
+  } catch (err) {
+    if (isNeonConnectionError(err)) {
+      markNeonDown();
+      if (cached) return cached; // stale is better than nothing
+    }
+    throw err;
+  }
+}
+
+/** Fire-and-forget: load all synced collection configs into memory cache */
+async function warmSyncConfigsForTenant(tenantId: number) {
+  try {
+    const { db: appDb } = await import("@/db");
+    const { collections } = await import("@/db/schema");
+
+    const rows = await appDb.query.collections.findMany({
+      where: eq(collections.tenantId, tenantId),
+    });
+
+    warmSyncConfigs(
+      tenantId,
+      rows.map((r) => ({ slug: r.slug, source: r.source, syncConfig: r.syncConfig })),
+    );
+  } catch {
+    // best-effort — will retry on next request
+  }
 }
 
 const CACHE_HEADER = "Cache-Control";
