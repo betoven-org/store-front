@@ -5,6 +5,10 @@ import { products, media } from "@brasa/core/schema";
 import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
 import { eq, and, inArray, isNull } from "drizzle-orm";
+import {
+  isNeonDown, isNeonConnectionError, markNeonDown,
+  getCachedSyncConfig, querySupabase,
+} from "@/lib/neon-fallback";
 
 // ── Resolve a single media ID to URL ─────────────────────────────────────────
 
@@ -105,6 +109,12 @@ async function mapCollectionItemToFullProduct(item: typeof collectionItems.$infe
 export const GET = withApiKey(async ({ tenantId }, _req, params) => {
   const { slug } = params;
 
+  if (isNeonDown()) {
+    const fb = await productBySlugFallback(tenantId, slug);
+    if (fb) return fb;
+  }
+
+  try {
   // ── Try collection_items first ───────────────────────────────────────────
   const prodCollection = await db.query.collections.findFirst({
     where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "produtos")),
@@ -185,4 +195,60 @@ export const GET = withApiKey(async ({ tenantId }, _req, params) => {
       : null,
     gallery,
   });
+  } catch (err) {
+    if (!isNeonConnectionError(err)) throw err;
+    markNeonDown();
+    const fb = await productBySlugFallback(tenantId, slug);
+    if (fb) return fb;
+    return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
+  }
 });
+
+// ── Supabase fallback for single product ────────────────────────────────────
+
+async function productBySlugFallback(
+  tenantId: number,
+  slug: string,
+): Promise<NextResponse | null> {
+  const config = getCachedSyncConfig(tenantId, "produtos");
+  if (!config) return null;
+
+  const result = await querySupabase(config.supabaseTable, {
+    filters: { slug: `eq.${slug}`, status: "eq.published" },
+    limit: 1,
+  });
+
+  if (!result || result.data.length === 0) {
+    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+  }
+
+  const row = result.data[0] as Record<string, any>;
+
+  return NextResponse.json({
+    id: row.id,
+    name: row.title || row.name || null,
+    slug: row.slug,
+    description: row.excerpt || row.description || null,
+    content: row.content || null,
+    composition: row.composition || null,
+    usageInstructions: row.usage_instructions || null,
+    whoCanUse: row.who_can_use || null,
+    benefits: row.benefits || null,
+    differentials: row.differentials || null,
+    faq: row.faq || null,
+    brand: row.brand || null,
+    isKit: row.is_kit || false,
+    featured: row.featured || false,
+    seoTitle: row.meta_title || null,
+    seoDescription: row.meta_description || null,
+    publishedAt: row.published_at || row.published_date || row.created_at,
+    category: null,
+    image: row.cover_image_url
+      ? { url: row.cover_image_url, alt: row.cover_image_alt || row.title || "", cardUrl: null, heroUrl: null }
+      : row.embalagem_mockup
+        ? { url: row.embalagem_mockup, alt: row.title || "", cardUrl: null, heroUrl: null }
+        : null,
+    gallery: [],
+    _fallback: "supabase",
+  });
+}

@@ -5,6 +5,10 @@ import { products, media } from "@brasa/core/schema";
 import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
 import { eq, desc, and, isNull, inArray, sql } from "drizzle-orm";
+import {
+  isNeonDown, isNeonConnectionError, markNeonDown,
+  getCachedSyncConfig, querySupabase,
+} from "@/lib/neon-fallback";
 
 // ── Resolve media IDs to URLs (batch) ────────────────────────────────────────
 
@@ -129,84 +133,134 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
   const offset = Math.max(0, Number(searchParams.get("offset") || "0"));
   const categoryId = searchParams.get("category");
 
-  // ── Try collection_items first ───────────────────────────────────────────
-  const prodCollection = await db.query.collections.findFirst({
-    where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "produtos")),
-  });
+  if (isNeonDown()) {
+    const fb = await productsFallback(tenantId, { limit, offset });
+    if (fb) return fb;
+  }
 
-  if (prodCollection) {
-    const conditions: any[] = [
-      eq(collectionItems.tenantId, tenantId),
-      eq(collectionItems.collectionId, prodCollection.id),
-      eq(collectionItems.status, "published"),
-      isNull(collectionItems.deletedAt),
-    ];
+  try {
+    // ── Try collection_items first ─────────────────────────────────────────
+    const prodCollection = await db.query.collections.findFirst({
+      where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "produtos")),
+    });
 
-    // Filter by category ID in jsonb if provided
-    if (categoryId) {
-      conditions.push(
-        sql`(${collectionItems.data}->'category'->>'id')::int = ${Number(categoryId)}`,
-      );
+    if (prodCollection) {
+      const conditions: any[] = [
+        eq(collectionItems.tenantId, tenantId),
+        eq(collectionItems.collectionId, prodCollection.id),
+        eq(collectionItems.status, "published"),
+        isNull(collectionItems.deletedAt),
+      ];
+
+      if (categoryId) {
+        conditions.push(
+          sql`(${collectionItems.data}->'category'->>'id')::int = ${Number(categoryId)}`,
+        );
+      }
+
+      const whereClause = and(...conditions);
+
+      const items = await db.query.collectionItems.findMany({
+        where: whereClause,
+        orderBy: [desc(collectionItems.publishedAt)],
+        limit,
+        offset,
+      });
+
+      const [mediaMap, catMap] = await Promise.all([
+        resolveMediaUrls(items),
+        resolveCategoryUuids(items, tenantId),
+      ]);
+
+      return NextResponse.json({
+        docs: items.map((item) => mapCollectionItemToProduct(item, mediaMap, catMap)),
+      });
     }
 
-    const whereClause = and(...conditions);
+    // ── Fallback: legacy products table ────────────────────────────────────
 
-    const items = await db.query.collectionItems.findMany({
-      where: whereClause,
-      orderBy: [desc(collectionItems.publishedAt)],
+    const conditions = [
+      eq(products.tenantId, tenantId),
+      eq(products.status, "published"),
+      eq(products.showOnSite, true),
+    ];
+
+    if (categoryId) {
+      conditions.push(eq(products.productCategoryId, Number(categoryId)));
+    }
+
+    const rows = await legacyDb.query.products.findMany({
+      where: and(...conditions),
+      orderBy: [desc(products.publishedAt)],
       limit,
       offset,
+      with: {
+        category: true,
+        image: true,
+      },
     });
-
-    const [mediaMap, catMap] = await Promise.all([
-      resolveMediaUrls(items),
-      resolveCategoryUuids(items, tenantId),
-    ]);
 
     return NextResponse.json({
-      docs: items.map((item) => mapCollectionItemToProduct(item, mediaMap, catMap)),
+      docs: rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        description: r.description,
+        brand: r.brand,
+        isKit: r.isKit,
+        featured: r.featured,
+        publishedAt: r.publishedAt,
+        category: r.category
+          ? { id: r.category.id, name: r.category.name, slug: r.category.slug }
+          : null,
+        image: r.image
+          ? { url: r.image.url, alt: r.image.alt, thumbnailUrl: r.image.thumbnailUrl }
+          : null,
+      })),
     });
+  } catch (err) {
+    if (!isNeonConnectionError(err)) throw err;
+    markNeonDown();
+    const fb = await productsFallback(tenantId, { limit, offset });
+    if (fb) return fb;
+    return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
-
-  // ── Fallback: legacy products table ──────────────────────────────────────
-
-  const conditions = [
-    eq(products.tenantId, tenantId),
-    eq(products.status, "published"),
-    eq(products.showOnSite, true),
-  ];
-
-  if (categoryId) {
-    conditions.push(eq(products.productCategoryId, Number(categoryId)));
-  }
-
-  const rows = await legacyDb.query.products.findMany({
-    where: and(...conditions),
-    orderBy: [desc(products.publishedAt)],
-    limit,
-    offset,
-    with: {
-      category: true,
-      image: true,
-    },
-  });
-
-  return NextResponse.json({
-    docs: rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      slug: r.slug,
-      description: r.description,
-      brand: r.brand,
-      isKit: r.isKit,
-      featured: r.featured,
-      publishedAt: r.publishedAt,
-      category: r.category
-        ? { id: r.category.id, name: r.category.name, slug: r.category.slug }
-        : null,
-      image: r.image
-        ? { url: r.image.url, alt: r.image.alt, thumbnailUrl: r.image.thumbnailUrl }
-        : null,
-    })),
-  });
 });
+
+// ── Supabase fallback for products ──────────────────────────────────────────
+
+async function productsFallback(
+  tenantId: number,
+  opts: { limit: number; offset: number },
+): Promise<NextResponse | null> {
+  const config = getCachedSyncConfig(tenantId, "produtos");
+  if (!config) return null;
+
+  const result = await querySupabase(config.supabaseTable, {
+    filters: { status: "eq.published" },
+    order: "created_at.desc",
+    limit: opts.limit,
+    offset: opts.offset,
+  });
+
+  if (!result) return null;
+
+  const docs = result.data.map((row: any) => ({
+    id: row.id,
+    name: row.title || row.name || null,
+    slug: row.slug,
+    description: row.excerpt || row.description || null,
+    brand: row.brand || null,
+    isKit: row.is_kit || false,
+    featured: row.featured || false,
+    publishedAt: row.published_at || row.published_date || row.created_at,
+    category: null,
+    image: row.cover_image_url
+      ? { url: row.cover_image_url, alt: row.cover_image_alt || row.title || "", thumbnailUrl: null }
+      : row.embalagem_mockup
+        ? { url: row.embalagem_mockup, alt: row.title || "", thumbnailUrl: null }
+        : null,
+  }));
+
+  return NextResponse.json({ docs, _fallback: "supabase" });
+}
