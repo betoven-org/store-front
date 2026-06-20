@@ -51,6 +51,54 @@ export function isNeonConnectionError(err: unknown): boolean {
   );
 }
 
+// ── Static Fallback Config (env var) ─────────────────────────────────────────
+//
+// FALLBACK_CONFIG env var provides cold-start resilience when Neon is down.
+// Format:
+// {
+//   "apiKeys": { "<key>": { "tenantId": 1, "revalidateSecret": "..." } },
+//   "tables": { "1:posts": "articles", "1:categorias": "categories", ... },
+//   "fieldMaps": { "1:posts": { "titulo": "title", "resumo": "excerpt", ... } }
+// }
+
+interface FallbackConfig {
+  apiKeys: Record<string, { tenantId: number; revalidateSecret?: string }>;
+  tables: Record<string, string>; // "tenantId:collectionSlug" → supabaseTable
+  fieldMaps?: Record<string, Record<string, string>>; // optional field mapping
+}
+
+let _fallbackConfig: FallbackConfig | null | undefined;
+
+function getFallbackConfig(): FallbackConfig | null {
+  if (_fallbackConfig !== undefined) return _fallbackConfig;
+  const raw = process.env.FALLBACK_CONFIG;
+  if (!raw) {
+    _fallbackConfig = null;
+    return null;
+  }
+  try {
+    _fallbackConfig = JSON.parse(raw) as FallbackConfig;
+    return _fallbackConfig;
+  } catch {
+    console.error("[neon-fallback] Invalid FALLBACK_CONFIG JSON");
+    _fallbackConfig = null;
+    return null;
+  }
+}
+
+/**
+ * Resolve API key from static FALLBACK_CONFIG env var.
+ * Used when Neon is down AND in-memory cache is empty.
+ */
+export function resolveApiKeyFromFallback(
+  apiKey: string,
+): { tenantId: number; revalidateSecret: string | null } | null {
+  const config = getFallbackConfig();
+  if (!config?.apiKeys?.[apiKey]) return null;
+  const entry = config.apiKeys[apiKey];
+  return { tenantId: entry.tenantId, revalidateSecret: entry.revalidateSecret ?? null };
+}
+
 // ── Sync Config Cache ────────────────────────────────────────────────────────
 
 export interface CachedSyncConfig {
@@ -74,11 +122,28 @@ export function cacheSyncConfig(
   _cache.set(_key(tenantId, collectionSlug), config);
 }
 
+/**
+ * Get sync config for a collection. Checks in-memory cache first,
+ * falls back to static FALLBACK_CONFIG env var.
+ */
 export function getCachedSyncConfig(
   tenantId: number,
   collectionSlug: string,
 ): CachedSyncConfig | undefined {
-  return _cache.get(_key(tenantId, collectionSlug));
+  // 1. In-memory cache (populated from Neon when it was up)
+  const cached = _cache.get(_key(tenantId, collectionSlug));
+  if (cached) return cached;
+
+  // 2. Static fallback from env var
+  const config = getFallbackConfig();
+  if (!config) return undefined;
+
+  const key = _key(tenantId, collectionSlug);
+  const table = config.tables?.[key];
+  if (!table) return undefined;
+
+  const fieldMap = config.fieldMaps?.[key] ?? {};
+  return { supabaseTable: table, fieldMap, matchColumn: "id" };
 }
 
 /**
@@ -181,12 +246,14 @@ export function mapSupabaseRow(
 
 /**
  * Convert a raw Supabase row into a shape compatible with collectionItems mappers.
+ * When fieldMap is empty, passes all raw columns as data (passthrough mode).
  */
 export function supabaseRowToCollectionItem(
   row: Record<string, unknown>,
   fieldMap: Record<string, string>,
 ) {
-  const data = mapSupabaseRow(row, fieldMap);
+  const hasFieldMap = Object.keys(fieldMap).length > 0;
+  const data = hasFieldMap ? mapSupabaseRow(row, fieldMap) : { ...row };
   const slug = _deriveSlug(row);
   const rawStatus = (row.status as string) ?? "draft";
   const status: "draft" | "published" =

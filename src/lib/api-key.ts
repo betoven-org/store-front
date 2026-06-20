@@ -9,6 +9,7 @@ import {
   markNeonUp,
   warmSyncConfigs,
   isTenantWarmed,
+  resolveApiKeyFromFallback,
 } from "./neon-fallback";
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 min
@@ -17,9 +18,12 @@ const keyCache = new Map<string, { tenantId: number; revalidateSecret: string | 
 async function resolveApiKey(apiKey: string) {
   const cached = keyCache.get(apiKey);
 
-  // Neon down → use stale cache (any age)
-  if (isNeonDown() && cached) {
-    return cached;
+  // Neon down → use stale cache or static fallback
+  if (isNeonDown()) {
+    if (cached) return cached;
+    const fallback = resolveApiKeyFromFallback(apiKey);
+    if (fallback) return { ...fallback, ts: 0 };
+    return null;
   }
 
   // Cache still fresh
@@ -49,7 +53,10 @@ async function resolveApiKey(apiKey: string) {
   } catch (err) {
     if (isNeonConnectionError(err)) {
       markNeonDown();
-      if (cached) return cached; // stale is better than nothing
+      if (cached) return cached;
+      // Last resort: static fallback config
+      const fallback = resolveApiKeyFromFallback(apiKey);
+      if (fallback) return { ...fallback, ts: 0 };
     }
     throw err;
   }
