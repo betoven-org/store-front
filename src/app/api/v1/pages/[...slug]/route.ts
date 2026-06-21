@@ -8,6 +8,11 @@ import { eq, and, isNull, sql } from "drizzle-orm";
 import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 import { resolveSections } from "@/lib/loaders/resolver";
 import { getCommerceAdapterAsync } from "@/lib/commerce";
+import {
+  isNeonDown, isNeonConnectionError, markNeonDown,
+  getCachedSyncConfig, cacheSyncConfig, type CachedSyncConfig,
+  querySupabase, mapSupabaseRow,
+} from "@/lib/neon-fallback";
 
 // ── Resolve {{field}} bindings in sections with collection item data ────────
 
@@ -115,6 +120,13 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const slugParts = params.slug as string | string[];
   const slug = Array.isArray(slugParts) ? slugParts.join("/") : slugParts;
 
+  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  if (isNeonDown()) {
+    const fb = await pagesFallback(tenantId, slug, draft);
+    if (fb) return fb;
+  }
+
+  try {
   // ── 1. Try exact page match ─────────────────────────────────────────────
   const [page] = await db
     .select()
@@ -173,11 +185,18 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
       pageSlugPattern: collections.pageSlugPattern,
       pageSections: collections.pageSections,
       pageDraftSections: collections.pageDraftSections,
+      source: collections.source,
+      syncConfig: collections.syncConfig,
     })
     .from(collections)
     .where(and(eq(collections.tenantId, tenantId), sql`${collections.pageSlugPattern} IS NOT NULL`));
 
   for (const col of allCollections) {
+    // Cache sync config for Supabase fallback
+    if (col.source === "synced" && col.syncConfig) {
+      cacheSyncConfig(tenantId, col.slug, col.syncConfig as CachedSyncConfig);
+    }
+
     const itemSlug = matchPattern(col.pageSlugPattern!, slug);
     if (itemSlug === null) continue;
 
@@ -252,4 +271,60 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   }
 
   return NextResponse.json({ error: "Page not found" }, { status: 404 });
+  } catch (err) {
+    if (!isNeonConnectionError(err)) throw err;
+    markNeonDown();
+    const fb = await pagesFallback(tenantId, slug, draft);
+    if (fb) return fb;
+    return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
+  }
 });
+
+// ── Supabase fallback for pages (campanhas / collection detail pages) ────
+
+async function pagesFallback(
+  tenantId: number,
+  slug: string,
+  draft: boolean,
+): Promise<NextResponse | null> {
+  // Match slug as "{collectionSlug}/{itemSlug}" against cached sync configs
+  const parts = slug.split("/");
+  if (parts.length < 2) return null; // single-segment = regular page, no SB fallback
+
+  const collectionSlug = parts[0];
+  const itemSlug = parts.slice(1).join("/");
+
+  const config = getCachedSyncConfig(tenantId, collectionSlug);
+  if (!config) return null;
+
+  const filters: Record<string, string> = { slug: `eq.${itemSlug}` };
+  if (!draft) filters.status = "eq.published";
+
+  const result = await querySupabase(config.supabaseTable, {
+    filters,
+    limit: 1,
+  });
+
+  if (!result || result.data.length === 0) return null;
+
+  const row = result.data[0] as Record<string, unknown>;
+  const hasFieldMap = Object.keys(config.fieldMap).length > 0;
+  const data = hasFieldMap ? mapSupabaseRow(row, config.fieldMap) : { ...row };
+
+  const title = (data.title as string) || (row.title as string) || itemSlug;
+
+  return NextResponse.json({
+    id: row.id,
+    slug,
+    title,
+    metaTitle: (data.meta_title as string) || title,
+    metaDescription: (data.meta_description as string) || (data.excerpt as string) || null,
+    ogTitle: (data.og_title as string) || title,
+    ogDescription: (data.og_description as string) || (data.excerpt as string) || null,
+    ogImageUrl: (data.og_image_url as string) || (data.hero_image as string) || (data.image as string) || null,
+    sections: [],
+    collection: { name: collectionSlug, slug: collectionSlug },
+    item: data,
+    _fallback: "supabase",
+  });
+}
