@@ -13,6 +13,7 @@ import {
   getCachedSyncConfig, cacheSyncConfig, type CachedSyncConfig,
   querySupabase, mapSupabaseRow,
 } from "@/lib/neon-fallback";
+import { landingPageToSections, type SbLandingPage } from "@/lib/landing-page-sync";
 
 // ── Resolve {{field}} bindings in sections with collection item data ────────
 
@@ -313,6 +314,16 @@ async function pagesFallback(
 
   const title = (data.title as string) || (row.title as string) || itemSlug;
 
+  // Generate sections: use custom `sections` column if present, otherwise auto-generate for landing pages
+  let sections: { id: string; component: string; props: Record<string, unknown> }[] = [];
+  if (Array.isArray(row.sections) && row.sections.length > 0) {
+    // Client-defined custom layout from Supabase `sections` JSONB column
+    sections = row.sections as typeof sections;
+  } else if (config.supabaseTable === "landing_pages") {
+    // Auto-generate Hero + RichContent + FAQ from landing page fields
+    sections = landingPageToSections(row as unknown as SbLandingPage);
+  }
+
   return NextResponse.json({
     id: row.id,
     slug,
@@ -322,7 +333,7 @@ async function pagesFallback(
     ogTitle: (data.og_title as string) || title,
     ogDescription: (data.og_description as string) || (data.excerpt as string) || null,
     ogImageUrl: (data.og_image_url as string) || (data.hero_image as string) || (data.image as string) || null,
-    sections: [],
+    sections,
     collection: { name: collectionSlug, slug: collectionSlug },
     item: data,
     _fallback: "supabase",

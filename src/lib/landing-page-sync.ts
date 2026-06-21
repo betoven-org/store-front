@@ -23,6 +23,9 @@ export type SbLandingPage = {
   hero_cta_label: string | null;
   hero_cta_url: string | null;
   related_links: { label: string; url: string }[] | null;
+  secondary_cta_label: string | null;
+  secondary_cta_url: string | null;
+  sections: { id: string; component: string; props: Record<string, unknown> }[] | null;
   status: string;
   created_at: string;
   updated_at: string;
@@ -91,7 +94,10 @@ export async function upsertLandingPage(
   tenantId: number,
 ): Promise<"created" | "updated" | "deleted"> {
   const pageSlug = `campanhas/${lp.slug}`;
-  const sections = landingPageToSections(lp);
+  // Use custom sections from Supabase if defined, otherwise auto-generate
+  const sections = (Array.isArray(lp.sections) && lp.sections.length > 0)
+    ? lp.sections
+    : landingPageToSections(lp);
   const sectionsJson = JSON.stringify(sections);
 
   const [existing] = await db
