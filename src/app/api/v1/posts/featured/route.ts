@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withApiKey } from "@/lib/api-key";
-import { db } from "@brasa/core/db";
+import { db as legacyDb } from "@brasa/core/db";
 import { posts } from "@brasa/core/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { db } from "@/db";
+import { collections, collectionItems } from "@/db/schema";
+import { eq, desc, and, isNull } from "drizzle-orm";
 import {
   isNeonDown, isNeonConnectionError, markNeonDown,
-  getCachedSyncConfig, querySupabase, supabaseRowToCollectionItem,
+  cacheSyncConfig, getCachedSyncConfig, type CachedSyncConfig,
+  querySupabase, supabaseRowToCollectionItem,
 } from "@/lib/neon-fallback";
 
 function mapMedia(m: any) {
@@ -22,6 +25,41 @@ function mapMedia(m: any) {
   };
 }
 
+function mapCollectionItemToFeatured(item: typeof collectionItems.$inferSelect) {
+  const d = (item.data ?? {}) as Record<string, any>;
+  const imageUrl = d.hero_image || d.heroImage || d.cover_url || d.coverUrl || d.cover_image_url || null;
+  const cat = typeof d.category === "object" && d.category ? d.category : null;
+  const auth = typeof d.author === "object" && d.author ? d.author : null;
+
+  return {
+    id: item.id,
+    title: d.title || null,
+    slug: item.slug,
+    excerpt: d.excerpt || null,
+    coverUrl: d.cover_url || d.coverUrl || d.cover_image_url || imageUrl,
+    publishedAt: item.publishedAt,
+    status: item.status,
+    featured: item.featured,
+    readingTimeMinutes: d.reading_time_minutes || d.readingTimeMinutes || null,
+    category: cat ? { id: cat.id || null, name: cat.name, slug: cat.slug || null } : null,
+    author: auth
+      ? {
+          id: auth.id || null,
+          name: auth.name,
+          slug: auth.slug || null,
+          bio: auth.bio || null,
+          avatar: auth.avatar ? { url: typeof auth.avatar === "string" ? auth.avatar : auth.avatar.url } : null,
+        }
+      : null,
+    heroImage: imageUrl
+      ? { id: null, url: imageUrl, alt: d.title || "", sizes: { thumbnail: { url: imageUrl }, card: { url: imageUrl }, hero: { url: imageUrl } } }
+      : null,
+    tags: Array.isArray(d.tags)
+      ? d.tags.map((t: any) => ({ tag: typeof t === "string" ? t : t.tag }))
+      : [],
+  };
+}
+
 export const GET = withApiKey(async ({ tenantId, draft }) => {
   // ── Supabase shortcut when Neon is known down ─────────────────────────
   if (isNeonDown()) {
@@ -30,13 +68,47 @@ export const GET = withApiKey(async ({ tenantId, draft }) => {
   }
 
   try {
+    // ── Try collection_items first ─────────────────────────────────────────
+    const postsCollection = await db.query.collections.findFirst({
+      where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
+    });
+
+    if (postsCollection?.syncConfig && postsCollection.source === "synced") {
+      cacheSyncConfig(tenantId, "posts", postsCollection.syncConfig as CachedSyncConfig);
+    }
+
+    if (postsCollection) {
+      const conditions: any[] = [
+        eq(collectionItems.tenantId, tenantId),
+        eq(collectionItems.collectionId, postsCollection.id),
+        eq(collectionItems.featured, true),
+        isNull(collectionItems.deletedAt),
+      ];
+
+      if (!draft) {
+        conditions.push(eq(collectionItems.status, "published"));
+      }
+
+      const item = await db.query.collectionItems.findFirst({
+        where: and(...conditions),
+        orderBy: [desc(collectionItems.publishedAt)],
+      });
+
+      if (item) {
+        return NextResponse.json(mapCollectionItemToFeatured(item));
+      }
+
+      return NextResponse.json({ error: "No featured post found" }, { status: 404 });
+    }
+
+    // ── Fallback: legacy posts table ───────────────────────────────────────
     const conditions: any[] = [eq(posts.tenantId, tenantId), eq(posts.featured, true)];
 
     if (!draft) {
       conditions.push(eq(posts.status, "published"));
     }
 
-    const row = await db.query.posts.findFirst({
+    const row = await legacyDb.query.posts.findFirst({
       where: and(...conditions),
       with: {
         category: true,
