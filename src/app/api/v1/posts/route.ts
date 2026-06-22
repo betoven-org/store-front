@@ -101,9 +101,10 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   const authorId = searchParams.get("author");
   const featured = searchParams.get("featured");
   const search = searchParams.get("search");
+  const homeSection = searchParams.get("homeSection");
 
   // ── 1. Supabase (primary) ─────────────────────────────────────────────
-  const sb = await postsFromSupabase(tenantId, { limit, page, offset, featured, search, draft });
+  const sb = await postsFromSupabase(tenantId, { limit, page, offset, featured, search, homeSection, draft });
   if (sb) return sb;
 
   // ── 2. Neon (backup) ──────────────────────────────────────────────────
@@ -272,7 +273,7 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
 
 async function postsFromSupabase(
   tenantId: number,
-  opts: { limit: number; page: number; offset: number; featured: string | null; search: string | null; draft: boolean },
+  opts: { limit: number; page: number; offset: number; featured: string | null; search: string | null; homeSection: string | null; draft: boolean },
 ): Promise<NextResponse | null> {
   const config = getCachedSyncConfig(tenantId, "posts");
   if (!config) return null;
@@ -280,6 +281,7 @@ async function postsFromSupabase(
   const filters: Record<string, string> = {};
   if (!opts.draft) filters.status = "eq.published";
   if (opts.featured === "true") filters.featured = "eq.true";
+  if (opts.homeSection) filters.home_section = `eq.${opts.homeSection}`;
 
   let orClause: string | undefined;
   if (opts.search) {
