@@ -20,9 +20,13 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
     return NextResponse.json({ docs: [], totalDocs: 0, totalPages: 0, page });
   }
 
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await searchFromSupabase(tenantId, q, { limit, page, offset });
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await searchFallback(tenantId, q, { limit, page, offset });
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -85,13 +89,11 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await searchFallback(tenantId, q, { limit, page, offset });
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-async function searchFallback(
+async function searchFromSupabase(
   tenantId: number,
   q: string,
   opts: { limit: number; page: number; offset: number },

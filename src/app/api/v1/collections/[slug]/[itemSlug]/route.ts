@@ -12,9 +12,13 @@ import {
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const { slug, itemSlug } = params;
 
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await collectionItemFromSupabase(tenantId, slug, itemSlug);
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await collectionItemFallback(tenantId, slug, itemSlug);
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -69,13 +73,11 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await collectionItemFallback(tenantId, slug, itemSlug);
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-async function collectionItemFallback(
+async function collectionItemFromSupabase(
   tenantId: number,
   collectionSlug: string,
   itemSlug: string,

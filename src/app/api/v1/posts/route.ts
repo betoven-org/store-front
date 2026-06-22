@@ -102,10 +102,13 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   const featured = searchParams.get("featured");
   const search = searchParams.get("search");
 
-  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await postsFromSupabase(tenantId, { limit, page, offset, featured, search, draft });
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await postsFallback(tenantId, { limit, page, offset, featured, search, draft });
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -114,7 +117,7 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
       where: and(eq(collections.tenantId, tenantId), eq(collections.slug, "posts")),
     });
 
-    // Cache sync config for Supabase fallback
+    // Warm sync config cache for future Supabase queries
     if (postsCollection?.syncConfig && postsCollection.source === "synced") {
       cacheSyncConfig(tenantId, "posts", postsCollection.syncConfig as CachedSyncConfig);
     }
@@ -261,15 +264,13 @@ export const GET = withApiKey(async ({ tenantId, draft }, req) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await postsFallback(tenantId, { limit, page, offset, featured, search, draft });
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for posts list ────────────────────────────────────────
+// ── Supabase primary for posts list ─────────────────────────────────────────
 
-async function postsFallback(
+async function postsFromSupabase(
   tenantId: number,
   opts: { limit: number; page: number; offset: number; featured: string | null; search: string | null; draft: boolean },
 ): Promise<NextResponse | null> {

@@ -80,10 +80,13 @@ function mapCollectionItemToFullPost(item: typeof collectionItems.$inferSelect) 
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const { slug } = params;
 
-  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await postBySlugFromSupabase(tenantId, slug, draft);
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await postBySlugFallback(tenantId, slug, draft);
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -170,15 +173,13 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await postBySlugFallback(tenantId, slug, draft);
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for single post ───────────────────────────────────────
+// ── Supabase primary for single post ────────────────────────────────────────
 
-async function postBySlugFallback(
+async function postBySlugFromSupabase(
   tenantId: number,
   slug: string,
   draft: boolean,

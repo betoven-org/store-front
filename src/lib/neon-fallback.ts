@@ -1,8 +1,9 @@
 /**
- * Neon fallback — circuit breaker + Supabase REST fallback.
+ * Data sources — Supabase primary + Neon backup.
  *
- * When Neon is unavailable, v1 API endpoints query Supabase directly
- * using cached sync configs from the collections system.
+ * All synced-data endpoints query Supabase REST API first (source of truth).
+ * Neon serves as a backup when Supabase is unreachable.
+ * Sync configs come from FALLBACK_CONFIG env var or Neon cache.
  */
 
 // ── Circuit Breaker ─────────────────────────────────────────────────────────
@@ -223,7 +224,7 @@ export async function querySupabase<T = Record<string, unknown>>(
     });
 
     if (!res.ok) {
-      console.error(`[supabase-fallback] ${table}: ${res.status}`);
+      console.error(`[supabase] ${table}: ${res.status}`);
       return null;
     }
 
@@ -236,7 +237,7 @@ export async function querySupabase<T = Record<string, unknown>>(
     }
     return { data, count };
   } catch (err) {
-    console.error("[supabase-fallback] fetch error:", err);
+    console.error("[supabase] fetch error:", err);
     return null;
   }
 }

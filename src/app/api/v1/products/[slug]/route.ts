@@ -109,9 +109,13 @@ async function mapCollectionItemToFullProduct(item: typeof collectionItems.$infe
 export const GET = withApiKey(async ({ tenantId }, _req, params) => {
   const { slug } = params;
 
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await productBySlugFromSupabase(tenantId, slug);
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await productBySlugFallback(tenantId, slug);
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -198,15 +202,13 @@ export const GET = withApiKey(async ({ tenantId }, _req, params) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await productBySlugFallback(tenantId, slug);
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for single product ────────────────────────────────────
+// ── Supabase primary for single product ─────────────────────────────────────
 
-async function productBySlugFallback(
+async function productBySlugFromSupabase(
   tenantId: number,
   slug: string,
 ): Promise<NextResponse | null> {

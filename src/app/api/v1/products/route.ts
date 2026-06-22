@@ -133,9 +133,13 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
   const offset = Math.max(0, Number(searchParams.get("offset") || "0"));
   const categoryId = searchParams.get("category");
 
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await productsFromSupabase(tenantId, { limit, offset });
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await productsFallback(tenantId, { limit, offset });
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -221,15 +225,13 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await productsFallback(tenantId, { limit, offset });
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for products ──────────────────────────────────────────
+// ── Supabase primary for products ───────────────────────────────────────────
 
-async function productsFallback(
+async function productsFromSupabase(
   tenantId: number,
   opts: { limit: number; offset: number },
 ): Promise<NextResponse | null> {

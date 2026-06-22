@@ -15,9 +15,13 @@ export const GET = withApiKey(async ({ tenantId }, req, params) => {
   const page = Math.max(1, Number(searchParams.get("page") || "1"));
   const offset = (page - 1) * limit;
 
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await categoryBySlugFromSupabase(tenantId, slug, { limit, page, offset });
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await categoryBySlugFallback(tenantId, slug, { limit, page, offset });
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -82,13 +86,11 @@ export const GET = withApiKey(async ({ tenantId }, req, params) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await categoryBySlugFallback(tenantId, slug, { limit, page, offset });
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-async function categoryBySlugFallback(
+async function categoryBySlugFromSupabase(
   tenantId: number,
   slug: string,
   opts: { limit: number; page: number; offset: number },

@@ -11,9 +11,13 @@ import {
 } from "@/lib/neon-fallback";
 
 export const GET = withApiKey(async ({ tenantId }) => {
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await productCategoriesFromSupabase(tenantId);
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await productCategoriesFallback(tenantId);
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -72,15 +76,13 @@ export const GET = withApiKey(async ({ tenantId }) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await productCategoriesFallback(tenantId);
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for product categories ────────────────────────────────
+// ── Supabase primary for product categories ─────────────────────────────────
 
-async function productCategoriesFallback(tenantId: number): Promise<NextResponse | null> {
+async function productCategoriesFromSupabase(tenantId: number): Promise<NextResponse | null> {
   // Try "categorias" sync config first, then "categorias-produto"
   const config =
     getCachedSyncConfig(tenantId, "categorias") ||

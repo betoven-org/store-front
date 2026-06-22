@@ -61,10 +61,13 @@ function mapCollectionItemToFeatured(item: typeof collectionItems.$inferSelect) 
 }
 
 export const GET = withApiKey(async ({ tenantId, draft }) => {
-  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await featuredFromSupabase(tenantId, draft);
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await featuredFallback(tenantId, draft);
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -151,15 +154,13 @@ export const GET = withApiKey(async ({ tenantId, draft }) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await featuredFallback(tenantId, draft);
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for featured post ─────────────────────────────────────
+// ── Supabase primary for featured post ──────────────────────────────────────
 
-async function featuredFallback(
+async function featuredFromSupabase(
   tenantId: number,
   draft: boolean,
 ): Promise<NextResponse | null> {

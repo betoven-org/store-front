@@ -19,10 +19,13 @@ export const GET = withApiKey(async ({ tenantId, draft }, req, params) => {
   const sortParam = searchParams.get("sort");
   const featured = searchParams.get("featured");
 
-  // ── Supabase shortcut when Neon is known down ─────────────────────────
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await collectionFromSupabase(tenantId, slug, { limit, offset, search, featured });
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await collectionFallback(tenantId, slug, { limit, offset, search, featured });
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -133,15 +136,13 @@ export const GET = withApiKey(async ({ tenantId, draft }, req, params) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await collectionFallback(tenantId, slug, { limit, offset, search, featured });
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for generic collection ────────────────────────────────
+// ── Supabase primary for generic collection ─────────────────────────────────
 
-async function collectionFallback(
+async function collectionFromSupabase(
   tenantId: number,
   collectionSlug: string,
   opts: { limit: number; offset: number; search: string | null; featured: string | null },

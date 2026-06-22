@@ -9,9 +9,13 @@ import {
 } from "@/lib/neon-fallback";
 
 export const GET = withApiKey(async ({ tenantId }) => {
+  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  const sb = await categoriesFromSupabase(tenantId);
+  if (sb) return sb;
+
+  // ── 2. Neon (backup) ──────────────────────────────────────────────────
   if (isNeonDown()) {
-    const fb = await categoriesFallback(tenantId);
-    if (fb) return fb;
+    return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
   try {
@@ -40,15 +44,13 @@ export const GET = withApiKey(async ({ tenantId }) => {
   } catch (err) {
     if (!isNeonConnectionError(err)) throw err;
     markNeonDown();
-    const fb = await categoriesFallback(tenantId);
-    if (fb) return fb;
     return NextResponse.json({ error: "Database temporarily unavailable" }, { status: 503 });
   }
 });
 
-// ── Supabase fallback for categories ────────────────────────────────────────
+// ── Supabase primary for categories ─────────────────────────────────────────
 
-async function categoriesFallback(tenantId: number): Promise<NextResponse | null> {
+async function categoriesFromSupabase(tenantId: number): Promise<NextResponse | null> {
   const config = getCachedSyncConfig(tenantId, "categorias");
   if (!config) return null;
 
