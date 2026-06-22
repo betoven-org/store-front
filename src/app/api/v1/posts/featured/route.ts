@@ -8,7 +8,7 @@ import { eq, desc, and, isNull } from "drizzle-orm";
 import {
   isNeonDown, isNeonConnectionError, markNeonDown,
   cacheSyncConfig, getCachedSyncConfig, type CachedSyncConfig,
-  querySupabase, supabaseRowToCollectionItem,
+  querySupabase,
 } from "@/lib/neon-fallback";
 
 function mapMedia(m: any) {
@@ -180,27 +180,26 @@ async function featuredFromSupabase(
     return NextResponse.json({ error: "No featured post found" }, { status: 404 });
   }
 
-  const row = result.data[0] as Record<string, unknown>;
-  const item = supabaseRowToCollectionItem(row, config.fieldMap);
-  const d = item.data as Record<string, any>;
+  const row = result.data[0] as Record<string, any>;
+  const imageUrl = row.cover_image_url || row.embalagem_mockup || null;
 
   return NextResponse.json({
-    id: item.id,
-    title: d.title || null,
-    slug: item.slug,
-    excerpt: d.excerpt || null,
-    coverUrl: d.coverUrl || d.cover_url || d.heroImage || d.hero_image || null,
-    publishedAt: item.publishedAt,
-    status: item.status,
-    featured: item.featured,
-    readingTimeMinutes: d.readingTimeMinutes || d.reading_time_minutes || null,
-    category: d.category && typeof d.category === "object"
-      ? { id: d.category.id || null, name: d.category.name || null, slug: d.category.slug || null }
+    id: row.id,
+    title: row.title || null,
+    slug: row.slug,
+    excerpt: row.excerpt || null,
+    coverUrl: imageUrl,
+    publishedAt: row.published_at || row.published_date || row.created_at,
+    status: row.status || "published",
+    featured: row.featured || false,
+    readingTimeMinutes: row.reading_time_minutes || null,
+    category: null,
+    author: row.author_name
+      ? { id: null, name: row.author_name, slug: null, bio: null, avatar: null }
       : null,
-    author: d.author && typeof d.author === "object"
-      ? { id: d.author.id || null, name: d.author.name || null, slug: d.author.slug || null, bio: null, avatar: null }
+    heroImage: imageUrl
+      ? { id: null, url: imageUrl, alt: row.cover_image_alt || row.title || "", sizes: { thumbnail: { url: imageUrl }, card: { url: imageUrl }, hero: { url: imageUrl } } }
       : null,
-    heroImage: null,
     tags: [],
     _fallback: "supabase",
   });
