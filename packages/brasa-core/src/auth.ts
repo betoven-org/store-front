@@ -6,10 +6,10 @@ import { eq } from "drizzle-orm";
 // Lazy init to avoid crashing during build when env vars are missing
 let _neonAuth: ReturnType<typeof createNeonAuth> | null = null;
 
-function getNeonAuth() {
+function getNeonAuth(): ReturnType<typeof createNeonAuth> | null {
   if (!_neonAuth) {
     if (!process.env.NEON_AUTH_BASE_URL || !process.env.NEON_AUTH_COOKIE_SECRET) {
-      throw new Error("Missing NEON_AUTH_BASE_URL or NEON_AUTH_COOKIE_SECRET");
+      return null;
     }
     _neonAuth = createNeonAuth({
       baseUrl: process.env.NEON_AUTH_BASE_URL,
@@ -21,10 +21,17 @@ function getNeonAuth() {
   return _neonAuth;
 }
 
-// Proxy that lazily initializes neonAuth
+// Stub that returns unauthenticated when Neon Auth is not configured
+const _neonAuthStub = {
+  getSession: async () => ({ data: null }),
+  handlers: () => ({}),
+} as unknown as ReturnType<typeof createNeonAuth>;
+
+// Proxy that lazily initializes neonAuth (falls back to stub if unconfigured)
 export const neonAuth = new Proxy({} as ReturnType<typeof createNeonAuth>, {
   get(_, prop) {
-    return (getNeonAuth() as Record<string | symbol, unknown>)[prop];
+    const instance = getNeonAuth() ?? _neonAuthStub;
+    return (instance as Record<string | symbol, unknown>)[prop];
   },
 });
 
