@@ -4,7 +4,7 @@ import { db as legacyDb } from "@brasa/core/db";
 import { products, media } from "@brasa/core/schema";
 import { db } from "@/db";
 import { collections, collectionItems } from "@/db/schema";
-import { eq, desc, and, isNull, inArray, sql } from "drizzle-orm";
+import { eq, desc, and, isNull, inArray, sql, ilike, or } from "drizzle-orm";
 import {
   isNeonDown, isNeonConnectionError, markNeonDown,
   getCachedSyncConfig, querySupabase,
@@ -132,9 +132,10 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
   const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") || "20")));
   const offset = Math.max(0, Number(searchParams.get("offset") || "0"));
   const categoryId = searchParams.get("category");
+  const search = searchParams.get("search")?.trim() || "";
 
   // ── 1. Supabase (primary) ─────────────────────────────────────────────
-  const sb = await productsFromSupabase(tenantId, { limit, offset });
+  const sb = await productsFromSupabase(tenantId, { limit, offset, search });
   if (sb) return sb;
 
   // ── 2. Neon (backup) ──────────────────────────────────────────────────
@@ -159,6 +160,19 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
       if (categoryId) {
         conditions.push(
           sql`(${collectionItems.data}->'category'->>'id')::int = ${Number(categoryId)}`,
+        );
+      }
+
+      if (search) {
+        const pattern = `%${search}%`;
+        conditions.push(
+          or(
+            sql`${collectionItems.data}->>'name' ILIKE ${pattern}`,
+            sql`${collectionItems.data}->>'nome' ILIKE ${pattern}`,
+            sql`${collectionItems.data}->>'description' ILIKE ${pattern}`,
+            sql`${collectionItems.data}->>'descricao' ILIKE ${pattern}`,
+            sql`${collectionItems.data}->>'content' ILIKE ${pattern}`,
+          )!,
         );
       }
 
@@ -191,6 +205,16 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
 
     if (categoryId) {
       conditions.push(eq(products.productCategoryId, Number(categoryId)));
+    }
+
+    if (search) {
+      const pattern = `%${search}%`;
+      conditions.push(
+        or(
+          ilike(products.name, pattern),
+          ilike(products.description, pattern),
+        )!,
+      );
     }
 
     const rows = await legacyDb.query.products.findMany({
@@ -233,17 +257,24 @@ export const GET = withApiKey(async ({ tenantId }, req) => {
 
 async function productsFromSupabase(
   tenantId: number,
-  opts: { limit: number; offset: number },
+  opts: { limit: number; offset: number; search: string },
 ): Promise<NextResponse | null> {
   const config = getCachedSyncConfig(tenantId, "produtos");
   if (!config) return null;
 
-  const result = await querySupabase(config.supabaseTable, {
+  const sbOpts: import("@/lib/neon-fallback").SbQueryOpts = {
     filters: { status: "eq.published" },
     order: "created_at.desc",
     limit: opts.limit,
     offset: opts.offset,
-  });
+  };
+
+  if (opts.search) {
+    const q = opts.search;
+    sbOpts.or = `(title.ilike.%${q}%,content.ilike.%${q}%,excerpt.ilike.%${q}%)`;
+  }
+
+  const result = await querySupabase(config.supabaseTable, sbOpts);
 
   if (!result) return null;
 
