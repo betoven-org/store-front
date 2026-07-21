@@ -22,9 +22,11 @@ function getNeonAuth(): ReturnType<typeof createNeonAuth> | null {
 }
 
 // Stub that returns unauthenticated when Neon Auth is not configured
+const noopHandler = (_req: Request) => new Response(null, { status: 404 });
 const _neonAuthStub = {
   getSession: async () => ({ data: null }),
-  handlers: () => ({}),
+  handler: () => ({ GET: noopHandler, POST: noopHandler }),
+  handlers: () => ({ GET: noopHandler, POST: noopHandler }),
 } as unknown as ReturnType<typeof createNeonAuth>;
 
 // Proxy that lazily initializes neonAuth (falls back to stub if unconfigured)
