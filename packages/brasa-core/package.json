@@ -19,7 +19,7 @@
   "dependencies": {},
   "peerDependencies": {
     "drizzle-orm": ">=0.45.0",
-    "@neondatabase/serverless": ">=0.10.0",
+    "pg": ">=8.0.0",
     "better-auth": "*",
     "zod": ">=4.0.0"
   }
