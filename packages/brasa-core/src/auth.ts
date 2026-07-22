@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
 import { emailOTP } from "better-auth/plugins";
-import { Pool } from "pg";
-import { getDb } from "./db";
+import { getPool, getDb } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
 
@@ -31,9 +30,7 @@ function getBetterAuth() {
     _betterAuth = betterAuth({
       secret,
       baseURL: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000",
-      database: new Pool({
-        connectionString: process.env.DATABASE_URL || process.env.DATABASE_URI || "",
-      }),
+      database: getPool(),
       emailAndPassword: { enabled: true },
       plugins: [
         emailOTP({
