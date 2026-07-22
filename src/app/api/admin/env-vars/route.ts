@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { betterAuthInstance } from "@brasa/core/auth";
 
 const VERCEL_API = "https://api.vercel.com";
 
@@ -17,8 +17,12 @@ function isSensitive(key: string) {
 }
 
 async function requireAuth(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  return !!token;
+  try {
+    const session = await betterAuthInstance.api.getSession({ headers: req.headers });
+    return !!session?.user;
+  } catch {
+    return false;
+  }
 }
 
 function getVercelHeaders() {

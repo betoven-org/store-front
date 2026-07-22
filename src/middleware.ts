@@ -1,11 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { neonAuth } from "@brasa/core/auth";
 
 const INGEST_SECRET = process.env.METRICS_INGEST_SECRET || "metrics-internal-key";
 const TENANT_HEADER = "x-tenant-id";
-
-// Paths to skip metrics collection
-const SKIP_METRICS = /^\/((_next|favicon|logo|apple-touch|manifest|robots|sitemap|feed|api\/metrics|api\/tenant))/;
+const IS_DEV = process.env.NODE_ENV === "development";
 
 // Bots maliciosos
 const BLOCK_BOTS = /semrush|ahref|mj12bot|dotbot|petalbot|bytespider|gptbot|ccbot|claudebot|anthropic|dataprovider|barkrowler|seekport|zoominfobot|censys|netcraft|masscan|nmap|zgrab|httpx|nuclei|nikto|sqlmap|dirbuster|gobuster|wpscan|acunetix|nessus|openvas/i;
@@ -13,6 +10,10 @@ const BLOCK_BOTS = /semrush|ahref|mj12bot|dotbot|petalbot|bytespider|gptbot|ccbo
 // In-memory tenant cache (hostname -> tenantId, TTL 5min)
 const tenantCache = new Map<string, { id: number; ts: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
+
+// In-memory subscription cache (tenantId -> status, TTL 2min)
+const subCache = new Map<number, { status: string; ts: number }>();
+const SUB_CACHE_TTL = 2 * 60 * 1000;
 
 async function resolveTenantId(host: string, origin: string): Promise<number> {
   const hostname = host.split(":")[0];
@@ -61,14 +62,14 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Let Neon Auth API routes pass through
+  // Let Better Auth API routes pass through
   if (pathname.startsWith("/api/auth/")) {
     return NextResponse.next();
   }
 
   // Resolve tenant from host first
   const host = req.headers.get("host") || "localhost";
-  let tenantId = await resolveTenantId(host, req.nextUrl.origin);
+  const tenantId = await resolveTenantId(host, req.nextUrl.origin);
 
   const isLoginPage = pathname === "/admin/login";
   const isRecoverPage = pathname === "/admin/recuperar-senha" || pathname === "/admin/redefinir-senha";
@@ -77,38 +78,11 @@ export default async function middleware(req: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
 
-  // Check auth via Neon Auth session
-  let isAuthenticated = false;
-  let sessionEmail: string | null = null;
-  try {
-    const { data: session } = await neonAuth.getSession();
-    isAuthenticated = !!session?.user;
-    if (session?.user?.email) {
-      sessionEmail = session.user.email;
-    }
-  } catch {
-    // Not authenticated
-  }
+  // Check auth via session cookie presence (lightweight, no fetch)
+  const cookieHeader = req.headers.get("cookie") || "";
+  const isAuthenticated = cookieHeader.includes("better-auth.session_token");
 
-  // If host-based resolution returned default (1) but user is authenticated,
-  // resolve tenant from the user's DB record
-  if (tenantId === 1 && isAuthenticated && sessionEmail) {
-    try {
-      const res = await fetch(
-        `${req.nextUrl.origin}/api/tenant?email=${encodeURIComponent(sessionEmail)}`,
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data.id && data.id > 0) {
-          tenantId = data.id;
-        }
-      }
-    } catch {
-      // Fail open — tenant.ts will also try auth() as fallback
-    }
-  }
-
-  // Public routes
+  // Public routes — pass through
   if (
     isLoginPage ||
     isRecoverPage ||
@@ -142,34 +116,49 @@ export default async function middleware(req: NextRequest) {
     );
   }
 
-  // Admin authenticated → check subscription
-  if ((isAdminRoute || isAdminApi) && isAuthenticated) {
-    try {
-      const cookieHeader = req.headers.get("cookie") || "";
-      const statusRes = await fetch(
-        new URL("/api/subscription-status", req.nextUrl.origin),
-        {
-          headers: {
-            cookie: cookieHeader,
-            [TENANT_HEADER]: String(tenantId),
-          },
-        },
+  // Subscription check — only on admin PAGE loads (not API calls), cached 2min
+  if (isAdminRoute && !isAdminApi && isAuthenticated) {
+    const cachedSub = subCache.get(tenantId);
+    const subStatus = cachedSub && Date.now() - cachedSub.ts < SUB_CACHE_TTL
+      ? cachedSub.status
+      : null;
+
+    if (subStatus === "suspended") {
+      return trackAndReturn(
+        Response.redirect(new URL("/admin/pagamento-pendente", req.nextUrl.origin)),
+        req,
+        start,
+        tenantId,
       );
-      if (statusRes.ok) {
-        const data = await statusRes.json();
-        if (data.status === "suspended") {
-          return trackAndReturn(
-            Response.redirect(
-              new URL("/admin/pagamento-pendente", req.nextUrl.origin),
-            ),
-            req,
-            start,
-            tenantId,
-          );
+    }
+
+    if (!subStatus) {
+      // Fetch and cache (fire-and-forget for non-suspended)
+      try {
+        const statusRes = await fetch(
+          new URL("/api/subscription-status", req.nextUrl.origin),
+          {
+            headers: {
+              cookie: cookieHeader,
+              [TENANT_HEADER]: String(tenantId),
+            },
+          },
+        );
+        if (statusRes.ok) {
+          const data = await statusRes.json();
+          subCache.set(tenantId, { status: data.status, ts: Date.now() });
+          if (data.status === "suspended") {
+            return trackAndReturn(
+              Response.redirect(new URL("/admin/pagamento-pendente", req.nextUrl.origin)),
+              req,
+              start,
+              tenantId,
+            );
+          }
         }
+      } catch {
+        // Fail open
       }
-    } catch {
-      // Fail open
     }
   }
 
@@ -192,9 +181,13 @@ function trackAndReturn(
   start: number,
   tenantId: number,
 ) {
+  // Skip metrics in dev — only useful in production
+  if (IS_DEV) return response;
+
   const { pathname } = req.nextUrl;
 
-  if (SKIP_METRICS.test(pathname)) return response;
+  // Only track page views, not API calls or static assets
+  if (pathname.startsWith("/api/") || pathname.startsWith("/_next/")) return response;
 
   const latencyMs = Date.now() - start;
   const statusCode = response.status || 200;

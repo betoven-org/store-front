@@ -1,41 +1,9 @@
-import { createNeonAuth } from "@neondatabase/auth/next/server";
-import { db } from "./db";
+import { betterAuth } from "better-auth";
+import { emailOTP } from "better-auth/plugins";
+import { Pool } from "pg";
+import { getDb } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
-
-// Lazy init to avoid crashing during build when env vars are missing
-let _neonAuth: ReturnType<typeof createNeonAuth> | null = null;
-
-function getNeonAuth(): ReturnType<typeof createNeonAuth> | null {
-  if (!_neonAuth) {
-    if (!process.env.NEON_AUTH_BASE_URL || !process.env.NEON_AUTH_COOKIE_SECRET) {
-      return null;
-    }
-    _neonAuth = createNeonAuth({
-      baseUrl: process.env.NEON_AUTH_BASE_URL,
-      cookies: {
-        secret: process.env.NEON_AUTH_COOKIE_SECRET,
-      },
-    });
-  }
-  return _neonAuth;
-}
-
-// Stub that returns unauthenticated when Neon Auth is not configured
-const noopHandler = (_req: Request) => new Response(null, { status: 404 });
-const _neonAuthStub = {
-  getSession: async () => ({ data: null }),
-  handler: () => ({ GET: noopHandler, POST: noopHandler }),
-  handlers: () => ({ GET: noopHandler, POST: noopHandler }),
-} as unknown as ReturnType<typeof createNeonAuth>;
-
-// Proxy that lazily initializes neonAuth (falls back to stub if unconfigured)
-export const neonAuth = new Proxy({} as ReturnType<typeof createNeonAuth>, {
-  get(_, prop) {
-    const instance = getNeonAuth() ?? _neonAuthStub;
-    return (instance as Record<string | symbol, unknown>)[prop];
-  },
-});
 
 export type UserRole = "admin" | "editor" | "author" | "viewer";
 
@@ -46,22 +14,118 @@ export type AuthSession = {
     email: string;
     role: UserRole;
     tenantId: number;
-    neonAuthId: string;
   };
 } | null;
 
+// Lazy init to avoid crashing during build when env vars are missing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _betterAuth: any = null;
+
+function getBetterAuth() {
+  if (!_betterAuth) {
+    const secret = process.env.BETTER_AUTH_SECRET || process.env.NEON_AUTH_COOKIE_SECRET;
+    if (!secret) {
+      return null;
+    }
+
+    _betterAuth = betterAuth({
+      secret,
+      baseURL: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000",
+      database: new Pool({
+        connectionString: process.env.DATABASE_URL || process.env.DATABASE_URI || "",
+      }),
+      emailAndPassword: { enabled: true },
+      plugins: [
+        emailOTP({
+          async sendVerificationOTP({ email, otp, type }) {
+            const apiKey = process.env.RESEND_API_KEY;
+            if (!apiKey) {
+              console.warn("[auth] RESEND_API_KEY not set, OTP:", otp);
+              return;
+            }
+            const from = process.env.RESEND_FROM_EMAIL || "Brasa CMS <noreply@brasa.tech>";
+            const subject =
+              type === "forget-password"
+                ? "Redefinir senha — Brasa CMS"
+                : "Código de verificação — Brasa CMS";
+
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                from,
+                to: [email],
+                subject,
+                html: `<p>Seu código de verificação é: <strong>${otp}</strong></p><p>Este código expira em 10 minutos.</p>`,
+              }),
+            });
+          },
+        }),
+      ],
+    });
+  }
+  return _betterAuth;
+}
+
+// Stub for when Better Auth is not configured (build time, missing env)
+const noopHandler = (_req: Request) => new Response(null, { status: 404 });
+
+const _stub = {
+  handler: noopHandler,
+  api: {
+    getSession: async () => null,
+  },
+};
+
+/** Lazy proxy — safe to import at module level */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const betterAuthInstance = new Proxy({} as any, {
+  get(_, prop) {
+    const instance = getBetterAuth() ?? _stub;
+    return (instance as Record<string | symbol, unknown>)[prop];
+  },
+});
+
 /**
- * Drop-in replacement for the old NextAuth `auth()`.
- * Gets the Neon Auth session and enriches with the user's role from our DB.
+ * Get authenticated session enriched with app-level user data (role, tenantId).
+ * Drop-in replacement for the old Neon Auth `auth()`.
  */
-export async function auth(): Promise<AuthSession> {
+export async function auth(req?: Request): Promise<AuthSession> {
   try {
-    const { data: session } = await neonAuth.getSession();
+    const instance = getBetterAuth();
+    if (!instance) return null;
+
+    // Better Auth needs a Request to read cookies from
+    let request = req;
+    if (!request) {
+      // Server component context — try to read from next/headers
+      const { headers, cookies } = await import("next/headers");
+      const headerStore = await headers();
+      const cookieStore = await cookies();
+
+      const cookieHeader = cookieStore
+        .getAll()
+        .map((c) => `${c.name}=${c.value}`)
+        .join("; ");
+
+      request = new Request(headerStore.get("x-url") || "http://localhost:3000", {
+        headers: {
+          cookie: cookieHeader,
+          ...Object.fromEntries(headerStore.entries()),
+        },
+      });
+    }
+
+    const session = await instance.api.getSession({ headers: request.headers });
 
     if (!session?.user?.email) {
       return null;
     }
 
+    const db = getDb();
     const [dbUser] = await db
       .select()
       .from(users)
@@ -79,7 +143,6 @@ export async function auth(): Promise<AuthSession> {
         email: dbUser.email,
         role: dbUser.role as UserRole,
         tenantId: dbUser.tenantId,
-        neonAuthId: session.user.id,
       },
     };
   } catch {
