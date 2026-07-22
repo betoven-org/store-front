@@ -1,44 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import type { FieldSchema } from "@brasa/core/manifest";
 import ToggleSwitch from "./ToggleSwitch";
 import ImageUpload from "./ImageUpload";
-
-// ---------------------------------------------------------------------------
-// Types (mirrors packages/brasa-core/src/manifest.ts)
-// ---------------------------------------------------------------------------
-
-type FieldType = "string" | "number" | "boolean" | "object" | "array" | "union";
-type FieldFormat =
-  | "text"
-  | "textarea"
-  | "rich-text"
-  | "image"
-  | "color"
-  | "url"
-  | "date"
-  | "datetime"
-  | "email"
-  | "code"
-  | "video"
-  | "select"
-  | "hidden"
-  | "icon"
-  | "map"
-  | "secret";
-
-type FieldSchema = {
-  type: FieldType;
-  title?: string;
-  description?: string;
-  format?: FieldFormat;
-  required?: boolean;
-  default?: unknown;
-  group?: string;
-  properties?: Record<string, FieldSchema>;
-  items?: FieldSchema;
-  options?: string[];
-};
 
 export type LoaderInfo = {
   fn: string;
@@ -373,14 +338,37 @@ function ArrayField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRende
   const items = schema.items;
   const arrVal = (value as unknown[]) ?? [];
 
+  // Stable IDs: maintain a Map from index to UUID so React keys survive reorders.
+  // The ref holds an array of IDs that mirrors arrVal by index.
+  const idsRef = useRef<string[]>([]);
+
+  // Grow/shrink the ID array to match current items
+  if (idsRef.current.length < arrVal.length) {
+    for (let i = idsRef.current.length; i < arrVal.length; i++) {
+      idsRef.current.push(crypto.randomUUID());
+    }
+  } else if (idsRef.current.length > arrVal.length) {
+    idsRef.current = idsRef.current.slice(0, arrVal.length);
+  }
+
+  function handleRemove(index: number) {
+    idsRef.current.splice(index, 1);
+    onChange(arrVal.filter((_, i) => i !== index));
+  }
+
+  function handleAdd() {
+    idsRef.current.push(crypto.randomUUID());
+    onChange([...arrVal, items ? emptyFromSchema(items) : ""]);
+  }
+
   return (
     <FieldWrapper>
       <FieldLabel title={schema.title ?? fieldKey} required={schema.required} description={schema.description} />
       <div className="space-y-2">
         {arrVal.map((item, index) => (
-          <div key={index} className="relative rounded-lg border border-border bg-background/50 p-3 group">
+          <div key={idsRef.current[index]} className="relative rounded-lg border border-border bg-background/50 p-3 group">
             <div className="absolute left-2 top-2 text-muted-foreground/40 cursor-grab"><SvgGrip /></div>
-            <button type="button" onClick={() => onChange(arrVal.filter((_, i) => i !== index))} aria-label={`Remover item ${index + 1}`}
+            <button type="button" onClick={() => handleRemove(index)} aria-label={`Remover item ${index + 1}`}
               className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded text-muted-foreground/40 transition-colors hover:bg-destructive/10 hover:text-destructive">
               <SvgX />
             </button>
@@ -397,7 +385,7 @@ function ArrayField({ fieldKey, schema, value, onChange, depth = 0 }: FieldRende
           </div>
         ))}
       </div>
-      <button type="button" onClick={() => onChange([...arrVal, items ? emptyFromSchema(items) : ""])}
+      <button type="button" onClick={handleAdd}
         className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs font-medium text-primary transition-all hover:bg-primary/10 hover:border-primary/50">
         <SvgPlus />
         Adicionar item

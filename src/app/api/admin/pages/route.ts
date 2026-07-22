@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages } from "@brasa/core/schema";
-import { asc, eq, and, isNull } from "drizzle-orm";
+import { asc, eq, and, isNull, sql } from "drizzle-orm";
 import { parseBody, createPageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 import { getTemplateById } from "@/lib/page-templates";
@@ -14,7 +14,18 @@ export async function GET() {
 
   try {
     const tenantId = await getTenantId();
-    const docs = await db.select().from(pages).where(and(eq(pages.tenantId, tenantId), isNull(pages.deletedAt))).orderBy(asc(pages.title));
+    const docs = await db
+      .select({
+        id: pages.id,
+        title: pages.title,
+        slug: pages.slug,
+        updatedAt: pages.updatedAt,
+        scheduledAt: pages.scheduledAt,
+        hasDraft: sql<boolean>`${pages.draft} IS NOT NULL OR ${pages.draftSections} IS NOT NULL`,
+      })
+      .from(pages)
+      .where(and(eq(pages.tenantId, tenantId), isNull(pages.deletedAt)))
+      .orderBy(asc(pages.title));
 
     return NextResponse.json({ docs });
   } catch (error) {

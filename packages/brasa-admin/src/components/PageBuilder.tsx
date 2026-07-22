@@ -88,6 +88,33 @@ function IconX() {
 
 // ── Section picker modal ──────────────────────────────────────────────────────
 
+// Palette icon for section thumbnails placeholder
+function IconPalette() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" stroke="none" />
+      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" stroke="none" />
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" stroke="none" />
+      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" stroke="none" />
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
+    </svg>
+  );
+}
+
+// Group → color mapping for dots and category tabs
+const GROUP_COLORS: Record<string, string> = {
+  Home: "#8b5cf6",
+  Marketing: "#f97316",
+  Conteudo: "#3b82f6",
+  Produtos: "#10b981",
+  Institucional: "#ec4899",
+  Outros: "#6b7280",
+};
+
+function getGroupColor(group: string): string {
+  return GROUP_COLORS[group] ?? GROUP_COLORS["Outros"];
+}
+
 type SectionPickerProps = {
   sections: SectionSchema[];
   onSelect: (schema: SectionSchema) => void;
@@ -96,57 +123,72 @@ type SectionPickerProps = {
 
 function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
   const [query, setQuery] = useState("");
+  const [activeGroup, setActiveGroup] = useState<string>("Todos");
+
+  // All unique groups, sorted
+  const allGroups = useMemo(() => {
+    const groups = new Set<string>();
+    for (const s of sections) groups.add(s.group ?? "Outros");
+    return ["Todos", ...Array.from(groups).sort()];
+  }, [sections]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
-    if (!q) return sections;
-    return sections.filter(
-      (s) =>
+    return sections.filter((s) => {
+      const matchGroup = activeGroup === "Todos" || (s.group ?? "Outros") === activeGroup;
+      if (!matchGroup) return false;
+      if (!q) return true;
+      return (
         s.title.toLowerCase().includes(q) ||
         s.description?.toLowerCase().includes(q) ||
         s.group?.toLowerCase().includes(q)
-    );
-  }, [sections, query]);
+      );
+    });
+  }, [sections, query, activeGroup]);
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, SectionSchema[]>();
-    for (const section of filtered) {
-      const group = section.group ?? "Outros";
-      if (!map.has(group)) map.set(group, []);
-      map.get(group)!.push(section);
+  // Close on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
     }
-    return map;
-  }, [filtered]);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   return (
-    /* backdrop */
+    /* backdrop with blur */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Adicionar secao"
+      aria-label="Adicionar seção"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl bg-card shadow-xl">
+      <div className="flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-card shadow-2xl ring-1 ring-border">
         {/* header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Adicionar secao</h2>
+        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-sm font-semibold text-foreground">Adicionar seção</h2>
+            <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {filtered.length} disponíveis
+            </span>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-muted-foreground"
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <IconX />
           </button>
         </div>
 
         {/* search */}
-        <div className="border-b border-border px-4 py-3">
+        <div className="border-b border-border px-5 py-3">
           <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted-foreground">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
               <IconSearch />
             </span>
             <input
@@ -156,51 +198,110 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
               aria-label="Buscar seções"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
           </div>
         </div>
 
-        {/* list */}
-        <div className="max-h-[420px] overflow-y-auto px-2 py-2">
-          {grouped.size === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Nenhuma secao encontrada.
-            </p>
+        {/* category tabs (pills) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border px-5 py-2.5 scrollbar-none">
+          {allGroups.map((group) => (
+            <button
+              key={group}
+              type="button"
+              onClick={() => setActiveGroup(group)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${
+                activeGroup === group
+                  ? "bg-primary text-white"
+                  : "bg-accent text-muted-foreground hover:bg-accent/80 hover:text-foreground"
+              }`}
+            >
+              {group !== "Todos" && (
+                <span
+                  className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: getGroupColor(group) }}
+                  aria-hidden="true"
+                />
+              )}
+              {group}
+            </button>
+          ))}
+        </div>
+
+        {/* grid of cards */}
+        <div className="max-h-[480px] overflow-y-auto p-5">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <span className="mb-3 text-muted-foreground/40">
+                <IconSearch />
+              </span>
+              <p className="text-sm text-muted-foreground">Nenhuma seção encontrada.</p>
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(""); setActiveGroup("Todos"); }}
+                  className="mt-2 text-xs text-primary hover:underline"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
           ) : (
-            Array.from(grouped.entries()).map(([group, items]) => (
-              <div key={group} className="mb-1">
-                <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {group}
-                </p>
-                {items.map((section) => (
+            <ul className="grid grid-cols-3 gap-3" role="list">
+              {filtered.map((section) => (
+                <li key={section.key}>
                   <button
-                    key={section.key}
                     type="button"
                     onClick={() => onSelect(section)}
-                    className="flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="group relative flex w-full flex-col overflow-hidden rounded-lg border border-border bg-background text-left transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    {section.thumbnail && (
-                      <img
-                        src={section.thumbnail}
-                        alt=""
-                        className="h-10 w-14 rounded border border-border object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <span className="text-sm font-medium text-foreground">
+                    {/* thumbnail area */}
+                    <div className="relative aspect-video w-full overflow-hidden bg-accent">
+                      {section.thumbnail ? (
+                        <img
+                          src={section.thumbnail}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          width={280}
+                          height={157}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
+                          <IconPalette />
+                        </div>
+                      )}
+                      {/* "Adicionar" overlay on hover */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-primary/80 opacity-0 transition-opacity group-hover:opacity-100">
+                        <span className="flex items-center gap-1.5 rounded-md bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
+                          <IconPlus />
+                          Adicionar
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* info */}
+                    <div className="flex flex-col gap-0.5 p-3">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: getGroupColor(section.group ?? "Outros") }}
+                          aria-hidden="true"
+                        />
+                        <span className="text-[11px] text-muted-foreground">{section.group ?? "Outros"}</span>
+                      </div>
+                      <span className="text-[13px] font-semibold text-foreground leading-tight">
                         {section.title}
                       </span>
                       {section.description && (
-                        <span className="mt-0.5 block text-xs text-muted-foreground truncate">
+                        <span className="line-clamp-2 text-[11px] text-muted-foreground">
                           {section.description}
                         </span>
                       )}
                     </div>
                   </button>
-                ))}
-              </div>
-            ))
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
@@ -210,8 +311,20 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
 
 // ── Block item (base UI, reused by SortableItem and DragOverlay) ──────────────
 
+function IconClock() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
 type BlockItemProps = {
   title: string;
+  group?: string;
+  isDeferred?: boolean;
+  index?: number;
   isSelected: boolean;
   isDragging?: boolean;
   dragHandleProps?: React.HTMLAttributes<HTMLSpanElement>;
@@ -221,12 +334,17 @@ type BlockItemProps = {
 
 function BlockItem({
   title,
+  group,
+  isDeferred = false,
+  index,
   isSelected,
   isDragging = false,
   dragHandleProps,
   onSelect,
   onDelete,
 }: BlockItemProps) {
+  const groupColor = getGroupColor(group ?? "Outros");
+
   return (
     <div
       className={`group flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
@@ -257,14 +375,49 @@ function BlockItem({
         <IconGrip />
       </span>
 
-      {/* title */}
+      {/* group color dot */}
       <span
-        className={`min-w-0 flex-1 truncate text-[13px] font-medium ${
-          isSelected ? "text-primary" : "text-foreground"
-        }`}
-      >
-        {title}
-      </span>
+        className="h-2 w-2 flex-shrink-0 rounded-full"
+        style={{ backgroundColor: groupColor }}
+        aria-hidden="true"
+      />
+
+      {/* title + group label */}
+      <div className="min-w-0 flex-1">
+        <span
+          className={`block truncate text-[13px] font-medium leading-tight ${
+            isSelected ? "text-primary" : "text-foreground"
+          }`}
+        >
+          {title}
+        </span>
+        {group && (
+          <span className="block truncate text-[10px] text-muted-foreground leading-none mt-0.5">
+            {group}
+          </span>
+        )}
+      </div>
+
+      {/* lazy badge */}
+      {isDeferred && (
+        <span
+          className="flex flex-shrink-0 items-center gap-0.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+          title="Carrega ao scroll"
+        >
+          <IconClock />
+          lazy
+        </span>
+      )}
+
+      {/* index (visible on hover) */}
+      {index !== undefined && (
+        <span
+          className="flex-shrink-0 text-[10px] font-mono text-muted-foreground/50 opacity-0 transition-opacity group-hover:opacity-100"
+          aria-hidden="true"
+        >
+          {index + 1}
+        </span>
+      )}
 
       {/* delete action */}
       <div
@@ -291,12 +444,15 @@ function BlockItem({
 type SortableItemProps = {
   id: string;
   title: string;
+  group?: string;
+  isDeferred?: boolean;
+  index: number;
   isSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
 };
 
-function SortableItem({ id, title, isSelected, onSelect, onDelete }: SortableItemProps) {
+function SortableItem({ id, title, group, isDeferred, index, isSelected, onSelect, onDelete }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -315,6 +471,9 @@ function SortableItem({ id, title, isSelected, onSelect, onDelete }: SortableIte
     <li ref={setNodeRef} style={style}>
       <BlockItem
         title={title}
+        group={group}
+        isDeferred={isDeferred}
+        index={index}
         isSelected={isSelected}
         isDragging={isDragging}
         dragHandleProps={{ ...attributes, ...listeners }}
@@ -451,13 +610,16 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
                 strategy={verticalListSortingStrategy}
               >
                 <ul className="space-y-1 p-2" role="list">
-                  {value.map((block) => {
+                  {value.map((block, idx) => {
                     const schema = schemaMap.get(block.component);
                     return (
                       <SortableItem
                         key={block.id}
                         id={block.id}
-                        title={`${schema?.title ?? block.component}${block.deferred ? " [lazy]" : ""}`}
+                        title={schema?.title ?? block.component}
+                        group={schema?.group}
+                        isDeferred={block.deferred}
+                        index={idx}
                         isSelected={selectedId === block.id}
                         onSelect={() => setSelectedId(block.id)}
                         onDelete={() => deleteBlock(block.id)}
@@ -472,6 +634,8 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
                   <div className="rounded-lg shadow-lg ring-2 ring-ring">
                     <BlockItem
                       title={activeSchema?.title ?? activeBlock.component}
+                      group={activeSchema?.group}
+                      isDeferred={activeBlock.deferred}
                       isSelected={false}
                       onSelect={() => {}}
                       onDelete={() => {}}
@@ -517,101 +681,6 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
                 values={selectedBlock.props}
                 onChange={updateProps}
               />
-
-              {/* A/B Variants */}
-              <div className="border-t border-border pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Variantes A/B</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const variants = selectedBlock.variants || [];
-                      const newVariant = { name: `Variante ${variants.length + 1}`, weight: 50, props: { ...selectedBlock.props } };
-                      onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants: [...variants, newVariant] } : b));
-                    }}
-                    className="text-[11px] text-primary hover:underline"
-                  >
-                    + Adicionar
-                  </button>
-                </div>
-                {selectedBlock.variants && selectedBlock.variants.length > 0 ? (
-                  <div className="space-y-2">
-                    {selectedBlock.variants.map((v, i) => (
-                      <div key={i} className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-                        <input
-                          type="text"
-                          value={v.name}
-                          onChange={(e) => {
-                            const variants = [...(selectedBlock.variants || [])];
-                            variants[i] = { ...variants[i], name: e.target.value };
-                            onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants } : b));
-                          }}
-                          className="flex-1 text-xs bg-transparent border-0 outline-0 text-foreground"
-                        />
-                        <input
-                          type="number"
-                          value={v.weight}
-                          onChange={(e) => {
-                            const variants = [...(selectedBlock.variants || [])];
-                            variants[i] = { ...variants[i], weight: Number(e.target.value) };
-                            onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants } : b));
-                          }}
-                          className="w-12 text-xs text-center bg-transparent border border-border rounded px-1 py-0.5"
-                          min={0}
-                          max={100}
-                        />
-                        <span className="text-[10px] text-muted-foreground">%</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const variants = (selectedBlock.variants || []).filter((_, idx) => idx !== i);
-                            onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, variants: variants.length > 0 ? variants : undefined } : b));
-                          }}
-                          className="text-[10px] text-muted-foreground hover:text-destructive"
-                        >
-                          x
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-muted-foreground">Sem variantes — mostra a versão padrão.</p>
-                )}
-              </div>
-
-              {/* Conditions */}
-              <div className="border-t border-border pt-4">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Condições</span>
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="text-[11px] text-muted-foreground w-16">Device</label>
-                    <select
-                      value={selectedBlock.matcher?.device || "all"}
-                      onChange={(e) => {
-                        const matcher = { ...selectedBlock.matcher, device: e.target.value as "all" | "mobile" | "desktop" };
-                        onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, matcher: matcher.device === "all" ? undefined : matcher } : b));
-                      }}
-                      className="flex-1 text-xs rounded border border-border bg-background px-2 py-1"
-                    >
-                      <option value="all">Todos</option>
-                      <option value="desktop">Desktop</option>
-                      <option value="mobile">Mobile</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[11px] text-muted-foreground w-16">Lazy</label>
-                    <input
-                      type="checkbox"
-                      checked={selectedBlock.deferred || false}
-                      onChange={(e) => {
-                        onChange(value.map((b) => b.id === selectedBlock.id ? { ...b, deferred: e.target.checked || undefined } : b));
-                      }}
-                      className="rounded border-border"
-                    />
-                    <span className="text-[10px] text-muted-foreground">Carregar ao scroll</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         ) : !externalEditor ? (

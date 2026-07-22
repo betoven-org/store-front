@@ -44,3 +44,5 @@ export { default as Skeleton, SkeletonRows } from "./Skeleton";
 export { default as IconButton } from "./IconButton";
 export { default as ErrorState } from "./ErrorState";
 export { default as SeoPreview } from "./SeoPreview";
+export { ABTestingPanel } from "./ABTestingPanel";
+export type { ABTestingPanelProps } from "./ABTestingPanel";

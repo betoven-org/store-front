@@ -158,6 +158,7 @@ export default function PaginasPage() {
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templates, setTemplates] = useState<PageTemplateItem[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("blank");
+  const [search, setSearch] = useState("");
   const router = useRouter();
 
   const form = useForm<CreatePageForm>({
@@ -261,6 +262,13 @@ export default function PaginasPage() {
 
   const pendingCount = pages.filter((p) => p.draft !== null).length;
 
+  const filteredPages = search.trim()
+    ? pages.filter((p) => {
+        const q = search.toLowerCase().trim();
+        return p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q);
+      })
+    : pages;
+
   if (loading) {
     return (
       <AdminShell title="Páginas">
@@ -271,12 +279,29 @@ export default function PaginasPage() {
 
   return (
     <AdminShell title="Páginas">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Páginas</h1>
           <p className="mt-1 text-sm text-muted-foreground">Gerencie as páginas estáticas do site.</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* search input */}
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted-foreground">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            </span>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar páginas..."
+              aria-label="Buscar páginas"
+              className="h-8 w-52 rounded-md border border-border bg-card pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
           {pendingCount > 0 && (
             <a
               href="/admin/publicar"
@@ -418,6 +443,22 @@ export default function PaginasPage() {
         ) : pages.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">Nenhuma pagina encontrada.</p>
         ) : (
+          <>
+            {/* Search counter */}
+            {search.trim() && (
+              <div className="flex items-center justify-between border-b border-border px-4 py-2">
+                <span className="text-xs text-muted-foreground">
+                  {filteredPages.length} de {pages.length} página{pages.length !== 1 ? "s" : ""}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Limpar busca
+                </button>
+              </div>
+            )}
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border bg-background">
               <tr>
@@ -429,8 +470,8 @@ export default function PaginasPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {/* Paginas dinamicas (blog detalhe, produto detalhe) */}
-              {dynamicPages.map((dp) => (
+              {/* Paginas dinamicas (blog detalhe, produto detalhe) — ocultar em busca ativa */}
+              {!search.trim() && dynamicPages.map((dp) => (
                 <tr
                   key={`dynamic-${dp.type}`}
                   onClick={() => router.push(`/admin/paginas/dynamic?type=${dp.type === "blog" ? "post" : "product"}&id=${dp.id}`)}
@@ -460,7 +501,7 @@ export default function PaginasPage() {
                   <td className="px-4 py-3" />
                 </tr>
               ))}
-              {pages.map((page) => (
+              {filteredPages.map((page) => (
                 <tr
                   key={page.id}
                   onClick={() => router.push(`/admin/paginas/${page.id}`)}
@@ -513,6 +554,7 @@ export default function PaginasPage() {
               ))}
             </tbody>
           </table>
+          </>
         )}
       </div>
     </AdminShell>

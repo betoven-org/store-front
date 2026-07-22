@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pages, pageVersions } from "@brasa/core/schema";
-import { and, eq, count } from "drizzle-orm";
+import { and, eq, count, sql } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 import { notifyFrontend } from "@brasa/core/revalidate";
@@ -70,24 +70,30 @@ export async function POST(
   const versionContent = (updateData.content as string) ?? page.content;
   const versionSections = updateData.sections ?? page.sections;
 
-  await db.insert(pageVersions).values({
-    pageId: numId,
-    tenantId,
-    version: nextVersion,
-    title: versionTitle,
-    metaTitle: versionMetaTitle,
-    metaDescription: versionMetaDescription,
-    ogTitle: versionOgTitle,
-    ogDescription: versionOgDescription,
-    ogImageUrl: versionOgImageUrl,
-    content: versionContent,
-    sections: versionSections,
-    publishedBy: session.user.name || session.user.email || "Desconhecido",
+  const updated = await db.transaction(async (tx) => {
+    await tx.insert(pageVersions).values({
+      pageId: numId,
+      tenantId,
+      version: nextVersion,
+      title: versionTitle,
+      metaTitle: versionMetaTitle,
+      metaDescription: versionMetaDescription,
+      ogTitle: versionOgTitle,
+      ogDescription: versionOgDescription,
+      ogImageUrl: versionOgImageUrl,
+      content: versionContent,
+      sections: versionSections,
+      publishedBy: session.user.name || session.user.email || "Desconhecido",
+    });
+
+    const [row] = await tx
+      .update(pages)
+      .set(updateData)
+      .where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId)))
+      .returning();
+
+    return row;
   });
-
-  await db.update(pages).set(updateData).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId)));
-
-  const [updated] = await db.select().from(pages).where(and(eq(pages.id, numId), eq(pages.tenantId, tenantId))).limit(1);
 
   // Invalidate cache so the site reflects changes immediately
   revalidateTag("pages");

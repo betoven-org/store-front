@@ -7,6 +7,15 @@ import { revalidateTag } from "next/cache";
 import { parseBody, updatePageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 import { notifyFrontend } from "@brasa/core/revalidate";
+import { z } from "zod";
+
+const draftSectionsSchema = z.array(
+  z.object({
+    id: z.string(),
+    component: z.string(),
+    props: z.record(z.string(), z.unknown()),
+  })
+);
 
 export async function GET(
   _request: NextRequest,
@@ -61,22 +70,19 @@ export async function PATCH(
 
     const body = await request.json();
 
-    const [existing] = await db
-      .select({ id: pages.id })
-      .from(pages)
-      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
-      .limit(1);
-
-    if (!existing)
-      return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
-
     // If only draftSections is being saved (from PageBuilder)
     if (body.draftSections !== undefined && Object.keys(body).length === 1) {
+      const parsed = draftSectionsSchema.safeParse(body.draftSections);
+      if (!parsed.success)
+        return NextResponse.json({ error: "draftSections inválido", details: parsed.error.flatten() }, { status: 400 });
+
       const [updated] = await db
         .update(pages)
-        .set({ draftSections: body.draftSections, updatedAt: new Date().toISOString() })
+        .set({ draftSections: parsed.data, updatedAt: new Date().toISOString() })
         .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
         .returning();
+      if (!updated)
+        return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
       return NextResponse.json(updated);
     }
 
@@ -88,6 +94,8 @@ export async function PATCH(
         .set({ scheduledAt, updatedAt: new Date().toISOString() })
         .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
         .returning();
+      if (!updated)
+        return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
       return NextResponse.json(updated);
     }
 
@@ -109,6 +117,9 @@ export async function PATCH(
       .set({ draft: draftData, updatedAt: new Date().toISOString() })
       .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
       .returning();
+
+    if (!updated)
+      return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -136,25 +147,14 @@ export async function DELETE(
     if (isNaN(pageId))
       return NextResponse.json({ error: "ID invalido" }, { status: 400 });
 
-    const [existing] = await db
-      .select({ id: pages.id })
-      .from(pages)
-      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId), isNull(pages.deletedAt)))
-      .limit(1);
-
-    if (!existing)
-      return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
-
     const [deleted] = await db
-      .select({ slug: pages.slug })
-      .from(pages)
-      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
-      .limit(1);
-
-    await db
       .update(pages)
       .set({ deletedAt: new Date().toISOString() })
-      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)));
+      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId), isNull(pages.deletedAt)))
+      .returning({ slug: pages.slug });
+
+    if (!deleted)
+      return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
 
     revalidateTag("pages");
     notifyFrontend(tenantId, {

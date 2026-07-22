@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { pageVersions } from "@brasa/core/schema";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, sql } from "drizzle-orm";
 import { getTenantId } from "@/lib/tenant";
 
 export async function GET(
@@ -19,27 +19,18 @@ export async function GET(
   if (isNaN(numId))
     return NextResponse.json({ error: "ID invalido" }, { status: 400 });
 
-  const versions = await db
+  const docs = await db
     .select({
       id: pageVersions.id,
       version: pageVersions.version,
       title: pageVersions.title,
       publishedBy: pageVersions.publishedBy,
       publishedAt: pageVersions.publishedAt,
-      sections: pageVersions.sections,
+      sectionCount: sql<number>`COALESCE(jsonb_array_length(${pageVersions.sections}), 0)`,
     })
     .from(pageVersions)
     .where(and(eq(pageVersions.pageId, numId), eq(pageVersions.tenantId, tenantId)))
     .orderBy(desc(pageVersions.version));
-
-  const docs = versions.map((v) => ({
-    id: v.id,
-    version: v.version,
-    title: v.title,
-    publishedBy: v.publishedBy,
-    publishedAt: v.publishedAt,
-    sectionCount: Array.isArray(v.sections) ? v.sections.length : 0,
-  }));
 
   return NextResponse.json({ docs });
 }
