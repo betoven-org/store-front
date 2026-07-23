@@ -1,9 +1,8 @@
-import { auth } from "@brasa/core/auth";
+import { auth, betterAuthInstance } from "@brasa/core/auth";
 import { db } from "@brasa/core/db";
 import { users } from "@brasa/core/schema";
 import { and, desc, count, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { parseBody, createUserSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 
@@ -68,15 +67,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Já existe um usuário com esse email" }, { status: 409 });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const now = new Date().toISOString();
+    // 1. Register in Better Auth (handles password hashing + creates session-capable user)
+    const signUpRes = await betterAuthInstance.api.signUpEmail({
+      body: { name, email, password },
+    });
+    if (!signUpRes || signUpRes.status === 422) {
+      return NextResponse.json({ error: "Erro ao registrar credenciais" }, { status: 500 });
+    }
 
+    // 2. Create in our users table (role + tenant)
+    const now = new Date().toISOString();
     const [created] = await db
       .insert(users)
       .values({
         name,
         email,
-        passwordHash,
+        passwordHash: "managed-by-better-auth",
         role: role ?? "viewer",
         tenantId,
         createdAt: now,
