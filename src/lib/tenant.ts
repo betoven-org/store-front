@@ -28,7 +28,8 @@ export type Tenant = {
 export const getTenantId = cache(async (): Promise<number> => {
   const h = await headers();
   const headerVal = h.get(TENANT_HEADER);
-  const headerTenantId = headerVal ? parseInt(headerVal, 10) : 1;
+  const parsed = headerVal ? parseInt(headerVal, 10) : 1;
+  const headerTenantId = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 
   // If middleware resolved a specific tenant (not default), use it
   if (headerTenantId > 1) return headerTenantId;

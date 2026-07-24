@@ -106,11 +106,20 @@ export async function POST(
   const { slug } = await params;
   const tenantId = await getTenantId();
 
-  const [form] = await db
-    .select()
-    .from(forms)
-    .where(and(eq(forms.slug, slug), eq(forms.tenantId, tenantId), eq(forms.active, true)))
-    .limit(1);
+  let form;
+  try {
+    [form] = await db
+      .select()
+      .from(forms)
+      .where(and(eq(forms.slug, slug), eq(forms.tenantId, tenantId), eq(forms.active, true)))
+      .limit(1);
+  } catch (err) {
+    console.error("[forms POST] DB error:", err);
+    return NextResponse.json(
+      { error: "Database temporarily unavailable" },
+      { status: 503, headers: { "Retry-After": "5" } },
+    );
+  }
 
   if (!form) {
     return NextResponse.json({ error: "Formulario nao encontrado" }, { status: 404 });
@@ -165,13 +174,21 @@ export async function POST(
     );
   }
 
-  await db.insert(formSubmissions).values({
-    tenantId,
-    formId: form.id,
-    data,
-    ip: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null,
-    userAgent: req.headers.get("user-agent") || null,
-  });
+  try {
+    await db.insert(formSubmissions).values({
+      tenantId,
+      formId: form.id,
+      data,
+      ip: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null,
+      userAgent: req.headers.get("user-agent") || null,
+    });
+  } catch (err) {
+    console.error("[forms POST] DB insert error:", err);
+    return NextResponse.json(
+      { error: "Database temporarily unavailable" },
+      { status: 503, headers: { "Retry-After": "5" } },
+    );
+  }
 
   // Notificação por e-mail — fire-and-forget após a resposta, nunca quebra o submit
   if (form.notifyEmail && process.env.RESEND_API_KEY) {
@@ -202,11 +219,20 @@ export async function GET(
   const { slug } = await params;
   const tenantId = await getTenantId();
 
-  const [form] = await db
-    .select({ name: forms.name, fields: forms.fields, successMessage: forms.successMessage })
-    .from(forms)
-    .where(and(eq(forms.slug, slug), eq(forms.tenantId, tenantId), eq(forms.active, true)))
-    .limit(1);
+  let form;
+  try {
+    [form] = await db
+      .select({ name: forms.name, fields: forms.fields, successMessage: forms.successMessage })
+      .from(forms)
+      .where(and(eq(forms.slug, slug), eq(forms.tenantId, tenantId), eq(forms.active, true)))
+      .limit(1);
+  } catch (err) {
+    console.error("[forms GET] DB error:", err);
+    return NextResponse.json(
+      { error: "Database temporarily unavailable" },
+      { status: 503, headers: { "Retry-After": "5" } },
+    );
+  }
 
   if (!form) {
     return NextResponse.json({ error: "Formulario nao encontrado" }, { status: 404 });

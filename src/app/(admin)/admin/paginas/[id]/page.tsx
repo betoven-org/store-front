@@ -202,9 +202,18 @@ export default function EditPagePage({
   // -- Autosave hook
   useAutosave(editState, savedSnapshot, save, 30000);
 
+  // -- Publish wrapper: flush pending sections before publishing
+  const handlePublish = useCallback(async () => {
+    // Cancel pending sections debounce to prevent race condition
+    if (sectionsDebounceRef.current) clearTimeout(sectionsDebounceRef.current);
+    // Flush sections to DB so publish endpoint sees the latest
+    await saveSections(sectionBlocks);
+    // Then publish (saves metadata + triggers publish endpoint)
+    await publish();
+  }, [sectionsDebounceRef, saveSections, sectionBlocks, publish]);
+
   // -- Shortcuts hook
   const hasDraftRef = useRef(false);
-  hasDraftRef.current = hasDraft;
 
   useShortcuts({
     onSave: useCallback(() => {
@@ -215,11 +224,11 @@ export default function EditPagePage({
     }, [editState, save, debounceRef]),
     onPublish: useCallback(() => {
       if (hasDraftRef.current) {
-        publish();
+        handlePublish();
       } else {
         toast("Nenhuma alteracao para publicar");
       }
-    }, [publish]),
+    }, [handlePublish]),
     onUndo: undo,
     onRedo: redo,
   });
@@ -268,6 +277,10 @@ export default function EditPagePage({
     [page, sectionBlocks],
   );
   const draftCount = contentDraftCount + sectionChanges.length;
+  // hasDraft only checks DB state (page.draft/draftSections), but local section
+  // changes may not have been flushed yet — include them for UI decisions
+  const hasChanges = hasDraft || sectionChanges.length > 0;
+  hasDraftRef.current = hasChanges;
 
   // -- Handlers
   async function handleDuplicate() {
@@ -353,7 +366,7 @@ export default function EditPagePage({
         </svg>
       </button>
       {/* Changes indicator */}
-      {hasDraft && (
+      {hasChanges && (
         <button type="button"
           onClick={() => setOpenColumns((prev) => {
             const next = new Set(prev);
@@ -406,7 +419,7 @@ export default function EditPagePage({
               setScheduledAt(d.toISOString());
             }
           }}
-          disabled={isBusy || !hasDraft}
+          disabled={isBusy || !hasChanges}
           className="rounded-md border border-border bg-card p-1.5 text-muted-foreground shadow transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
           title="Agendar publicação">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -426,7 +439,7 @@ export default function EditPagePage({
         )}
       </div>
       {/* Publish button */}
-      <button type="button" onClick={publish} disabled={isBusy || !hasDraft}
+      <button type="button" onClick={handlePublish} disabled={isBusy || !hasChanges}
         className="rounded-md border border-primary bg-card px-4 py-1.5 text-xs font-semibold text-primary shadow transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-40">
         {publishing ? "Publicando..." : isScheduled ? "Publicar agora" : "Publicar"}
       </button>
@@ -550,7 +563,7 @@ export default function EditPagePage({
             <span className="text-[10px] text-muted-foreground">
               {lastSaved ? `Salvo ${lastSaved}` : ""}
             </span>
-            {hasDraft && (
+            {hasChanges && (
               <span className="text-[10px] font-medium text-warning">{draftCount} alterações</span>
             )}
           </div>

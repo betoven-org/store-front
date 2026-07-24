@@ -17,10 +17,14 @@ export function getPool(): Pool {
     _pool = new Pool({
       connectionString: connStr,
       min: 2,
-      max: 10,
+      max: 25,
       idleTimeoutMillis: 60_000,
       connectionTimeoutMillis: 10_000,
       keepAlive: true,
+    });
+
+    _pool.on("error", (err) => {
+      console.error("[pg pool] Unexpected idle client error:", err.message);
     });
   }
   return _pool;

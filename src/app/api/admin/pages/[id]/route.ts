@@ -14,7 +14,7 @@ const draftSectionsSchema = z.array(
     id: z.string(),
     component: z.string(),
     props: z.record(z.string(), z.unknown()),
-  })
+  }).passthrough()
 );
 
 export async function GET(

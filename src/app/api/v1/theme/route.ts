@@ -11,6 +11,7 @@ import { getTenantId } from "@/lib/tenant";
 export async function GET(req: NextRequest) {
   const tenantId = await getTenantId();
 
+  try {
   const [settings] = await db
     .select({ theme: siteSettings.theme })
     .from(siteSettings)
@@ -79,4 +80,11 @@ export async function GET(req: NextRequest) {
       },
     },
   );
+  } catch (err) {
+    console.error("[theme] DB error:", err);
+    return NextResponse.json(
+      { error: "Database temporarily unavailable" },
+      { status: 503, headers: { "Retry-After": "5" } },
+    );
+  }
 }
