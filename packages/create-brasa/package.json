@@ -1,0 +1,22 @@
+{
+  "name": "create-brasa",
+  "version": "0.1.0",
+  "description": "Scaffold a Brasa CMS storefront project",
+  "license": "MIT",
+  "bin": {
+    "create-brasa": "./dist/index.js"
+  },
+  "files": ["dist", "templates"],
+  "scripts": {
+    "build": "tsx src/index.ts --help || true && cp -r src/index.ts dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "@types/prompts": "^2.4.9"
+  }
+}
