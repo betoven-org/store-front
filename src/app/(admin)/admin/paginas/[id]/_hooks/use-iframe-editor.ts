@@ -2,20 +2,35 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import type { SectionBlock } from "@brasa/core/manifest";
+import type { BrasaManifest, SectionBlock } from "@brasa/core/manifest";
 
 type UseIframeEditorArgs = {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   sectionBlocks: SectionBlock[];
+  manifest: BrasaManifest | null;
   onSectionUpdate: (updater: (prev: SectionBlock[]) => SectionBlock[]) => void;
   sectionsDebounceRef: React.RefObject<ReturnType<typeof setTimeout> | undefined>;
   saveSectionsRef: React.RefObject<((blocks: SectionBlock[]) => Promise<void>) | null>;
   setOpenColumns: React.Dispatch<React.SetStateAction<Set<string>>>;
 };
 
+function buildSchemas(manifest: BrasaManifest | null): Record<string, Record<string, { type: string; format?: string }>> {
+  const schemas: Record<string, Record<string, { type: string; format?: string }>> = {};
+  if (!manifest) return schemas;
+  for (const s of manifest.sections) {
+    schemas[s.key] = {};
+    for (const [k, f] of Object.entries(s.props)) {
+      if (f.format === "hidden") continue;
+      schemas[s.key][k] = { type: f.type, format: f.format };
+    }
+  }
+  return schemas;
+}
+
 export function useIframeEditor({
   iframeRef,
   sectionBlocks,
+  manifest,
   onSectionUpdate,
   sectionsDebounceRef,
   saveSectionsRef,
@@ -23,9 +38,12 @@ export function useIframeEditor({
 }: UseIframeEditorArgs) {
   const [inlineEdit, setInlineEdit] = useState(false);
 
-  // Keep sectionBlocks in a ref so the load handler always has the latest value
   const sectionBlocksRef = useRef(sectionBlocks);
   sectionBlocksRef.current = sectionBlocks;
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
+  const inlineEditRef = useRef(inlineEdit);
+  inlineEditRef.current = inlineEdit;
 
   const sendToIframe = useCallback(
     (msg: object) => {
@@ -34,56 +52,60 @@ export function useIframeEditor({
     [iframeRef],
   );
 
-  const injectEditorScript = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe?.contentDocument) return;
-    if (iframe.contentDocument.querySelector("script[data-brasa-editor]"))
-      return;
-    const script = iframe.contentDocument.createElement("script");
-    script.setAttribute("data-brasa-editor", "true");
-    script.src = "/brasa-editor.js";
-    iframe.contentDocument.head.appendChild(script);
+  // Try to inject script via contentDocument (same-origin only).
+  // For cross-origin or internal preview, the script is already in the HTML.
+  const tryInjectScript = useCallback(() => {
+    try {
+      const iframe = iframeRef.current;
+      if (!iframe?.contentDocument) return;
+      if (iframe.contentDocument.querySelector("script[data-brasa-editor]")) return;
+      const script = iframe.contentDocument.createElement("script");
+      script.setAttribute("data-brasa-editor", "true");
+      script.src = "/brasa-editor.js";
+      iframe.contentDocument.head.appendChild(script);
+    } catch {
+      // Cross-origin — script is already embedded in the preview HTML
+    }
   }, [iframeRef]);
+
+  const sendInitAndEnable = useCallback(() => {
+    const schemas = buildSchemas(manifestRef.current);
+    sendToIframe({
+      type: "brasa:init",
+      blocks: sectionBlocksRef.current,
+      schemas,
+    });
+    sendToIframe({ type: "brasa:enable" });
+  }, [sendToIframe]);
 
   const toggleInlineEdit = useCallback(() => {
     setInlineEdit((prev) => {
       const next = !prev;
       if (next) {
-        injectEditorScript();
-        setTimeout(() => {
-          sendToIframe({
-            type: "brasa:init",
-            blocks: sectionBlocksRef.current,
-          });
-          sendToIframe({ type: "brasa:enable" });
-        }, 150);
+        tryInjectScript();
+        // Send init after a short delay to let the script load
+        setTimeout(sendInitAndEnable, 300);
       } else {
         sendToIframe({ type: "brasa:disable" });
       }
       return next;
     });
-  }, [injectEditorScript, sendToIframe]);
+  }, [tryInjectScript, sendInitAndEnable, sendToIframe]);
 
-  // Re-send enable when iframe reloads while inline edit is active
+  // When iframe reloads while inline edit is active, re-send init+enable
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     function onLoad() {
-      if (!inlineEdit) return;
-      injectEditorScript();
-      setTimeout(() => {
-        sendToIframe({
-          type: "brasa:init",
-          blocks: sectionBlocksRef.current,
-        });
-        sendToIframe({ type: "brasa:enable" });
-      }, 150);
+      if (!inlineEditRef.current) return;
+      tryInjectScript();
+      setTimeout(sendInitAndEnable, 300);
     }
 
     iframe.addEventListener("load", onLoad);
     return () => iframe.removeEventListener("load", onLoad);
-  }, [inlineEdit, iframeRef, injectEditorScript, sendToIframe]);
+  }, [iframeRef, tryInjectScript, sendInitAndEnable]);
 
   // Listen for messages from the iframe
   useEffect(() => {
@@ -92,6 +114,10 @@ export function useIframeEditor({
       if (!msg || typeof msg.type !== "string") return;
 
       switch (msg.type) {
+        case "brasa:ready": {
+          if (inlineEditRef.current) sendInitAndEnable();
+          break;
+        }
         case "brasa:update": {
           const { blockId, propKey, value } = msg as {
             blockId: string;

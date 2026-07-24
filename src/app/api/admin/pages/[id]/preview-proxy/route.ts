@@ -88,6 +88,40 @@ export async function GET(
       `<head$1><base href="${origin}/" />`,
     );
 
+    // Force Next.js dynamic asset loading to use the storefront origin.
+    // Must run before any Next.js scripts — prepend to <head> right after <base>.
+    const assetPrefixScript = `<script>
+(function(){
+  var o="${origin}";
+  // Next.js webpack public path
+  if(typeof __webpack_public_path__!=="undefined")__webpack_public_path__=o+"/";
+  // Next.js asset prefix in __NEXT_DATA__
+  try{
+    var nd=document.getElementById("__NEXT_DATA__");
+    if(nd){var d=JSON.parse(nd.textContent);d.assetPrefix=o;nd.textContent=JSON.stringify(d);}
+  }catch(e){}
+  // Intercept dynamic link/script creation to rewrite /_next/ paths
+  var origSetAttr=Element.prototype.setAttribute;
+  Element.prototype.setAttribute=function(n,v){
+    if((n==="href"||n==="src")&&typeof v==="string"&&v.startsWith("/_next/")){
+      v=o+v;
+    }
+    return origSetAttr.call(this,n,v);
+  };
+})();
+</script>`;
+
+    html = html.replace(
+      /<base href="[^"]*"\s*\/?>/i,
+      (match) => match + assetPrefixScript,
+    );
+
+    // Inject brasa-editor.js for inline editing support
+    html = html.replace(
+      /<\/body>/i,
+      `<script src="/brasa-editor.js"></script></body>`,
+    );
+
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",

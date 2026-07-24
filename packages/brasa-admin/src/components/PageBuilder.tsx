@@ -216,13 +216,6 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
                   : "bg-accent text-muted-foreground hover:bg-accent/80 hover:text-foreground"
               }`}
             >
-              {group !== "Todos" && (
-                <span
-                  className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: getGroupColor(group) }}
-                  aria-hidden="true"
-                />
-              )}
               {group}
             </button>
           ))}
@@ -282,11 +275,6 @@ function SectionPicker({ sections, onSelect, onClose }: SectionPickerProps) {
                     {/* info */}
                     <div className="flex flex-col gap-0.5 p-3">
                       <div className="flex items-center gap-1.5">
-                        <span
-                          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: getGroupColor(section.group ?? "Outros") }}
-                          aria-hidden="true"
-                        />
                         <span className="text-[11px] text-muted-foreground">{section.group ?? "Outros"}</span>
                       </div>
                       <span className="text-[13px] font-semibold text-foreground leading-tight">
@@ -320,28 +308,63 @@ function IconClock() {
   );
 }
 
+function IconCopy() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function IconEye() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function IconEyeOff() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <path d="m1 1 22 22" />
+      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+    </svg>
+  );
+}
+
 type BlockItemProps = {
   title: string;
   group?: string;
   isDeferred?: boolean;
+  isHidden?: boolean;
   index?: number;
   isSelected: boolean;
   isDragging?: boolean;
   dragHandleProps?: React.HTMLAttributes<HTMLSpanElement>;
   onSelect: () => void;
   onDelete: () => void;
+  onDuplicate?: () => void;
+  onToggleHidden?: () => void;
 };
 
 function BlockItem({
   title,
   group,
   isDeferred = false,
+  isHidden = false,
   index,
   isSelected,
   isDragging = false,
   dragHandleProps,
   onSelect,
   onDelete,
+  onDuplicate,
+  onToggleHidden,
 }: BlockItemProps) {
   const groupColor = getGroupColor(group ?? "Outros");
 
@@ -350,6 +373,8 @@ function BlockItem({
       className={`group flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
         isDragging
           ? "opacity-50"
+          : isHidden
+          ? "border-border/50 bg-card/50 opacity-50"
           : isSelected
           ? "border-primary bg-primary/5"
           : "border-border bg-card hover:border-border hover:bg-background"
@@ -375,18 +400,11 @@ function BlockItem({
         <IconGrip />
       </span>
 
-      {/* group color dot */}
-      <span
-        className="h-2 w-2 flex-shrink-0 rounded-full"
-        style={{ backgroundColor: groupColor }}
-        aria-hidden="true"
-      />
-
       {/* title + group label */}
       <div className="min-w-0 flex-1">
         <span
           className={`block truncate text-[13px] font-medium leading-tight ${
-            isSelected ? "text-primary" : "text-foreground"
+            isHidden ? "text-muted-foreground line-through" : isSelected ? "text-primary" : "text-foreground"
           }`}
         >
           {title}
@@ -399,7 +417,7 @@ function BlockItem({
       </div>
 
       {/* lazy badge */}
-      {isDeferred && (
+      {isDeferred && !isHidden && (
         <span
           className="flex flex-shrink-0 items-center gap-0.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
           title="Carrega ao scroll"
@@ -419,13 +437,42 @@ function BlockItem({
         </span>
       )}
 
-      {/* delete action */}
+      {/* actions (visible on hover or when selected) */}
       <div
-        className={`flex flex-shrink-0 items-center ${
-          isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        className={`flex flex-shrink-0 items-center gap-0.5 ${
+          isSelected || isHidden ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* toggle visibility */}
+        {onToggleHidden && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggleHidden(); }}
+            aria-label={isHidden ? `Mostrar ${title}` : `Ocultar ${title}`}
+            title={isHidden ? "Mostrar no site" : "Ocultar no site"}
+            className={`rounded p-1 transition-colors ${
+              isHidden
+                ? "text-warning hover:bg-warning/10 hover:text-warning"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            }`}
+          >
+            {isHidden ? <IconEyeOff /> : <IconEye />}
+          </button>
+        )}
+        {/* duplicate */}
+        {onDuplicate && (
+          <button
+            type="button"
+            onClick={onDuplicate}
+            aria-label={`Duplicar ${title}`}
+            title="Duplicar"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <IconCopy />
+          </button>
+        )}
+        {/* delete */}
         <button
           type="button"
           onClick={onDelete}
@@ -446,13 +493,16 @@ type SortableItemProps = {
   title: string;
   group?: string;
   isDeferred?: boolean;
+  isHidden?: boolean;
   index: number;
   isSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
+  onToggleHidden: () => void;
 };
 
-function SortableItem({ id, title, group, isDeferred, index, isSelected, onSelect, onDelete }: SortableItemProps) {
+function SortableItem({ id, title, group, isDeferred, isHidden, index, isSelected, onSelect, onDelete, onDuplicate, onToggleHidden }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -473,12 +523,15 @@ function SortableItem({ id, title, group, isDeferred, index, isSelected, onSelec
         title={title}
         group={group}
         isDeferred={isDeferred}
+        isHidden={isHidden}
         index={index}
         isSelected={isSelected}
         isDragging={isDragging}
         dragHandleProps={{ ...attributes, ...listeners }}
         onSelect={onSelect}
         onDelete={onDelete}
+        onDuplicate={onDuplicate}
+        onToggleHidden={onToggleHidden}
       />
     </li>
   );
@@ -557,6 +610,28 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
     }
   };
 
+  const duplicateBlock = (id: string) => {
+    const idx = value.findIndex((b) => b.id === id);
+    if (idx === -1) return;
+    const source = value[idx];
+    const newBlock: SectionBlock = {
+      ...structuredClone(source),
+      id: typeof crypto !== "undefined" ? crypto.randomUUID() : String(Math.random()),
+    };
+    const next = [...value];
+    next.splice(idx + 1, 0, newBlock);
+    onChange(next);
+    setSelectedId(newBlock.id);
+  };
+
+  const toggleHidden = (id: string) => {
+    onChange(
+      value.map((b) =>
+        b.id === id ? { ...b, hidden: !b.hidden } : b
+      )
+    );
+  };
+
   const addBlock = (schema: SectionSchema) => {
     const newBlock: SectionBlock = {
       id: typeof crypto !== "undefined" ? crypto.randomUUID() : String(Math.random()),
@@ -619,10 +694,13 @@ export default function PageBuilder({ manifest, value, onChange, onSelectionChan
                         title={schema?.title ?? block.component}
                         group={schema?.group}
                         isDeferred={block.deferred}
+                        isHidden={block.hidden}
                         index={idx}
                         isSelected={selectedId === block.id}
                         onSelect={() => setSelectedId(block.id)}
                         onDelete={() => deleteBlock(block.id)}
+                        onDuplicate={() => duplicateBlock(block.id)}
+                        onToggleHidden={() => toggleHidden(block.id)}
                       />
                     );
                   })}

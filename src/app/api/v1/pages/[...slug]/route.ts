@@ -148,7 +148,7 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   if (page) {
     const pageSections = (draft ? (page.draftSections ?? page.sections) : page.sections) as SectionBlock[] | null;
     const filteredSections = (pageSections ?? []).filter(
-      (s) => s?.component !== "Header" && s?.component !== "Footer"
+      (s) => s?.component !== "Header" && s?.component !== "Footer" && !s?.hidden
     );
 
     // Resolve loaders for sections that declare them

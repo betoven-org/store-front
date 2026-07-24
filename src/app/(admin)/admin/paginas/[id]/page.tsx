@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminShell, FormField, ImageUpload, PageBuilder, SectionEditor, BrasaPageLoader, BrasaLoader, SeoPreview, ABTestingPanel } from "@brasa/admin";
+import { AdminShell, FormField, ImageUpload, PageBuilder, SectionEditor, BrasaPageLoader, BrasaLoader, SeoPreview, ABTestingPanel, countFieldStats } from "@brasa/admin";
 import type { BrasaManifest, SectionBlock, SectionSchema } from "@brasa/core/manifest";
 
 import {
@@ -15,8 +15,8 @@ import {
   usePageVersions,
 } from "./_hooks";
 import type { EditState } from "./_hooks";
-import { slugToPath, countChanges, getSectionChanges } from "./_hooks/helpers";
-import { PreviewToolbar, SchedulerPopover } from "./_components";
+import { slugToPath, countChanges, getSectionChanges, getSectionPatches } from "./_hooks/helpers";
+import { PreviewToolbar, SchedulerPopover, ChangesPanel } from "./_components";
 
 /* ── Preview Frame (responsive simulation) ─────────────────────────── */
 
@@ -183,6 +183,7 @@ export default function EditPagePage({
   const iframeEditor = useIframeEditor({
     iframeRef,
     sectionBlocks,
+    manifest,
     onSectionUpdate: setSectionBlocks,
     sectionsDebounceRef,
     saveSectionsRef,
@@ -190,11 +191,17 @@ export default function EditPagePage({
   });
   const { inlineEdit, toggleInlineEdit, sendToIframe } = iframeEditor;
 
-  // Wrap handleSectionsChange to also send to iframe
+  // Wrap handleSectionsChange to also send live updates to iframe
+  const prevBlocksRef = useRef<SectionBlock[]>(sectionBlocks);
   const handleSectionsChange = useCallback(
     (blocks: SectionBlock[]) => {
+      // Send JSON Patch to iframe for instant re-render (no reload)
+      const patches = getSectionPatches(prevBlocksRef.current, blocks);
+      if (patches.length > 0) {
+        sendToIframe({ type: "brasa:live-update", patches, blocks });
+      }
+      prevBlocksRef.current = blocks;
       rawHandleSectionsChange(blocks);
-      sendToIframe({ type: "brasa:sections-update", blocks });
     },
     [rawHandleSectionsChange, sendToIframe],
   );
@@ -342,6 +349,8 @@ export default function EditPagePage({
   const isScheduled = !!page.scheduledAt;
   const isBusy = saving || publishing;
 
+  // Preview: use the storefront's /preview route (renders real components with draft data).
+  // Falls back to internal CMS preview when no frontend is configured.
   const previewBase = frontendBase && (hasContent || hasSections)
     ? `${frontendBase}/preview${pagePath === "/" ? "/home" : pagePath}`
     : (hasContent || hasSections)
@@ -570,20 +579,44 @@ export default function EditPagePage({
         </div>
 
         {/* Center panel: Section editor (when a section is selected) */}
-        {activeTab === "sections" && selectedSection && (
+        {activeTab === "sections" && selectedSection && (() => {
+          const fieldStats = countFieldStats(selectedSection.schema.props, selectedSection.block.props);
+          const fillPct = fieldStats.total > 0 ? Math.round((fieldStats.filled / fieldStats.total) * 100) : 0;
+          return (
           <div className="flex flex-col w-[320px] min-w-[320px] border-r border-border bg-card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <div>
-                <h2 className="text-[13px] font-semibold text-foreground">{selectedSection.schema.title}</h2>
-                {selectedSection.schema.description && (
-                  <p className="text-[11px] text-muted-foreground">{selectedSection.schema.description}</p>
-                )}
+            <div className="border-b border-border px-4 pt-3 pb-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-[13px] font-semibold text-foreground leading-tight truncate">{selectedSection.schema.title}</h2>
+                  {selectedSection.schema.description && (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground/70 leading-relaxed line-clamp-2">{selectedSection.schema.description}</p>
+                  )}
+                </div>
+                <button type="button" onClick={() => setSelectedSection(null)}
+                  className="flex-shrink-0 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                  aria-label="Fechar editor">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                </button>
               </div>
-              <button type="button" onClick={() => setSelectedSection(null)}
-                className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label="Fechar editor">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-              </button>
+              {/* Fill progress bar */}
+              {fieldStats.total > 0 && (
+                <div className="mt-2.5 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground/60">
+                      {fieldStats.filled} de {fieldStats.total} campos preenchidos
+                    </span>
+                    <span className={`text-[10px] font-semibold tabular-nums ${fillPct === 100 ? "text-emerald-500" : "text-muted-foreground"}`}>
+                      {fillPct}%
+                    </span>
+                  </div>
+                  <div className="h-1 w-full rounded-full bg-border overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${fillPct === 100 ? "bg-emerald-500" : "bg-primary/60"}`}
+                      style={{ width: `${fillPct}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-5">
               <SectionEditor
@@ -620,6 +653,16 @@ export default function EditPagePage({
               </div>
             </div>
           </div>
+          );
+        })()}
+
+        {/* Changes panel (toggleable) */}
+        {openColumns.has("changes") && (
+          <ChangesPanel
+            page={page}
+            sectionChanges={sectionChanges}
+            onClose={() => setOpenColumns((prev) => { const next = new Set(prev); next.delete("changes"); return next; })}
+          />
         )}
 
         {/* Right area: Preview (fullwidth) */}
@@ -629,7 +672,7 @@ export default function EditPagePage({
             onDeviceChange={setPreviewDevice}
             inlineEdit={inlineEdit}
             onToggleInlineEdit={toggleInlineEdit}
-            urlLabel={`preview interno${slugToPath(page.slug)}`}
+            urlLabel={previewUrl || slugToPath(page.slug)}
             onReload={() => { if (iframeRef.current) iframeRef.current.src = previewUrl; }}
             onOpenExternal={() => { const url = frontendPreviewUrl || previewUrl; if (url) window.open(url, "_blank"); }}
           />

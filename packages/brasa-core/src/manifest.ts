@@ -132,6 +132,8 @@ export type SectionBlock = {
   };
   /** Deferred loading — section loads on scroll (lazy) */
   deferred?: boolean;
+  /** Hidden — section is not rendered on the site but kept in the editor */
+  hidden?: boolean;
   /** Loader overrides — editor can customize loader params per instance */
   loaderProps?: Record<string, unknown>;
 };

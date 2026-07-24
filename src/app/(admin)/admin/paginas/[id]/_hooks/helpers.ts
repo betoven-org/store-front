@@ -1,3 +1,4 @@
+import { compare, type Operation } from "fast-json-patch";
 import type { SectionBlock } from "@brasa/core/manifest";
 import type { EditState, Page } from "./types";
 
@@ -80,26 +81,25 @@ export function getSectionChanges(
     }
   }
 
-  // Modified
+  // Modified — use fast-json-patch for precise prop diffing
   for (const block of draftBlocks) {
     const pub = pubMap.get(block.id);
     if (pub) {
-      const pubProps = JSON.stringify(pub.props);
-      const draftProps = JSON.stringify(block.props);
-      if (pubProps !== draftProps || pub.component !== block.component) {
-        const allKeys = new Set([
-          ...Object.keys(pub.props),
-          ...Object.keys(block.props),
-        ]);
+      const ops = compare(pub.props, block.props);
+      if (ops.length > 0 || pub.component !== block.component) {
+        // Convert JSON Patch operations to readable PropDiff entries
         const propDiffs: PropDiff[] = [];
-        for (const k of allKeys) {
-          if (JSON.stringify(pub.props[k]) !== JSON.stringify(block.props[k])) {
-            propDiffs.push({
-              key: k,
-              published: formatPropValue(pub.props[k]),
-              draft: formatPropValue(block.props[k]),
-            });
-          }
+        const changedKeys = new Set<string>();
+        for (const op of ops) {
+          // Extract top-level key from path (e.g. "/title" → "title", "/items/0/text" → "items")
+          const topKey = op.path.split("/")[1] || op.path;
+          if (changedKeys.has(topKey)) continue;
+          changedKeys.add(topKey);
+          propDiffs.push({
+            key: topKey,
+            published: formatPropValue(pub.props[topKey]),
+            draft: formatPropValue(block.props[topKey]),
+          });
         }
         changes.push({
           type: "modified",
@@ -178,3 +178,16 @@ export function truncate(str: string, max: number) {
   if (str.length <= max) return str;
   return str.slice(0, max) + "...";
 }
+
+/**
+ * Generate a JSON Patch (RFC 6902) between two section block arrays.
+ * Used to send minimal updates to the preview iframe for live editing.
+ */
+export function getSectionPatches(
+  prev: SectionBlock[],
+  next: SectionBlock[],
+): Operation[] {
+  return compare(prev, next);
+}
+
+export type { Operation };

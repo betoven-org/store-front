@@ -972,8 +972,9 @@ export async function GET(
 
   // ── Internal renderer (default, handles both CMS and campaign section formats) ──
   if (useSections) {
-    const sections = (page.draftSections ?? page.sections) as { component?: string; type?: string; props?: Record<string, any>; [key: string]: any }[] | null;
-    if (sections && sections.length > 0) {
+    const rawSections = (page.draftSections ?? page.sections) as { component?: string; type?: string; props?: Record<string, any>; hidden?: boolean; [key: string]: any }[] | null;
+    const sections = (rawSections ?? []).filter((s) => !s.hidden);
+    if (sections.length > 0) {
       // Fetch real data in parallel
       const [realPosts, realCategories, realProducts, settings] = await Promise.all([
         getRealPosts(tenantId),
@@ -989,7 +990,11 @@ export async function GET(
         siteName: settings[0]?.siteName || "Meu Site",
       };
 
-      const renderedSections = sections.map((s, i) => renderSection(s, i, data)).join("\n");
+      const renderedSections = sections.map((s, i) => {
+        const id = s.id || `section-${i}`;
+        const type = s.component || s.type || "unknown";
+        return `<div data-section-id="${esc(id)}" data-section-type="${esc(type)}">${renderSection(s, i, data)}</div>`;
+      }).join("\n");
 
       const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -1004,6 +1009,7 @@ export async function GET(
 </head>
 <body>
   ${renderedSections}
+  <script src="/brasa-editor.js"></script>
 </body>
 </html>`;
 
@@ -1039,6 +1045,7 @@ export async function GET(
 <body>
   <div class="preview-bar">Preview — Rascunho</div>
   <main class="content">${content}</main>
+  <script src="/brasa-editor.js"></script>
 </body>
 </html>`;
 
