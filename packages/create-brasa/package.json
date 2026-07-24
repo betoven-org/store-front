@@ -2,21 +2,34 @@
   "name": "create-brasa",
   "version": "0.1.0",
   "description": "Scaffold a Brasa CMS storefront project",
+  "author": "WaveCommerce",
   "license": "MIT",
+  "keywords": [
+    "brasa",
+    "cms",
+    "storefront",
+    "nextjs",
+    "create",
+    "scaffold"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/betoven-org/store-front",
+    "directory": "packages/create-brasa"
+  },
   "bin": {
     "create-brasa": "./dist/index.js"
   },
-  "files": ["dist", "templates"],
+  "files": [
+    "dist",
+    "templates"
+  ],
   "scripts": {
-    "build": "tsx src/index.ts --help || true && cp -r src/index.ts dist/index.js",
-    "dev": "tsx src/index.ts"
+    "build": "node build.mjs",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "prompts": "^2.4.2",
-    "picocolors": "^1.1.1"
-  },
-  "devDependencies": {
-    "tsx": "^4.19.0",
-    "@types/prompts": "^2.4.9"
+    "picocolors": "^1.1.1",
+    "prompts": "^2.4.2"
   }
 }
