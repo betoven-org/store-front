@@ -549,6 +549,7 @@ export const collections = pgTable("collections", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull(),
   icon: varchar("icon", { length: 50 }),
+  enabled: boolean("enabled").default(true).notNull(),
   source: collectionSourceEnum("source").default("local").notNull(),
   syncConfig: jsonb("sync_config"),
   pageSlugPattern: varchar("page_slug_pattern", { length: 255 }),

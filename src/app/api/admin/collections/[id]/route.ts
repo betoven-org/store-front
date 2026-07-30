@@ -126,6 +126,7 @@ export async function PUT(
         .replace(/^-|-$/g, "");
     }
     if (body.icon !== undefined) updates.icon = body.icon;
+    if (body.enabled !== undefined) updates.enabled = body.enabled;
     if (body.source !== undefined) updates.source = body.source;
     if (body.syncConfig !== undefined) updates.syncConfig = body.syncConfig;
     if (body.pageSlugPattern !== undefined) updates.pageSlugPattern = body.pageSlugPattern;

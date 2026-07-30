@@ -35,7 +35,7 @@ export const GET = withApiKey(async ({ tenantId, draft }, req, params) => {
       with: { fields: { orderBy: [asc(collectionFields.sortOrder)] } },
     });
 
-    if (!collection) {
+    if (!collection || !collection.enabled) {
       return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     }
 
