@@ -14,7 +14,7 @@ export async function GET() {
 
   try {
     const tenantId = await getTenantId();
-    const docs = await db
+    const rows = await db
       .select({
         id: pages.id,
         title: pages.title,
@@ -22,11 +22,28 @@ export async function GET() {
         status: pages.status,
         updatedAt: pages.updatedAt,
         scheduledAt: pages.scheduledAt,
-        hasDraft: sql<boolean>`${pages.draft} IS NOT NULL OR ${pages.draftSections} IS NOT NULL`,
+        draft: pages.draft,
+        sections: pages.sections,
+        draftSections: pages.draftSections,
       })
       .from(pages)
       .where(and(eq(pages.tenantId, tenantId), isNull(pages.deletedAt)))
       .orderBy(asc(pages.title));
+
+    const docs = rows.map((r) => {
+      const hasDraftSections =
+        r.draftSections != null &&
+        JSON.stringify(r.draftSections) !== JSON.stringify(r.sections ?? []);
+      return {
+        id: r.id,
+        title: r.title,
+        slug: r.slug,
+        status: r.status,
+        updatedAt: r.updatedAt,
+        scheduledAt: r.scheduledAt,
+        hasDraft: r.draft != null || hasDraftSections,
+      };
+    });
 
     return NextResponse.json({ docs });
   } catch (error) {
