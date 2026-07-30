@@ -19,6 +19,7 @@ export async function GET() {
         id: pages.id,
         title: pages.title,
         slug: pages.slug,
+        status: pages.status,
         updatedAt: pages.updatedAt,
         scheduledAt: pages.scheduledAt,
         hasDraft: sql<boolean>`${pages.draft} IS NOT NULL OR ${pages.draftSections} IS NOT NULL`,

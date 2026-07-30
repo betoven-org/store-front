@@ -70,6 +70,29 @@ export async function PATCH(
 
     const body = await request.json();
 
+    // If only status is being toggled
+    if (body.status !== undefined && Object.keys(body).length === 1) {
+      if (body.status !== "draft" && body.status !== "published") {
+        return NextResponse.json({ error: "Status invalido" }, { status: 400 });
+      }
+      const [updated] = await db
+        .update(pages)
+        .set({ status: body.status, updatedAt: new Date().toISOString() })
+        .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
+        .returning();
+      if (!updated)
+        return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
+
+      revalidateTag("pages");
+      const slug = updated.slug;
+      notifyFrontend(tenantId, {
+        paths: [`/${slug === "home" ? "" : slug}`],
+        tags: ["pages"],
+      });
+
+      return NextResponse.json(updated);
+    }
+
     // If only draftSections is being saved (from PageBuilder)
     if (body.draftSections !== undefined && Object.keys(body).length === 1) {
       const parsed = draftSectionsSchema.safeParse(body.draftSections);

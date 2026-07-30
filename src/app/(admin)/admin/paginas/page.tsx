@@ -22,7 +22,9 @@ type Page = {
   id: number;
   slug: string;
   title: string;
-  draft: unknown;
+  status: "draft" | "published";
+  draft?: unknown;
+  hasDraft?: boolean;
   scheduledAt: string | null;
   updatedAt: string;
 };
@@ -40,7 +42,7 @@ function slugToPath(slug: string) {
   return slug === "home" ? "/" : `/${slug}`;
 }
 
-function RowMenu({ pageId, slug, title, onDuplicate, onDeleted }: { pageId: number; slug: string; title: string; onDuplicate: (pageId: number) => void; onDeleted: (pageId: number) => void }) {
+function RowMenu({ pageId, slug, title, status, onDuplicate, onDeleted, onToggleStatus }: { pageId: number; slug: string; title: string; status: "draft" | "published"; onDuplicate: (pageId: number) => void; onDeleted: (pageId: number) => void; onToggleStatus: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -105,6 +107,20 @@ function RowMenu({ pageId, slug, title, onDuplicate, onDeleted }: { pageId: numb
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
             Duplicar
+          </button>
+          <button
+            type="button"
+            onClick={() => { setOpen(false); onToggleStatus(); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-background"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {status === "published" ? (
+                <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></>
+              ) : (
+                <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>
+              )}
+            </svg>
+            {status === "published" ? "Mover para rascunho" : "Publicar"}
           </button>
           <button
             type="button"
@@ -260,7 +276,28 @@ export default function PaginasPage() {
     }
   }
 
-  const pendingCount = pages.filter((p) => p.draft !== null).length;
+  async function handleToggleStatus(page: Page) {
+    const newStatus = page.status === "published" ? "draft" : "published";
+    setPages((prev) =>
+      prev.map((p) => (p.id === page.id ? { ...p, status: newStatus } : p))
+    );
+    try {
+      const res = await fetch(`/api/admin/pages/${page.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Erro ao atualizar status");
+      toast.success(`"${page.title}" ${newStatus === "published" ? "publicada" : "movida para rascunho"}`);
+    } catch {
+      setPages((prev) =>
+        prev.map((p) => (p.id === page.id ? { ...p, status: page.status } : p))
+      );
+      toast.error("Erro ao atualizar status");
+    }
+  }
+
+  const pendingCount = pages.filter((p) => p.hasDraft || p.draft).length;
 
   const filteredPages = search.trim()
     ? pages.filter((p) => {
@@ -511,17 +548,24 @@ export default function PaginasPage() {
                   <td className="px-4 py-3 text-muted-foreground">
                     <code className="rounded bg-accent px-1.5 py-0.5 text-xs">{page.slug}</code>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col gap-1">
-                      {page.draft ? (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(page)}
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors ${
+                          page.status === "published"
+                            ? "bg-success-bg text-success ring-1 ring-success/20 hover:bg-success/10"
+                            : "bg-muted text-muted-foreground ring-1 ring-border hover:bg-muted/80"
+                        }`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${page.status === "published" ? "bg-success" : "bg-muted-foreground/50"}`} />
+                        {page.status === "published" ? "Publicado" : "Rascunho"}
+                      </button>
+                      {(page.hasDraft || page.draft) && page.status === "published" && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-warning/20">
                           <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-                          Rascunho
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success ring-1 ring-success/20">
-                          <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                          Publicado
+                          Alteracoes
                         </span>
                       )}
                       {page.scheduledAt && (
@@ -548,7 +592,7 @@ export default function PaginasPage() {
                     })}
                   </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <RowMenu pageId={page.id} slug={page.slug} title={page.title} onDuplicate={handleDuplicate} onDeleted={(id) => setPages((prev) => prev.filter((p) => p.id !== id))} />
+                    <RowMenu pageId={page.id} slug={page.slug} title={page.title} status={page.status} onDuplicate={handleDuplicate} onDeleted={(id) => setPages((prev) => prev.filter((p) => p.id !== id))} onToggleStatus={() => handleToggleStatus(page)} />
                   </td>
                 </tr>
               ))}

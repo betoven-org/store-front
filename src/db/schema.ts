@@ -238,6 +238,7 @@ export const pages = pgTable("pages", {
   tenantId: integer("tenant_id").default(1).notNull().references(() => tenants.id),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   title: varchar("title", { length: 255 }).notNull(),
+  status: postStatusEnum("status").default("published").notNull(),
   metaTitle: varchar("meta_title", { length: 255 }),
   metaDescription: text("meta_description"),
   ogTitle: varchar("og_title", { length: 255 }),

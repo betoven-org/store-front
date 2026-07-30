@@ -145,6 +145,10 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const globals = tenant?.globalSections as { header?: any; footer?: any } | null;
   const manifest = (tenant?.manifest || { sections: [] }) as BrasaManifest;
 
+  if (page && (!draft && page.status === "draft")) {
+    return NextResponse.json({ error: "Page not found" }, { status: 404 });
+  }
+
   if (page) {
     const pageSections = (draft ? (page.draftSections ?? page.sections) : page.sections) as SectionBlock[] | null;
     const filteredSections = (pageSections ?? []).filter(
