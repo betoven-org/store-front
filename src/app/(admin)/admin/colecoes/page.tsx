@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, FolderOpen, MoreVertical, Settings, Trash2 } from "lucide-react";
+import { Plus, FolderOpen, MoreVertical, Settings, Trash2, Power } from "lucide-react";
 import { AdminShell, BrasaPageLoader, FormField } from "@brasa/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ type Collection = {
   name: string;
   slug: string;
   icon: string | null;
+  enabled: boolean;
   source: "local" | "synced";
   itemCount?: number;
   createdAt: string;
@@ -87,6 +88,30 @@ export default function ColecoesPage() {
     } finally {
       setDeleting(null);
       setMenuOpen(null);
+    }
+  }
+
+  async function handleToggleEnabled(col: Collection, e: React.MouseEvent) {
+    e.stopPropagation();
+    const newEnabled = !col.enabled;
+    // Optimistic update
+    setCollections((prev) =>
+      prev.map((c) => (c.id === col.id ? { ...c, enabled: newEnabled } : c))
+    );
+    try {
+      const res = await fetch(`/api/admin/collections/${col.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: newEnabled }),
+      });
+      if (!res.ok) throw new Error("Erro ao atualizar");
+      toast.success(`"${col.name}" ${newEnabled ? "ativada" : "desativada"}`);
+    } catch {
+      // Revert
+      setCollections((prev) =>
+        prev.map((c) => (c.id === col.id ? { ...c, enabled: col.enabled } : c))
+      );
+      toast.error("Erro ao atualizar collection");
     }
   }
 
@@ -228,6 +253,7 @@ export default function ColecoesPage() {
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome</th>
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Slug</th>
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fonte</th>
+                <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Itens</th>
                 <th className="w-10"></th>
               </tr>
@@ -239,7 +265,7 @@ export default function ColecoesPage() {
                 <tr
                   key={col.id}
                   onClick={() => router.push(`/admin/colecoes/${col.id}`)}
-                  className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-accent/30"
+                  className={`border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-accent/30 ${!col.enabled ? "opacity-50" : ""}`}
                 >
                   <td className="px-4 py-3 font-medium text-foreground">{col.name}</td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">/{col.slug}</td>
@@ -247,6 +273,20 @@ export default function ColecoesPage() {
                     <Badge variant={col.source === "synced" ? "brand" : "secondary"}>
                       {col.source === "synced" ? "Sync" : "Local"}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      type="button"
+                      onClick={(e) => handleToggleEnabled(col, e)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                        col.enabled
+                          ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      <span className={`size-1.5 rounded-full ${col.enabled ? "bg-emerald-500" : "bg-muted-foreground/50"}`} />
+                      {col.enabled ? "Ativa" : "Inativa"}
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
                     {col.itemCount ?? "—"}
@@ -268,6 +308,13 @@ export default function ColecoesPage() {
                             className="flex w-full items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors"
                           >
                             <Settings className="size-3.5" /> Configurar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { setMenuOpen(null); handleToggleEnabled(col, e); }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors"
+                          >
+                            <Power className="size-3.5" /> {col.enabled ? "Desativar" : "Ativar"}
                           </button>
                           <button
                             type="button"

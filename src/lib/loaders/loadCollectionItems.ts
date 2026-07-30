@@ -15,12 +15,12 @@ export async function loadCollectionItems(
   }
 
   const [collection] = await db
-    .select({ id: collections.id })
+    .select({ id: collections.id, enabled: collections.enabled })
     .from(collections)
     .where(and(eq(collections.tenantId, ctx.tenantId), eq(collections.slug, slug)))
     .limit(1);
 
-  if (!collection) {
+  if (!collection || !collection.enabled) {
     return { data: [], cacheTags: ["collections"] };
   }
 

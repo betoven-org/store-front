@@ -21,6 +21,7 @@ export async function GET() {
         name: collections.name,
         slug: collections.slug,
         icon: collections.icon,
+        enabled: collections.enabled,
         source: collections.source,
         syncConfig: collections.syncConfig,
         pageSlugPattern: collections.pageSlugPattern,
