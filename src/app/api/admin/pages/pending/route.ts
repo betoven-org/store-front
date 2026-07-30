@@ -15,12 +15,8 @@ export async function GET() {
   // Count pages that have either:
   // - draft (content/metadata changes)
   // - draftSections different from sections
-  const docs = await db
-    .select({
-      id: pages.id,
-      slug: pages.slug,
-      title: pages.title,
-    })
+  const rows = await db
+    .select()
     .from(pages)
     .where(
       and(
@@ -32,6 +28,16 @@ export async function GET() {
         )
       )
     );
+
+  // Filter out false positives: pages where draft matches published
+  // and draftSections matches sections
+  const docs = rows.filter((p) => {
+    const hasDraft = p.draft != null;
+    const hasDraftSections =
+      p.draftSections != null &&
+      JSON.stringify(p.draftSections) !== JSON.stringify(p.sections ?? []);
+    return hasDraft || hasDraftSections;
+  });
 
   return NextResponse.json({ docs });
 }

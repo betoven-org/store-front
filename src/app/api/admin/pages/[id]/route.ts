@@ -135,9 +135,31 @@ export async function PATCH(
       content: parsed.data.content,
     };
 
+    // Check if draft values actually differ from published — avoid false drafts
+    const [currentPage] = await db
+      .select()
+      .from(pages)
+      .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
+      .limit(1);
+
+    if (!currentPage)
+      return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
+
+    const isIdentical =
+      (draftData.title ?? "") === (currentPage.title ?? "") &&
+      (draftData.metaTitle ?? "") === (currentPage.metaTitle ?? "") &&
+      (draftData.metaDescription ?? "") === (currentPage.metaDescription ?? "") &&
+      (draftData.ogTitle ?? "") === (currentPage.ogTitle ?? "") &&
+      (draftData.ogDescription ?? "") === (currentPage.ogDescription ?? "") &&
+      (draftData.ogImageUrl ?? "") === (currentPage.ogImageUrl ?? "") &&
+      (draftData.content ?? "") === (currentPage.content ?? "");
+
     const [updated] = await db
       .update(pages)
-      .set({ draft: draftData, updatedAt: new Date().toISOString() })
+      .set({
+        draft: isIdentical ? null : draftData,
+        updatedAt: new Date().toISOString(),
+      })
       .where(and(eq(pages.id, pageId), eq(pages.tenantId, tenantId)))
       .returning();
 

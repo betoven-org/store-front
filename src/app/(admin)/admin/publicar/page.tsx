@@ -16,6 +16,12 @@ type EditState = {
   content: string;
 };
 
+type SectionBlock = {
+  id: string;
+  component: string;
+  props: Record<string, unknown>;
+};
+
 type PendingPage = {
   id: number;
   slug: string;
@@ -27,6 +33,8 @@ type PendingPage = {
   ogImageUrl: string | null;
   content: string | null;
   draft: EditState;
+  sections: SectionBlock[] | null;
+  draftSections: SectionBlock[] | null;
   updatedAt: string;
 };
 
@@ -68,6 +76,33 @@ function getChanges(page: PendingPage): Change[] {
     }
   }
   return result;
+}
+
+function countSectionChanges(page: PendingPage): number {
+  const pub = page.sections ?? [];
+  const draft = page.draftSections ?? [];
+  if (JSON.stringify(pub) === JSON.stringify(draft)) return 0;
+  const pubIds = new Set(pub.map((b) => b.id));
+  const draftIds = new Set(draft.map((b) => b.id));
+  let count = 0;
+  for (const b of draft) {
+    if (!pubIds.has(b.id)) count++; // added
+  }
+  for (const b of pub) {
+    if (!draftIds.has(b.id)) count++; // removed
+  }
+  // modified
+  for (const b of draft) {
+    const p = pub.find((x) => x.id === b.id);
+    if (p && JSON.stringify(p.props) !== JSON.stringify(b.props)) count++;
+  }
+  if (count === 0 && pub.length === draft.length) {
+    // check reorder
+    for (let i = 0; i < pub.length; i++) {
+      if (pub[i].id !== draft[i]?.id) { count = 1; break; }
+    }
+  }
+  return count;
 }
 
 function truncate(str: string, max: number) {
@@ -219,7 +254,7 @@ export default function PublicarPage() {
 
   const selectedChanges = pages
     .filter((p) => selected.has(p.id))
-    .reduce((acc, p) => acc + getChanges(p).length, 0);
+    .reduce((acc, p) => acc + getChanges(p).length + countSectionChanges(p), 0);
 
   if (loading) {
     return (
@@ -374,6 +409,8 @@ export default function PublicarPage() {
             <div className="divide-y divide-border">
               {pages.map((page) => {
                 const changes = getChanges(page);
+                const sectionCount = countSectionChanges(page);
+                const totalChanges = changes.length + sectionCount;
                 const isExpanded = expanded.has(page.id);
                 const isSelected = selected.has(page.id);
 
@@ -426,7 +463,7 @@ export default function PublicarPage() {
 
                       {/* Change count */}
                       <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        {changes.length} campo{changes.length !== 1 ? "s" : ""}
+                        {totalChanges} alterac{totalChanges !== 1 ? "oes" : "ao"}
                       </span>
 
                       {/* Actions */}

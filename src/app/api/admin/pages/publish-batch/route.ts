@@ -39,8 +39,6 @@ export async function POST(request: NextRequest) {
       page.draftSections != null &&
       JSON.stringify(page.draftSections) !== JSON.stringify(page.sections ?? []);
 
-    if (!hasDraft && !hasDraftSections) continue;
-
     const updateData: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
     };
@@ -55,12 +53,21 @@ export async function POST(request: NextRequest) {
       updateData.ogImageUrl = (draft.ogImageUrl as string) ?? page.ogImageUrl;
       updateData.content = (draft.content as string) ?? page.content;
       updateData.draft = null;
+    } else if (page.draft) {
+      // Draft exists but values are identical to published — clear it
+      updateData.draft = null;
     }
 
     if (hasDraftSections) {
       updateData.sections = page.draftSections;
       updateData.draftSections = null;
+    } else if (page.draftSections != null) {
+      // draftSections exists but is identical to sections — clear it
+      updateData.draftSections = null;
     }
+
+    // Nothing to update beyond cleanup
+    if (!hasDraft && !hasDraftSections && !page.draft && page.draftSections == null) continue;
 
     await db
       .update(pages)
