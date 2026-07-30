@@ -6,6 +6,7 @@ import { and, eq, count, sql } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 import { notifyFrontend } from "@brasa/core/revalidate";
+import { logAction } from "@/lib/audit";
 
 export async function POST(
   request: Request,
@@ -101,6 +102,16 @@ export async function POST(
   notifyFrontend(tenantId, {
     paths: [`/${pageSlug || ""}`],
     tags: ["pages"],
+  });
+
+  logAction({
+    tenantId,
+    userId: (session.user as any).id,
+    userName: session.user.name || session.user.email || "Desconhecido",
+    action: "page.publish",
+    resource: "pages",
+    resourceId: numId,
+    resourceTitle: updated?.title,
   });
 
   // Notify Slack on publish (best-effort, non-blocking)

@@ -719,3 +719,19 @@ export const experimentResultsRelations = relations(experimentResults, ({ one })
   experiment: one(experiments, { fields: [experimentResults.experimentId], references: [experiments.id] }),
   variant: one(flagVariants, { fields: [experimentResults.variantId], references: [flagVariants.id] }),
 }));
+
+// ── Audit Logs ──────────────────────────────────────────────────────────────
+
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  userId: integer("user_id").references(() => users.id),
+  userName: varchar("user_name", { length: 255 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  resource: varchar("resource", { length: 100 }).notNull(),
+  resourceId: varchar("resource_id", { length: 100 }),
+  resourceTitle: varchar("resource_title", { length: 500 }),
+  details: jsonb("details"),
+  ip: varchar("ip", { length: 45 }),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});

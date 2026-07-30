@@ -8,6 +8,7 @@ import { z } from "zod";
 import { parseBody } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 import { notifyFrontend } from "@brasa/core/revalidate";
+import { logAction } from "@/lib/audit";
 
 const schema = z.object({
   ids: z.array(z.number().int()).min(1, "Selecione ao menos uma pagina"),
@@ -75,6 +76,18 @@ export async function POST(request: NextRequest) {
       .where(and(eq(pages.id, page.id), eq(pages.tenantId, tenantId)));
 
     published++;
+  }
+
+  if (published > 0) {
+    logAction({
+      tenantId,
+      userId: (session.user as any).id,
+      userName: session.user.name || session.user.email || "Desconhecido",
+      action: "publish.batch",
+      resource: "pages",
+      resourceTitle: `${published} pagina${published !== 1 ? "s" : ""}`,
+      details: { ids, published },
+    });
   }
 
   revalidateTag("pages");

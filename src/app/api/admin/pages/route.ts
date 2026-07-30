@@ -6,6 +6,7 @@ import { asc, eq, and, isNull, sql } from "drizzle-orm";
 import { parseBody, createPageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 import { getTemplateById } from "@/lib/page-templates";
+import { logAction } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -90,6 +91,16 @@ export async function POST(request: NextRequest) {
       createdAt: now,
       updatedAt: now,
     }).returning();
+
+    logAction({
+      tenantId,
+      userId: (session.user as any).id,
+      userName: session.user.name || session.user.email || "Desconhecido",
+      action: "page.create",
+      resource: "pages",
+      resourceId: created.id,
+      resourceTitle: title,
+    });
 
     return NextResponse.json(created, { status: 201 });
   } catch (error: unknown) {

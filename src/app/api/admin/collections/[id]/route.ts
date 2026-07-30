@@ -10,6 +10,7 @@ import { eq, and, asc, inArray } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
 import { notifyFrontend } from "@brasa/core/revalidate";
+import { logAction } from "@/lib/audit";
 
 export async function GET(
   _request: NextRequest,
@@ -232,6 +233,18 @@ export async function PUT(
       .orderBy(asc(collectionFields.sortOrder));
 
     const slug = (updated as { slug?: string })?.slug || existing.slug;
+    const isToggle = body.enabled !== undefined && Object.keys(body).length === 1;
+    logAction({
+      tenantId,
+      userId: (session.user as any).id,
+      userName: session.user.name || session.user.email || "Desconhecido",
+      action: isToggle ? "collection.toggle" : "collection.update",
+      resource: "collections",
+      resourceId: collectionId,
+      resourceTitle: (updated as any)?.name || existing.slug,
+      details: isToggle ? { enabled: body.enabled } : undefined,
+    });
+
     revalidateTag("collections");
     revalidateTag(`collection:${slug}`);
     notifyFrontend(tenantId, {
@@ -278,6 +291,16 @@ export async function DELETE(
     await db
       .delete(collections)
       .where(and(eq(collections.id, collectionId), eq(collections.tenantId, tenantId)));
+
+    logAction({
+      tenantId,
+      userId: (session.user as any).id,
+      userName: session.user.name || session.user.email || "Desconhecido",
+      action: "collection.delete",
+      resource: "collections",
+      resourceId: collectionId,
+      resourceTitle: existingDel.slug,
+    });
 
     revalidateTag("collections");
     revalidateTag(`collection:${existingDel.slug}`);

@@ -8,6 +8,7 @@ import { parseBody, updatePageSchema } from "@brasa/core/validations";
 import { getTenantId } from "@/lib/tenant";
 import { notifyFrontend } from "@brasa/core/revalidate";
 import { z } from "zod";
+import { logAction } from "@/lib/audit";
 
 const draftSectionsSchema = z.array(
   z.object({
@@ -82,6 +83,17 @@ export async function PATCH(
         .returning();
       if (!updated)
         return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
+
+      logAction({
+        tenantId,
+        userId: (session.user as any).id,
+        userName: session.user.name || session.user.email || "Desconhecido",
+        action: "page.status",
+        resource: "pages",
+        resourceId: pageId,
+        resourceTitle: updated.title,
+        details: { status: body.status },
+      });
 
       revalidateTag("pages");
       const slug = updated.slug;
@@ -200,6 +212,16 @@ export async function DELETE(
 
     if (!deleted)
       return NextResponse.json({ error: "Pagina nao encontrada" }, { status: 404 });
+
+    logAction({
+      tenantId,
+      userId: (session.user as any).id,
+      userName: session.user.name || session.user.email || "Desconhecido",
+      action: "page.delete",
+      resource: "pages",
+      resourceId: pageId,
+      resourceTitle: deleted.slug,
+    });
 
     revalidateTag("pages");
     notifyFrontend(tenantId, {

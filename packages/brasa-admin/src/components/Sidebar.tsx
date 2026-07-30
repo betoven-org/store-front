@@ -9,7 +9,7 @@ import {
   BarChart3, UserCog, Database, CreditCard, Code, HelpCircle,
   PanelLeftOpen, PanelLeftClose, X, ChevronDown, ChevronRight,
   ChevronsUpDown, Trash2, ArrowRightLeft, FileText, FolderOpen,
-  ClipboardList, Target, Flag, FlaskConical,
+  ClipboardList, Target, Flag, FlaskConical, ScrollText,
 } from "lucide-react";
 
 type NavItemDef = {
@@ -68,6 +68,7 @@ const staticGroups: NavGroup[] = [
       { href: "/admin/robots", label: "Robots", icon: <Bot className="size-[15px]" /> },
       { href: "/admin/analytics", label: "Analytics", icon: <BarChart3 className="size-[15px]" /> },
       { href: "/admin/usuarios", label: "Usuários", icon: <UserCog className="size-[15px]" /> },
+      { href: "/admin/logs", label: "Logs", icon: <ScrollText className="size-[15px]" /> },
     ],
   },
   {

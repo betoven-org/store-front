@@ -5,6 +5,7 @@ import { collections, collectionFields, collectionItems } from "@/db/schema";
 import { eq, and, asc, sql, isNull } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
+import { logAction } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -101,6 +102,16 @@ export async function POST(request: NextRequest) {
         })),
       );
     }
+
+    logAction({
+      tenantId,
+      userId: (session.user as any).id,
+      userName: session.user.name || session.user.email || "Desconhecido",
+      action: "collection.create",
+      resource: "collections",
+      resourceId: created.id,
+      resourceTitle: created.name,
+    });
 
     revalidateTag("collections");
 
