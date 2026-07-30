@@ -194,7 +194,7 @@ export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
       syncConfig: collections.syncConfig,
     })
     .from(collections)
-    .where(and(eq(collections.tenantId, tenantId), sql`${collections.pageSlugPattern} IS NOT NULL`));
+    .where(and(eq(collections.tenantId, tenantId), eq(collections.enabled, true), sql`${collections.pageSlugPattern} IS NOT NULL`));
 
   for (const col of allCollections) {
     // Cache sync config for Supabase fallback

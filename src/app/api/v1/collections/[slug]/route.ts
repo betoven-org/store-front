@@ -19,30 +19,43 @@ export const GET = withApiKey(async ({ tenantId, draft }, req, params) => {
   const sortParam = searchParams.get("sort");
   const featured = searchParams.get("featured");
 
-  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  // ── 1. Check collection exists and is enabled ──────────────────────────
+  let collection: Awaited<ReturnType<typeof db.query.collections.findFirst>> | undefined;
+
+  if (!isNeonDown()) {
+    try {
+      collection = await db.query.collections.findFirst({
+        where: and(eq(collections.tenantId, tenantId), eq(collections.slug, slug)),
+        with: { fields: { orderBy: [asc(collectionFields.sortOrder)] } },
+      });
+    } catch (err) {
+      if (isNeonConnectionError(err)) markNeonDown();
+      else throw err;
+    }
+  }
+
+  // If we got the collection and it's disabled, return 404 immediately
+  if (collection && !collection.enabled) {
+    return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+  }
+
+  // ── 2. Supabase (primary for synced collections) ──────────────────────
+  if (collection?.source === "synced" && collection.syncConfig) {
+    cacheSyncConfig(tenantId, slug, collection.syncConfig as CachedSyncConfig);
+  }
   const sb = await collectionFromSupabase(tenantId, slug, { limit, offset, search, featured });
   if (sb) return sb;
 
-  // ── 2. Neon (backup) ──────────────────────────────────────────────────
-  if (isNeonDown()) {
+  // ── 3. Neon ────────────────────────────────────────────────────────────
+  if (!collection && isNeonDown()) {
     return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
+  if (!collection) {
+    return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+  }
+
   try {
-    // Find collection by slug + tenant
-    const collection = await db.query.collections.findFirst({
-      where: and(eq(collections.tenantId, tenantId), eq(collections.slug, slug)),
-      with: { fields: { orderBy: [asc(collectionFields.sortOrder)] } },
-    });
-
-    if (!collection || !collection.enabled) {
-      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
-    }
-
-    // Cache sync config
-    if (collection.syncConfig && collection.source === "synced") {
-      cacheSyncConfig(tenantId, slug, collection.syncConfig as CachedSyncConfig);
-    }
 
     const status = searchParams.get("status") || "published";
 

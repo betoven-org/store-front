@@ -9,6 +9,7 @@ import {
 import { eq, and, asc, inArray } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getTenantId } from "@/lib/tenant";
+import { notifyFrontend } from "@brasa/core/revalidate";
 
 export async function GET(
   _request: NextRequest,
@@ -233,6 +234,10 @@ export async function PUT(
     const slug = (updated as { slug?: string })?.slug || existing.slug;
     revalidateTag("collections");
     revalidateTag(`collection:${slug}`);
+    notifyFrontend(tenantId, {
+      paths: [`/${slug}`],
+      tags: ["collections", `collection:${slug}`],
+    });
 
     return NextResponse.json({ ...updated, fields });
   } catch (error) {

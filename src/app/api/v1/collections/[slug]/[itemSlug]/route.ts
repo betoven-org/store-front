@@ -12,28 +12,42 @@ import {
 export const GET = withApiKey(async ({ tenantId, draft }, _req, params) => {
   const { slug, itemSlug } = params;
 
-  // ── 1. Supabase (primary) ─────────────────────────────────────────────
+  // ── 1. Check collection exists and is enabled ──────────────────────────
+  let collection: Awaited<ReturnType<typeof db.query.collections.findFirst>> | undefined;
+
+  if (!isNeonDown()) {
+    try {
+      collection = await db.query.collections.findFirst({
+        where: and(eq(collections.tenantId, tenantId), eq(collections.slug, slug)),
+        with: { fields: { orderBy: [asc(collectionFields.sortOrder)] } },
+      });
+    } catch (err) {
+      if (isNeonConnectionError(err)) markNeonDown();
+      else throw err;
+    }
+  }
+
+  if (collection && !collection.enabled) {
+    return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+  }
+
+  // ── 2. Supabase (primary for synced collections) ──────────────────────
+  if (collection?.source === "synced" && collection.syncConfig) {
+    cacheSyncConfig(tenantId, slug, collection.syncConfig as CachedSyncConfig);
+  }
   const sb = await collectionItemFromSupabase(tenantId, slug, itemSlug);
   if (sb) return sb;
 
-  // ── 2. Neon (backup) ──────────────────────────────────────────────────
-  if (isNeonDown()) {
+  // ── 3. Neon ────────────────────────────────────────────────────────────
+  if (!collection && isNeonDown()) {
     return NextResponse.json({ error: "All databases unavailable" }, { status: 503 });
   }
 
+  if (!collection) {
+    return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+  }
+
   try {
-    const collection = await db.query.collections.findFirst({
-      where: and(eq(collections.tenantId, tenantId), eq(collections.slug, slug)),
-      with: { fields: { orderBy: [asc(collectionFields.sortOrder)] } },
-    });
-
-    if (!collection || !collection.enabled) {
-      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
-    }
-
-    if (collection.syncConfig && collection.source === "synced") {
-      cacheSyncConfig(tenantId, slug, collection.syncConfig as CachedSyncConfig);
-    }
 
     const item = await db.query.collectionItems.findFirst({
       where: and(
